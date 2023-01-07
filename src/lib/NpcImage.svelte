@@ -10,6 +10,11 @@
 	export let { portrait_path, name } = {} as NpcImageProp;
 
 	onMount(() => {
+		if (portrait_path === '') {
+			image = '/resource/sprites/disable overlay.png';
+			return;
+		}
+
 		image = `/${portrait_path.split('/').slice(2).join('/')}`;
 	});
 

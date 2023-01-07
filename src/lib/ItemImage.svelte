@@ -23,11 +23,16 @@
 	};
 
 	onMount(() => {
+		if (icon_path === '') {
+			image = '/resource/sprites/disable overlay.png';
+			return;
+		}
+
 		image = `/${icon_path.split('/').slice(2).join('/')}`;
 	});
 
 	function handleMissingImage() {
-		image = '/Resource/sprites/disable overlay.png';
+		image = '/resource/sprites/disable overlay.png';
 	}
 </script>
 
