@@ -47,3 +47,18 @@
 <div class="mt-10 xs:mx-10 xl:mx-60">
 	<slot />
 </div>
+
+<footer class="mt-6 flex flex-1 flex-col items-center justify-center border-t px-8">
+	<a href="/">MapleStory2 Handbook</a>
+	<p class="mt-12 flex flex-row">
+		Made by
+		<a class="mx-1 underline" href="https://github.com/AngeloTadeucci">Tadeucci</a>
+		- 2023
+	</p>
+	<p>
+		Source code on <a
+			class="underline"
+			href="https://github.com/AngeloTadeucci/Maple2Codex-FrontEnd-Svelte">GitHub</a
+		>
+	</p>
+</footer>

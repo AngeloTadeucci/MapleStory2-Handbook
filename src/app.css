@@ -2,13 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-@media (prefers-color-scheme: dark) {
-	html {
-		color-scheme: dark;
-	}
-
-	body {
-		color: white;
-		background: #212223;
-	}
+/* disable media for now, fix style for light mode before enabling it again */
+/* @media (prefers-color-scheme: dark) { */
+html {
+	color-scheme: dark;
 }
+
+body {
+	color: white;
+	background: #212223;
+}
+/* } */

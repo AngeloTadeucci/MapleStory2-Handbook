@@ -1,17 +1,16 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-
 	type ItemImageProp = {
 		icon_path: string;
 		name: string;
 		rarity: number;
 		min_count?: number;
 		max_count?: number;
-		small?: boolean;
 	};
 
 	let image = '';
-	export let { icon_path, rarity, name, small, min_count, max_count } = {} as ItemImageProp;
+	export let { icon_path, rarity, name, min_count, max_count } = {} as ItemImageProp;
+	const noImage = '/resource/sprites/disable overlay.png';
+	const fixIconPath = () => `/${icon_path.split('/').slice(2).join('/')}`;
 
 	const calcMinMaxCount = () => {
 		if (min_count && max_count) {
@@ -22,21 +21,14 @@
 		}
 	};
 
-	onMount(() => {
-		if (icon_path === '') {
-			image = '/resource/sprites/disable overlay.png';
-			return;
-		}
+	const handleMissingImage = () => {
+		image = noImage;
+	};
 
-		image = `/${icon_path.split('/').slice(2).join('/')}`;
-	});
-
-	function handleMissingImage() {
-		image = '/resource/sprites/disable overlay.png';
-	}
+	$: image = icon_path === '' ? noImage : fixIconPath();
 </script>
 
-<div class="relative" style={small ? 'height: 60px; width: 60px;' : 'height: 100px; width: 100px;'}>
+<div class="frame relative">
 	<img
 		src="/resource/sprites/slot_frame.png"
 		width={64}
@@ -46,7 +38,7 @@
 		style="left: 2px; top: 2px;"
 	/>
 	<img
-		src={`/resource/sprites/slot bg ${rarity}.png`}
+		src="/resource/sprites/slot bg {rarity}.png"
 		width={60}
 		height={60}
 		alt="background"
@@ -55,8 +47,8 @@
 	/>
 	<img
 		src={image}
-		width={small ? 60 : 100}
-		height={small ? 60 : 100}
+		width={60}
+		height={60}
 		alt={name}
 		class="absolute"
 		style="left: 2px; top: 2px;"
@@ -68,3 +60,10 @@
 		</p>
 	{/if}
 </div>
+
+<style>
+	.frame {
+		height: 60px;
+		width: 60px;
+	}
+</style>

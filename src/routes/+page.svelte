@@ -8,7 +8,7 @@
 </script>
 
 <div
-	class="m-auto flex flex-col items-center justify-center gap-10 rounded-md border border-slate-800 bg-dark-gray py-10 xl:flex-row xl:px-10"
+	class="m-auto flex flex-col items-center justify-center gap-10 rounded-md py-2 xl:flex-row xl:px-10"
 >
 	<div
 		class="flex w-3/4 flex-col items-center justify-center rounded-md border border-white pb-5  xl:w-1/2"
@@ -17,12 +17,11 @@
 		<div class="max-w-1/2 flex w-3/4 flex-col justify-center">
 			{#each data.props.mostViewedItems as item}
 				<div class="border-b border-white py-3 last:border-none hover:bg-zinc-800">
-					<a class="flex flex-row items-center justify-between" href="/items/{item.id}">
+					<a class="flex flex-row items-center justify-between px-5" href="/items/{item.id}">
 						<ItemImage
 							icon_path={item.icon_path.toLocaleLowerCase()}
 							name={item.name}
 							rarity={item.rarity}
-							small
 						/>
 						<p class="ml-8 text-white">{item.name}</p>
 					</a>
