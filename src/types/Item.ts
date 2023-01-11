@@ -7,7 +7,7 @@ export default interface Item {
 	guide_description: string;
 	main_description: string;
 	rarity: number;
-	is_outfit: boolean;
+	is_outfit: boolean | number;
 	job_limit: number[];
 	level_min: number;
 	level_max: number;
@@ -41,7 +41,7 @@ export default interface Item {
 	random_stat_count: number;
 	slot: number;
 	set_info: number[];
-	set_data: SetInfo[];
+	set_data?: SetInfo[];
 	set_name: string;
 	item_preset: string;
 	glamour_count: number;
@@ -51,8 +51,8 @@ export default interface Item {
 }
 
 export interface SetInfo {
-	id: number;
-	name: string;
+	Item1: string; // item name
+	Item2: number; // item id
 }
 
 export interface StatList {
@@ -82,3 +82,14 @@ export enum StatAttributeType {
 	Rate = 0,
 	Flat = 1
 }
+
+export type SearchItem = Pick<
+	Item,
+	| 'id'
+	| 'name'
+	| 'rarity'
+	| 'icon_path'
+	| 'main_description'
+	| 'guide_description'
+	| 'tooltip_description'
+>;

@@ -1,16 +1,15 @@
 <script lang="ts">
+	import NpcImage from '$lib/components/NpcImage.svelte';
+	import type { SearchNpc } from 'src/types/Npc';
 	import { onMount } from 'svelte';
-	import ItemImage from '$lib/components/ItemImage.svelte';
-	import { unescape } from '$lib/helpers/htmlParser';
-	import type { SearchItem } from 'src/types/Item';
 
 	let page = 0;
 	let searchTerm = '';
 
-	let data: SearchItem[] = [];
+	let data: SearchNpc[] = [];
 
 	async function fetchData() {
-		const response = await fetch(`/api/items?search=${searchTerm}&page=${page}&limit=20`);
+		const response = await fetch(`/api/npcs?search=${searchTerm}&page=${page}&limit=20`);
 
 		const items = await response.json();
 
@@ -31,22 +30,10 @@
 		// load first batch onMount
 		fetchData();
 	});
-
-	function getDescription(item: SearchItem) {
-		if (item.main_description.length > 0) {
-			return unescape(item.main_description);
-		} else if (item.guide_description.length > 0) {
-			return unescape(item.guide_description);
-		} else if (item.tooltip_description.length > 0) {
-			return unescape(item.tooltip_description);
-		} else {
-			return 'No description';
-		}
-	}
 </script>
 
 <div>
-	<h1 class="mb-4 text-4xl font-bold">Items</h1>
+	<h1 class="mb-4 text-4xl font-bold">Npcs</h1>
 	<input
 		type="text"
 		placeholder="Search 🔎"
@@ -77,47 +64,46 @@
 				<th scope="col" class="py-4 pr-6 text-left">Icon</th>
 				<th scope="col" class="hidden py-4 pr-6 text-left lg:table-caption">Id</th>
 				<th scope="col" class="py-4 pr-6 text-left">Name</th>
-				<th scope="col" class="hidden py-4 pr-6 text-left lg:table-caption">Description</th>
 			</tr>
 		</thead>
 		<tbody>
-			{#each data as item}
+			{#each data as npc}
 				<tr
 					class="cursor-pointer border-b last:border-none hover:bg-zinc-800"
 					on:click={() => {
 						// shit code, why can't we use anchor tag around the whole row?
-						window.location.href = `/items/${item.id}`;
+						window.location.href = `/npcs/${npc.id}`;
 					}}
 				>
 					<td class="flex flex-col items-center justify-center py-4 lg:table-cell lg:flex-row">
-						<ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />
+						<NpcImage portrait={npc.portrait} name={npc.name} />
+
 						<button
 							on:click={(e) => {
-								navigator.clipboard.writeText(item.id.toString());
+								navigator.clipboard.writeText(npc.id.toString());
 								e.stopPropagation();
 							}}
 							title="Copy ID"
 							class="mt-4 flex items-center justify-center gap-2 rounded-lg border p-1 lg:hidden"
 						>
-							{item.id}
+							{npc.id}
 							<img src="/icons/copy-content.svg" width={20} height={20} alt="Copy" />
 						</button>
 					</td>
 					<td class="hidden lg:table-cell">
 						<button
 							on:click={(e) => {
-								navigator.clipboard.writeText(item.id.toString());
+								navigator.clipboard.writeText(npc.id.toString());
 								e.stopPropagation();
 							}}
 							title="Copy ID"
 							class="flex items-center justify-start gap-2 rounded-lg border p-1"
 						>
-							{item.id}
+							{npc.id}
 							<img src="/icons/copy-content.svg" width={20} height={20} alt="Copy" />
 						</button>
 					</td>
-					<td class="align-middle">{item.name}</td>
-					<td class="hidden h-full w-96 align-middle lg:table-cell">{getDescription(item)}</td>
+					<td class="align-middle">{npc.name}</td>
 				</tr>
 			{/each}
 		</tbody>

@@ -11,6 +11,8 @@ module.exports = {
     extend: {
       colors: {
         'header-black': '#1b1d1e',
+        'red': '#e93b3b',
+        'gold': '#ffd200',
       }
     }
   },

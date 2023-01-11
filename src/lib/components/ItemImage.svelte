@@ -10,7 +10,7 @@
 	let image = '';
 	export let { icon_path, rarity, name, min_count, max_count } = {} as ItemImageProp;
 	const noImage = '/resource/sprites/disable overlay.png';
-	const fixIconPath = () => `/${icon_path.split('/').slice(2).join('/')}`;
+	const fixIconPath = () => `/${icon_path.toLocaleLowerCase().split('/').slice(2).join('/')}`;
 
 	const calcMinMaxCount = () => {
 		if (min_count && max_count) {

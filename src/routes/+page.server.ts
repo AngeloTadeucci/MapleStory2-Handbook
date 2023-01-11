@@ -1,9 +1,8 @@
 import type { PageServerLoad } from './$types';
-import { PrismaClient } from '@prisma/client';
+import DBClient from '$lib/prismaClient';
+const prisma = DBClient.getInstance().prisma;
 
 export const load = (async () => {
-	const prisma = new PrismaClient();
-
 	const mostViewedItems = await prisma.items.findMany({
 		select: {
 			id: true,

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ItemImage from '$lib/ItemImage.svelte';
-	import NpcImage from '$lib/NpcImage.svelte';
+	import ItemImage from '$lib/components/ItemImage.svelte';
+	import NpcImage from '$lib/components/NpcImage.svelte';
 
 	import type { PageData } from './$types';
 
@@ -18,11 +18,7 @@
 			{#each data.props.mostViewedItems as item}
 				<div class="border-b border-white py-3 last:border-none hover:bg-zinc-800">
 					<a class="flex flex-row items-center justify-between px-5" href="/items/{item.id}">
-						<ItemImage
-							icon_path={item.icon_path.toLocaleLowerCase()}
-							name={item.name}
-							rarity={item.rarity}
-						/>
+						<ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />
 						<p class="ml-8 text-white">{item.name}</p>
 					</a>
 				</div>
@@ -38,7 +34,7 @@
 			{#each data.props.mostViewedNpcs as npc}
 				<div class="border-b border-white py-3 last:border-none hover:bg-zinc-800">
 					<a class="flex flex-row items-center justify-between" href="/npcs/{npc.id}">
-						<NpcImage portrait_path={npc.portrait.toLocaleLowerCase()} name={npc.name} />
+						<NpcImage portrait={npc.portrait} name={npc.name} />
 						<p class="ml-8 text-white">{npc.name}</p>
 					</a>
 				</div>
