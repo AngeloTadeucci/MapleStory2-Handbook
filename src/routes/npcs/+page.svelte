@@ -32,6 +32,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>MS2 Handbook - Npcs</title>
+</svelte:head>
+
 <div>
 	<h1 class="mb-4 text-4xl font-bold">Npcs</h1>
 	<input

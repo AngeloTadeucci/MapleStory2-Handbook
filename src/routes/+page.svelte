@@ -7,6 +7,11 @@
 	export let data: PageData;
 </script>
 
+<svelte:head>
+	<base href="/handbook" />
+	<title>MS2 Handbook</title>
+</svelte:head>
+
 <div
 	class="m-auto flex flex-col items-center justify-center gap-10 rounded-md py-2 xl:flex-row xl:px-10"
 >

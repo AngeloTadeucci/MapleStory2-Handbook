@@ -25,6 +25,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>MS2 Handbook - {item.name}</title>
+</svelte:head>
+
 <div>
 	<div class="flex items-center gap-1">
 		<p>Item</p>

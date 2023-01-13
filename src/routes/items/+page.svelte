@@ -45,6 +45,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>MS2 Handbook - Items</title>
+</svelte:head>
+
 <div>
 	<h1 class="mb-4 text-4xl font-bold">Items</h1>
 	<input
