@@ -3,6 +3,7 @@
 	import ItemImage from '$lib/components/ItemImage.svelte';
 	import { unescape } from '$lib/helpers/htmlParser';
 	import type { SearchItem } from 'src/types/Item';
+	import { url } from '$lib/helpers/addBasePath';
 
 	let page = 0;
 	let searchTerm = '';
@@ -10,7 +11,7 @@
 	let data: SearchItem[] = [];
 
 	async function fetchData() {
-		const response = await fetch(`/api/items?search=${searchTerm}&page=${page}&limit=20`);
+		const response = await fetch(url(`/api/items?search=${searchTerm}&page=${page}&limit=20`));
 
 		const items = await response.json();
 
@@ -90,7 +91,7 @@
 					class="cursor-pointer border-b last:border-none hover:bg-zinc-800"
 					on:click={() => {
 						// shit code, why can't we use anchor tag around the whole row?
-						window.location.href = `/items/${item.id}`;
+						window.location.href = url(`/items/${item.id}`);
 					}}
 				>
 					<td class="flex flex-col items-center justify-center py-4 lg:table-cell lg:flex-row">
@@ -104,7 +105,7 @@
 							class="mt-4 flex items-center justify-center gap-2 rounded-lg border p-1 lg:hidden"
 						>
 							{item.id}
-							<img src="/icons/copy-content.svg" width={20} height={20} alt="Copy" />
+							<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
 						</button>
 					</td>
 					<td class="hidden lg:table-cell">
@@ -117,7 +118,7 @@
 							class="flex items-center justify-start gap-2 rounded-lg border p-1"
 						>
 							{item.id}
-							<img src="/icons/copy-content.svg" width={20} height={20} alt="Copy" />
+							<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
 						</button>
 					</td>
 					<td class="align-middle">{item.name}</td>

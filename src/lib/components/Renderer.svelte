@@ -11,11 +11,4 @@
 	></script>
 </svelte:head>
 
-<model-viewer
-	alt="Helena"
-	src="{glbUrl}{model}"
-	ar
-	shadow-intensity="1"
-	camera-controls
-	touch-action="pan-y"
-/>
+<model-viewer src="{glbUrl}{model}" camera-controls touch-action="pan-y" />

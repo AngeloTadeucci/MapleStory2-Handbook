@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { IconCode, Job, Rarity, SlotName, TransferType } from '$lib/Enums';
+	import { url } from '$lib/helpers/addBasePath';
 	import itemHelper from '$lib/helpers/itemHelper';
 	import type Item from 'src/types/Item';
 	import ItemImage from '../ItemImage.svelte';
@@ -36,7 +37,7 @@
 	<div class="item-top">
 		<div class="item-top__iconcode">
 			<img
-				src="/resource/icons/icon_code/{item.icon_code}.png"
+				src={url(`/resource/icons/icon_code/${item.icon_code}.png`)}
 				width={57}
 				height={63}
 				alt="Icon Code"
@@ -45,7 +46,7 @@
 		</div>
 		<div class="item-top__image">
 			<img
-				src="/resource/sprites/rarity star {item.rarity}.png"
+				src={url(`/resource/sprites/rarity star ${item.rarity}.png`)}
 				width={93}
 				height={16}
 				alt="Rarity"
@@ -114,7 +115,7 @@
 		</div>
 		{#if item.gender !== 2}
 			<div class="ml-auto mr-6">
-				<img src="/item/genderLimit {item.gender}.png" width={22} height={22} alt="Gender" />
+				<img src={url(`/item/genderLimit ${item.gender}.png`)} width={22} height={22} alt="Gender" />
 			</div>
 		{/if}
 	</div>
@@ -152,7 +153,7 @@
 			<p class="text-green">{item.set_name}</p>
 			<ul>
 				{#each item.set_data as set}
-					<a href="/item/{set.Item1}">
+					<a href={url(`/item/${set.Item1}`)}>
 						<li class="mt-1">{set.Item2}</li>
 					</a>
 				{/each}
@@ -174,7 +175,7 @@
 		{#if item.repackage_limit > 0}
 			<p class="text-gold">
 				Possible repackages: {item.repackage_limit} (Requires [
-				<a href="/item/20302422"> Trader&apos;s Ribbon </a>
+				<a href={url(`/item/20302422`)}>Trader&apos;s Ribbon</a>
 				] x{item.repackage_count})
 			</p>
 		{/if}
@@ -222,7 +223,7 @@
 	.item-middle {
 		padding-left: 15px;
 		padding-bottom: 15px;
-		background-image: url('/item/item_middle.png');
+		background-image: url('/handbook/item/item_middle.png');
 		background-repeat: repeat-y;
 		display: flex;
 		flex-direction: column;
@@ -249,7 +250,7 @@
 	}
 
 	hr#splitline1 {
-		background-image: url('/item/splitline.png');
+		background-image: url('/handbook/item/splitline.png');
 		background-repeat: no-repeat;
 		margin: 0;
 		width: 430px;

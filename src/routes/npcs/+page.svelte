@@ -1,5 +1,6 @@
 <script lang="ts">
 	import NpcImage from '$lib/components/NpcImage.svelte';
+	import { url } from '$lib/helpers/addBasePath';
 	import type { SearchNpc } from 'src/types/Npc';
 	import { onMount } from 'svelte';
 
@@ -9,7 +10,7 @@
 	let data: SearchNpc[] = [];
 
 	async function fetchData() {
-		const response = await fetch(`/api/npcs?search=${searchTerm}&page=${page}&limit=20`);
+		const response = await fetch(url(`/api/npcs?search=${searchTerm}&page=${page}&limit=20`));
 
 		const items = await response.json();
 
@@ -76,7 +77,7 @@
 					class="cursor-pointer border-b last:border-none hover:bg-zinc-800"
 					on:click={() => {
 						// shit code, why can't we use anchor tag around the whole row?
-						window.location.href = `/npcs/${npc.id}`;
+						window.location.href = url(`/npcs/${npc.id}`);
 					}}
 				>
 					<td class="flex flex-col items-center justify-center py-4 lg:table-cell lg:flex-row">
@@ -91,7 +92,7 @@
 							class="mt-4 flex items-center justify-center gap-2 rounded-lg border p-1 lg:hidden"
 						>
 							{npc.id}
-							<img src="/icons/copy-content.svg" width={20} height={20} alt="Copy" />
+							<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
 						</button>
 					</td>
 					<td class="hidden lg:table-cell">
@@ -104,7 +105,7 @@
 							class="flex items-center justify-start gap-2 rounded-lg border p-1"
 						>
 							{npc.id}
-							<img src="/icons/copy-content.svg" width={20} height={20} alt="Copy" />
+							<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
 						</button>
 					</td>
 					<td class="align-middle">{npc.name}</td>

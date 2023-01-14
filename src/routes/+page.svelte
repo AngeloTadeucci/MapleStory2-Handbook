@@ -3,6 +3,7 @@
 	import NpcImage from '$lib/components/NpcImage.svelte';
 
 	import type { PageData } from './$types';
+	import { url } from '$lib/helpers/addBasePath';
 
 	export let data: PageData;
 </script>
@@ -22,7 +23,10 @@
 		<div class="max-w-1/2 flex w-3/4 flex-col justify-center">
 			{#each data.props.mostViewedItems as item}
 				<div class="border-b border-white py-3 last:border-none hover:bg-zinc-800">
-					<a class="flex flex-row items-center justify-between px-5" href="/items/{item.id}">
+					<a
+						class="flex flex-row items-center justify-between px-5"
+						href={url(`/items/${item.id}`)}
+					>
 						<ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />
 						<p class="ml-8 text-white">{item.name}</p>
 					</a>
@@ -38,7 +42,7 @@
 		<div class="flex w-3/4 flex-col justify-center">
 			{#each data.props.mostViewedNpcs as npc}
 				<div class="border-b border-white py-3 last:border-none hover:bg-zinc-800">
-					<a class="flex flex-row items-center justify-between" href="/npcs/{npc.id}">
+					<a class="flex flex-row items-center justify-between px-5" href={url(`/npcs/${npc.id}`)}>
 						<NpcImage portrait={npc.portrait} name={npc.name} />
 						<p class="ml-8 text-white">{npc.name}</p>
 					</a>

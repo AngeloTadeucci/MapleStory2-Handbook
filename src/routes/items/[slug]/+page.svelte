@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { env } from '$env/dynamic/public';
 	import ItemDetails from '$lib/components/item/ItemDetails.svelte';
 	import Renderer from '$lib/components/Renderer.svelte';
+	import { url } from '$lib/helpers/addBasePath';
 	import type Item from 'src/types/Item';
 	import type { PageData } from './$types';
 
@@ -12,9 +14,11 @@
 	let loadModel: boolean;
 	let glbExists: boolean;
 
+	const glbUrl = env.PUBLIC_NODE_ENV === 'development' ? '/glbs/' : env.PUBLIC_MODELS_URL;
+
 	$: {
 		if (item && loadModel) {
-			fetch(`/glb/${item.glb[0].toLowerCase()}`).then((x) => {
+			fetch(`${glbUrl}${item.glb[0].toLowerCase()}`).then((x) => {
 				if (x.status === 404) {
 					glbExists = false;
 				} else {
@@ -42,7 +46,7 @@
 			class="flex items-center justify-center gap-2 rounded-lg border p-1"
 		>
 			{item.id}
-			<img src="/icons/copy-content.svg" width={20} height={20} alt="Copy" />
+			<img src={url("/icons/copy-content.svg")} width={20} height={20} alt="Copy" />
 		</button>
 	</div>
 	<div class="content mt-3 rounded-lg border p-6">
@@ -66,7 +70,7 @@
 						Model not found.
 					{/if}
 					{#if loadModel && glbExists}
-						<Renderer model={item.glb[0].toLowerCase()} item={true} />
+						<Renderer model={item.glb[0].toLowerCase()} />
 					{/if}
 				</div>
 			{/if}

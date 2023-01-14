@@ -9,7 +9,11 @@ const config = {
 
 	kit: {
 		adapter: adapter({ out: 'build' }),
-	}
+		paths: {
+			base: '/handbook'
+		}
+	},
+
 };
 
 export default config;

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { url } from '$lib/helpers/addBasePath';
+
 	type ItemImageProp = {
 		icon_path: string;
 		name: string;
@@ -9,8 +11,8 @@
 
 	let image = '';
 	export let { icon_path, rarity, name, min_count, max_count } = {} as ItemImageProp;
-	const noImage = '/resource/sprites/disable overlay.png';
-	const fixIconPath = () => `/${icon_path.toLocaleLowerCase().split('/').slice(2).join('/')}`;
+	const noImage = url('/resource/sprites/disable overlay.png');
+	const fixIconPath = () => url(`/${icon_path.toLocaleLowerCase().split('/').slice(2).join('/')}`);
 
 	const calcMinMaxCount = () => {
 		if (min_count && max_count) {
@@ -30,7 +32,7 @@
 
 <div class="frame relative">
 	<img
-		src="/resource/sprites/slot_frame.png"
+		src={url('/resource/sprites/slot_frame.png')}
 		width={64}
 		height={64}
 		alt="background"
@@ -38,7 +40,7 @@
 		style="left: 2px; top: 2px;"
 	/>
 	<img
-		src="/resource/sprites/slot bg {rarity}.png"
+		src={url(`/resource/sprites/slot bg ${rarity}.png`)}
 		width={60}
 		height={60}
 		alt="background"

@@ -1,4 +1,5 @@
 <script>
+	import { url } from '$lib/helpers/addBasePath';
 	import '../app.css';
 	let menus = [
 		{ name: 'Items', path: '/items' },
@@ -13,9 +14,9 @@
 </script>
 
 <div class="flex h-32 items-center bg-header-black px-12 py-6">
-	<a href="/">
+	<a href={url('/')}>
 		<img
-			src="/logo.png"
+			src={url('/logo.png')}
 			width={112}
 			height={68}
 			alt="Logo MapleStory2 Handbook"
@@ -28,7 +29,7 @@
 
 	{#each menus as menu, index}
 		<div class="flex items-center">
-			<a href={menu.path} class="px-2 py-2 font-sans font-bold text-white">{menu.name}</a>
+			<a href={url(menu.path)} class="px-2 py-2 font-sans font-bold text-white">{menu.name}</a>
 			{#if index !== menus.length - 1}
 				<div class="ml-12 mr-12 h-14 w-px border border-gray-600" />
 			{/if}
@@ -39,7 +40,7 @@
 		<div class="ml-12 mr-12 h-20 w-px border border-gray-600" />
 
 		<a href="https://ko-fi.com/angelotadeucci" target="_blank" rel="noreferrer" title="Ko-fi">
-			<img src="/kofi.png" width={109} height={45} alt="Ko-fi" class="cursor-pointer" />
+			<img src={url('/kofi.png')} width={109} height={45} alt="Ko-fi" class="cursor-pointer" />
 		</a>
 	</div>
 </div>
@@ -49,7 +50,7 @@
 </div>
 
 <footer class="mt-6 flex flex-1 flex-col items-center justify-center border-t px-8">
-	<a href="/">MapleStory2 Handbook</a>
+	<a href={url('/')}>MapleStory2 Handbook</a>
 	<p class="mt-12 flex flex-row">
 		Made by
 		<a class="mx-1 underline" href="https://github.com/AngeloTadeucci">Tadeucci</a>
