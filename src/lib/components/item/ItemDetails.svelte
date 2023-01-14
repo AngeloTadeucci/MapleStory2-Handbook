@@ -33,8 +33,8 @@
 </script>
 
 <div class="relative flex flex-col">
-	<div class="top">
-		<div class="top__iconcode">
+	<div class="item-top">
+		<div class="item-top__iconcode">
 			<img
 				src="/resource/icons/icon_code/{item.icon_code}.png"
 				width={57}
@@ -43,7 +43,7 @@
 				title="Icon Code"
 			/>
 		</div>
-		<div class="top__image">
+		<div class="item-top__image">
 			<img
 				src="/resource/sprites/rarity star {item.rarity}.png"
 				width={93}
@@ -93,7 +93,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="middle">
+	<div class="item-middle">
 		<div class="flex flex-col gap-1">
 			{#if item.gear_score > 0}
 				<p>Gear score {item.gear_score}</p>
@@ -119,7 +119,7 @@
 		{/if}
 	</div>
 	<hr id="splitline1" />
-	<div class="middle">
+	<div class="item-middle">
 		{#if item.constants_stats.length > 0 || item.static_stats.length > 0}
 			<ItemBasicAttributes
 				constantsStats={item.constants_stats}
@@ -134,9 +134,9 @@
 			/>
 		{/if}
 		{#if item.guide_description.length > 0 || item.tooltip_description.length > 0}
-			<div class="middle__descriptions">
+			<div class="item-middle__descriptions">
 				{#if item.guide_description.length > 0}
-					<p class="middle__descriptions__guide">
+					<p class="item-middle__descriptions__guide">
 						{@html item.guide_description}
 					</p>
 				{/if}
@@ -148,7 +148,7 @@
 	</div>
 	{#if item.set_name !== '' && item.set_data}
 		<hr id="splitline1" />
-		<div class="middle pt-3">
+		<div class="item-middle pt-3">
 			<p class="text-green">{item.set_name}</p>
 			<ul>
 				{#each item.set_data as set}
@@ -160,7 +160,7 @@
 		</div>
 	{/if}
 	<hr id="splitline1" />
-	<div class="middle gap-1 pt-3">
+	<div class="item-middle gap-1 pt-3">
 		{#if item.tradeable_count > 0}
 			<p class="text-gold">Tradable {item.tradeable_count} time(s).</p>
 		{/if}
@@ -196,13 +196,14 @@
 			<p class="text-gold">Glamour Forges Possible: {item.glamour_count}</p>
 		{/if}
 	</div>
-	<div class="bot" />
+	<div class="item-bot" />
 </div>
 
 <style lang="scss">
-	.top {
+	.item-top {
 		position: relative;
 		background-image: url('/item/item_top.png');
+		background-repeat: no-repeat;
 		width: 430px;
 		height: 136px;
 
@@ -218,7 +219,7 @@
 		}
 	}
 
-	.middle {
+	.item-middle {
 		padding-left: 15px;
 		padding-bottom: 15px;
 		background-image: url('/item/item_middle.png');
@@ -240,9 +241,9 @@
 		}
 	}
 
-	.bot {
+	.item-bot {
 		position: relative;
-		background-image: url('/item/item_bot.png');
+		background-image: url('/handbook/item/item_bot.png');
 		width: 430px;
 		height: 14px;
 	}
