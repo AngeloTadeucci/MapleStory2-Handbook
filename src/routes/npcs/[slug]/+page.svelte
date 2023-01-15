@@ -26,7 +26,6 @@
 				} else {
 					glbExists = true;
 				}
-				console.log('GLB exists', glbExists);
 			} catch (error) {}
 		}
 	});
