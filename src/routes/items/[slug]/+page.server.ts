@@ -24,7 +24,14 @@ export const load = (async ({ params }) => {
 			box_id: item.box_id
 		},
 		include: {
-			item1: true
+			item1: {
+				select: {
+					name: true,
+					icon_path: true,
+					job_limit: true,
+					job_recommend: true
+				}
+			}
 		}
 	});
 

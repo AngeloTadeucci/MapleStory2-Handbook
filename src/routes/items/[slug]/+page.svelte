@@ -1,80 +1,67 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import ItemDetails from '$lib/components/item/ItemDetails.svelte';
+	import ItemBoxContent from '$lib/components/item/ItemBoxContent.svelte';
 	import Renderer from '$lib/components/Renderer.svelte';
 	import { url } from '$lib/helpers/addBasePath';
 	import type Item from 'src/types/Item';
+	import type { ItemBox } from 'src/types/ItemBox';
+	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
+	import CopyId from '$lib/components/CopyId.svelte';
 
 	export let data: PageData;
-	const { item: resultItem, boxContent } = data.props;
+	const { item: resultItem, boxContent: resultBoxContent } = data.props;
 
 	const item = resultItem as unknown as Item;
+	const boxContent = resultBoxContent as unknown as ItemBox[];
 
-	let loadModel: boolean;
 	let glbExists: boolean;
 
 	const glbUrl = env.PUBLIC_NODE_ENV === 'development' ? '/glbs/' : env.PUBLIC_MODELS_URL;
 
-	$: {
-		if (item && loadModel) {
-			fetch(`${glbUrl}${item.glb[0].toLowerCase()}`).then((x) => {
-				if (x.status === 404) {
+	onMount(async () => {
+		if (item && item.glb.length > 0) {
+			try {
+				const response = await fetch(`${glbUrl}${item.glb[0].toLowerCase()}`, {
+					method: 'HEAD'
+				});
+				if (response.status === 404) {
 					glbExists = false;
 				} else {
 					glbExists = true;
 				}
-			});
+			} catch (error) {}
 		}
-	}
+	});
 </script>
 
 <svelte:head>
 	<title>MS2 Handbook - {item.name}</title>
 </svelte:head>
 
-<div>
-	<div class="flex items-center gap-1">
-		<p>Item</p>
-		&gt;
-		<button
-			on:click={(e) => {
-				navigator.clipboard.writeText(item.id.toString());
-				e.stopPropagation();
-			}}
-			title="Copy ID"
-			class="flex items-center justify-center gap-2 rounded-lg border p-1"
-		>
-			{item.id}
-			<img src={url("/icons/copy-content.svg")} width={20} height={20} alt="Copy" />
-		</button>
-	</div>
-	<div class="content mt-3 rounded-lg border p-6">
-		<p class="text-4xl">{item.name}</p>
-		<div class="flex flex-row gap-16">
-			<ItemDetails {item} />
-			{#if item.glb.length > 0}
-				<div class="model">
-					{#if !loadModel}
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<p
-							class="cursor-pointer"
-							on:click={() => {
-								loadModel = true;
-							}}
-						>
-							Click to load model...
-						</p>
-					{/if}
-					{#if loadModel && !glbExists}
-						Model not found.
-					{/if}
-					{#if loadModel && glbExists}
-						<Renderer model={item.glb[0].toLowerCase()} />
-					{/if}
-				</div>
-			{/if}
-		</div>
+<div class="flex items-center gap-1">
+	<p>Item</p>
+	&gt;
+	<CopyId id={item.id} />
+</div>
+<div class="content mt-3 rounded-lg border p-6">
+	<p class="text-4xl">{item.name}</p>
+	<div class="flex flex-row flex-wrap justify-start gap-16 gap-y-2">
+		<ItemDetails {item} />
+		{#if item.glb.length > 0 && glbExists}
+			<div class="model mt-7 flex items-center justify-center px-3 pt-2">
+				<Renderer cover={item.icon_path} model={item.glb[0]} name={item.name} />
+				<img
+					src={url('/item/mouse_controls.png')}
+					class="absolute bottom-5 left-5 hidden md:block"
+					alt="Mouse Controls"
+				/>
+			</div>
+		{/if}
+		{#if boxContent.length > 0}
+			<ItemBoxContent {boxContent} />
+		{/if}
 	</div>
 </div>
 
@@ -82,6 +69,13 @@
 	.content {
 		background: #2b2c2e;
 		border-color: #37393d;
-		min-height: 90vh;
+		min-height: fit-content;
+	}
+
+	.model {
+		position: relative;
+		background-image: url('/item/render_box.png');
+		width: 575px;
+		height: 799px;
 	}
 </style>

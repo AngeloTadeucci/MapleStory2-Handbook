@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CopyId from '$lib/components/CopyId.svelte';
 	import NpcImage from '$lib/components/NpcImage.svelte';
 	import { url } from '$lib/helpers/addBasePath';
 	import type { SearchNpc } from 'src/types/Npc';
@@ -82,31 +83,10 @@
 				>
 					<td class="flex flex-col items-center justify-center py-4 lg:table-cell lg:flex-row">
 						<NpcImage portrait={npc.portrait} name={npc.name} />
-
-						<button
-							on:click={(e) => {
-								navigator.clipboard.writeText(npc.id.toString());
-								e.stopPropagation();
-							}}
-							title="Copy ID"
-							class="mt-4 flex items-center justify-center gap-2 rounded-lg border p-1 lg:hidden"
-						>
-							{npc.id}
-							<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
-						</button>
+						<CopyId id={npc.id} extraClass="mt-4 lg:hidden" />
 					</td>
 					<td class="hidden lg:table-cell">
-						<button
-							on:click={(e) => {
-								navigator.clipboard.writeText(npc.id.toString());
-								e.stopPropagation();
-							}}
-							title="Copy ID"
-							class="flex items-center justify-start gap-2 rounded-lg border p-1"
-						>
-							{npc.id}
-							<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
-						</button>
+						<CopyId id={npc.id} />
 					</td>
 					<td class="align-middle">{npc.name}</td>
 				</tr>

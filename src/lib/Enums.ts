@@ -50,7 +50,8 @@ export enum IconCode {
 	'Message Interior' = 49,
 	'Lapenshard' = 50,
 	'Blueprint' = 52,
-	'Capsule' = 53
+	'Capsule' = 53,
+	'Hair' = 100
 }
 
 export enum Gender {
@@ -74,6 +75,8 @@ export enum Job {
 	'Striker' = 100,
 	'SoulBinder' = 110
 }
+
+export const Jobs = [0, 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110];
 
 export enum NpcType {
 	'Enemy' = 0,

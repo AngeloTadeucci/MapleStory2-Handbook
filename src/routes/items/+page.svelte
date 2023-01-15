@@ -4,6 +4,7 @@
 	import { unescape } from '$lib/helpers/htmlParser';
 	import type { SearchItem } from 'src/types/Item';
 	import { url } from '$lib/helpers/addBasePath';
+	import CopyId from '$lib/components/CopyId.svelte';
 
 	let page = 0;
 	let searchTerm = '';
@@ -96,30 +97,10 @@
 				>
 					<td class="flex flex-col items-center justify-center py-4 lg:table-cell lg:flex-row">
 						<ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />
-						<button
-							on:click={(e) => {
-								navigator.clipboard.writeText(item.id.toString());
-								e.stopPropagation();
-							}}
-							title="Copy ID"
-							class="mt-4 flex items-center justify-center gap-2 rounded-lg border p-1 lg:hidden"
-						>
-							{item.id}
-							<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
-						</button>
+						<CopyId id={item.id} extraClass="lg:hidden mt-4" />
 					</td>
 					<td class="hidden lg:table-cell">
-						<button
-							on:click={(e) => {
-								navigator.clipboard.writeText(item.id.toString());
-								e.stopPropagation();
-							}}
-							title="Copy ID"
-							class="flex items-center justify-start gap-2 rounded-lg border p-1"
-						>
-							{item.id}
-							<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
-						</button>
+						<CopyId id={item.id} />
 					</td>
 					<td class="align-middle">{item.name}</td>
 					<td class="hidden h-full w-96 align-middle lg:table-cell">{getDescription(item)}</td>

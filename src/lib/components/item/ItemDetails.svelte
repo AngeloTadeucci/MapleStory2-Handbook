@@ -25,15 +25,13 @@
 		}
 
 		if (item.icon_code === 1 || item.icon_code === 2 || item.icon_code === 3) {
-			description += ' ' + SlotName[Number(item.item_preset)];
-		} else {
-			description += ' ' + IconCode[item.icon_code];
+			return (description += ' ' + SlotName[Number(item.item_preset)]);
 		}
-		return description;
+		return (description += ' ' + IconCode[item.icon_code]);
 	};
 </script>
 
-<div class="relative flex flex-col">
+<div class="relative mt-2 flex flex-col">
 	<div class="item-top">
 		<div class="item-top__iconcode">
 			<img
@@ -114,12 +112,19 @@
 			{/if}
 		</div>
 		{#if item.gender !== 2}
-			<div class="ml-auto mr-6">
-				<img src={url(`/item/genderLimit ${item.gender}.png`)} width={22} height={22} alt="Gender" />
+			<div class="absolute right-4">
+				<img
+					src={url(`/item/genderLimit ${item.gender}.png`)}
+					width={22}
+					height={22}
+					alt="Gender"
+				/>
 			</div>
 		{/if}
 	</div>
-	<hr id="splitline1" />
+	{#if item.constants_stats.length > 0 || item.static_stats.length > 0 || item.guide_description.length > 0 || item.tooltip_description.length > 0}
+		<hr id="splitline1" />
+	{/if}
 	<div class="item-middle">
 		{#if item.constants_stats.length > 0 || item.static_stats.length > 0}
 			<ItemBasicAttributes
