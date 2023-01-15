@@ -6,7 +6,7 @@
 	export let staticStats: StatRangeList[];
 	export let itemSlot: number;
 
-	let constantWithoutDefaultStat: StatList[];
+	let constantWithoutDefaultStat: StatList[] = [];
 
 	if (itemHelper.isArmor(itemSlot)) {
 		constantWithoutDefaultStat = constantsStats.filter((x) => x.Item1.ItemAttribute !== 20);

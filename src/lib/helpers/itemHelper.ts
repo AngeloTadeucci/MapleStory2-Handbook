@@ -1,4 +1,4 @@
-const isWeapon = (slot: number) => slot == 4 || slot == 5 || slot == 19;
+const isWeapon = (slot: number) => slot == 4 || slot == 5 || slot == 19 || slot == 20;
 
 const isAccessory = (slot: number) =>
 	slot == 12 || slot == 14 || slot == 15 || slot == 16 || slot == 17;
