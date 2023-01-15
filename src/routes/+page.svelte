@@ -9,7 +9,6 @@
 </script>
 
 <svelte:head>
-	<base href="/handbook" />
 	<title>MS2 Handbook</title>
 </svelte:head>
 

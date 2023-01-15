@@ -228,7 +228,7 @@
 	.item-middle {
 		padding-left: 15px;
 		padding-bottom: 15px;
-		background-image: url('/handbook/item/item_middle.png');
+		background-image: url('/item/item_middle.png');
 		background-repeat: repeat-y;
 		display: flex;
 		flex-direction: column;
@@ -249,13 +249,13 @@
 
 	.item-bot {
 		position: relative;
-		background-image: url('/handbook/item/item_bot.png');
+		background-image: url('/item/item_bot.png');
 		width: 430px;
 		height: 14px;
 	}
 
 	hr#splitline1 {
-		background-image: url('/handbook/item/splitline.png');
+		background-image: url('/item/splitline.png');
 		background-repeat: no-repeat;
 		margin: 0;
 		width: 430px;
