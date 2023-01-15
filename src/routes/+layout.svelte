@@ -49,7 +49,7 @@
 	<slot />
 </div>
 
-<footer class="mt-6 flex flex-1 flex-col items-center justify-center border-t px-8">
+<footer class="mt-6 flex flex-1 flex-col items-center justify-center border-t px-8 pt-4">
 	<a href={url('/')}>MapleStory2 Handbook</a>
 	<p class="mt-12 flex flex-row">
 		Made by
