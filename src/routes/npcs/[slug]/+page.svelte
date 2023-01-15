@@ -17,11 +17,8 @@
 
 	onMount(async () => {
 		if (npc && npc.glb.length > 0) {
-			const url = `${glbUrl}${npc.glb.toLowerCase()}`;
-			console.log('URL', url);
-
 			try {
-				const response = await fetch(url, {
+				const response = await fetch(`${glbUrl}${npc.glb.toLowerCase()}`, {
 					method: 'HEAD'
 				});
 				if (response.status === 404) {
@@ -56,6 +53,8 @@
 					alt="Mouse Controls"
 				/>
 			</div>
+		{:else}
+			Model not found
 		{/if}
 	</div>
 </div>
