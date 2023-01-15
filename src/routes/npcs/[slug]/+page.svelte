@@ -1,13 +1,38 @@
 <script lang="ts">
+	import { env } from '$env/dynamic/public';
+
 	import CopyId from '$lib/components/CopyId.svelte';
 	import { url } from '$lib/helpers/addBasePath';
 	import type { Npc } from 'src/types/Npc';
 	import Renderer from '$lib/components/Renderer.svelte';
 	import type { PageData } from './$types';
+	import { onMount } from 'svelte';
 
 	export let data: PageData;
 
 	const npc = data.props.npc as unknown as Npc;
+	let glbExists: boolean;
+
+	const glbUrl = env.PUBLIC_NODE_ENV === 'development' ? '/glbs/' : env.PUBLIC_MODELS_URL;
+
+	onMount(async () => {
+		if (npc && npc.glb.length > 0) {
+			const url = `${glbUrl}${npc.glb.toLowerCase()}`;
+			console.log('URL', url);
+
+			try {
+				const response = await fetch(url, {
+					method: 'HEAD'
+				});
+				if (response.status === 404) {
+					glbExists = false;
+				} else {
+					glbExists = true;
+				}
+				console.log('GLB exists', glbExists);
+			} catch (error) {}
+		}
+	});
 </script>
 
 <svelte:head>
@@ -22,7 +47,7 @@
 <div class="content mt-3 rounded-lg border p-6">
 	<p class="text-4xl">{npc.name}</p>
 	<div class="flex flex-row flex-wrap justify-start gap-16 gap-y-2">
-		{#if npc.glb.length > 0}
+		{#if npc.glb.length > 0 && glbExists}
 			<div class="model mt-7 flex items-center justify-center px-3 pt-2">
 				<Renderer cover={npc.portrait} model={npc.glb} name={npc.name} />
 				<img
