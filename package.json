@@ -36,6 +36,8 @@
 	"dependencies": {
 		"@prisma/client": "^4.8.1",
 		"@sveltejs/adapter-node": "^1.1.1",
+		"@tailwindcss/line-clamp": "^0.4.2",
+		"rate-limiter-flexible": "^2.4.1",
 		"sass": "^1.57.1"
 	}
 }

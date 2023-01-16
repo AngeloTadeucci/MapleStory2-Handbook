@@ -103,7 +103,11 @@
 						<CopyId id={item.id} />
 					</td>
 					<td class="align-middle">{item.name}</td>
-					<td class="hidden h-full w-96 align-middle lg:table-cell">{getDescription(item)}</td>
+					<td class="hidden h-full w-96 align-middle lg:table-cell">
+						<p class="line-clamp-3 ">
+							{@html getDescription(item)}
+						</p>
+					</td>
 				</tr>
 			{/each}
 		</tbody>
