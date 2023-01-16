@@ -23,7 +23,7 @@ Note: You can use NODE_ENV as **production** to serve the 3D models from another
 
 ## Live demo
 
-soon
+[handbook.tadeucci.dev](https://handbook.tadeucci.dev)
 
 ## Contributing
 
