@@ -21,6 +21,10 @@ Note: You will need to have a MySQL server running and the connection details co
 
 Note: You can use NODE_ENV as **production** to serve the 3D models from another folder, using for example nginx.
 
+## Live demo
+
+soon
+
 ## Contributing
 
 This project is open to contributions, feel free to fork and submit pull requests.
