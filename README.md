@@ -1,38 +1,36 @@
-# create-svelte
+# MapleStory 2 Handbook
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+MapleStory 2 Handbook is a searchable database of items and NPCs in the popular MMORPG MapleStory 2. The project allows users to easily look up information on in-game items and NPCs, including their stats, locations, and other relevant details.
 
-## Creating a project
+## Required Technology
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Node.js 16+
+- npm
+- MySQL 8
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+## Installation
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+1. Clone the repository: `git clone https://github.com/AngeloTadeucci/Maple2Codex-FrontEnd-Svelte`
+2. Install dependencies: `npm install`
+3. Go to `Maple2Codex-FrontEnd-Svelte/static/resource/image` and unzip **image.7z**
+4. Get the database and 3D models from the [MS2 Dev discord](https://discord.com/invite/mABkFFhBuU) in the [tools channel](https://discord.com/channels/783045053501276170/1061066540998479911).
+5. Import the database and unzip the models inside `Maple2Codex-FrontEnd-Svelte/static/glbs`
+6. Start the application: `npm run dev`
 
-## Developing
+Note: You will need to have a MySQL server running and the connection details configured in a .env file in the root of the project.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Note: You can use NODE_ENV as **production** to serve the 3D models from another folder, using for example nginx.
 
-```bash
-npm run dev
+## Contributing
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+This project is open to contributions, feel free to fork and submit pull requests.
 
-## Building
+## Todo
 
-To create a production version of your app:
+- [ ] Create infinite scrolling for /items and /npcs
+- [ ] Finish NPC details page
+- [ ] Add maps, quests, trophies, dungeons, skills, dyes and more.
 
-```bash
-npm run build
-```
+## License
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+This project is licensed under the [MIT License](https://github.com/AngeloTadeucci/Maple2Codex-FrontEnd-Svelte/blob/master/LICENSE).
