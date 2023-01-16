@@ -23,7 +23,8 @@
 		}
 	};
 
-	const handleMissingImage = () => {
+	const handleMissingImage = (event: Event) => {
+		event.preventDefault();
 		image = noImage;
 	};
 

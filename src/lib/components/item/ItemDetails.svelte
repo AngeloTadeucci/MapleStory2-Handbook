@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconCode, Job, Rarity, SlotName, TransferType } from '$lib/Enums';
 	import { url } from '$lib/helpers/addBasePath';
+	import { unescape } from '$lib/helpers/htmlParser';
 	import itemHelper from '$lib/helpers/itemHelper';
 	import type Item from 'src/types/Item';
 	import ItemImage from '../ItemImage.svelte';
@@ -143,11 +144,11 @@
 			<div class="item-middle__descriptions">
 				{#if item.guide_description.length > 0}
 					<p class="item-middle__descriptions__guide">
-						{@html item.guide_description}
+						{@html unescape(item.guide_description)}
 					</p>
 				{/if}
 				{#if item.tooltip_description.length > 0}
-					<p>{@html item.tooltip_description}</p>
+					<p>{@html unescape(item.tooltip_description)}</p>
 				{/if}
 			</div>
 		{/if}

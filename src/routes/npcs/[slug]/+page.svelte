@@ -15,19 +15,36 @@
 
 	const glbUrl = env.PUBLIC_NODE_ENV === 'development' ? '/glbs/' : env.PUBLIC_MODELS_URL;
 
+	async function incrementViewCount() {
+		await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+
+		try {
+			await fetch(`/api/npcs?id=${npc.id}`, {
+				method: 'POST'
+			});
+		} catch {}
+	}
+
 	onMount(async () => {
-		if (npc && npc.glb.length > 0) {
-			try {
-				const response = await fetch(`${glbUrl}${npc.glb.toLowerCase()}`, {
-					method: 'HEAD'
-				});
-				if (response.status === 404) {
-					glbExists = false;
-				} else {
-					glbExists = true;
-				}
-			} catch (error) {}
+		if (!npc) {
+			return;
 		}
+
+		incrementViewCount();
+		if (npc.glb.length <= 0) {
+			return;
+		}
+
+		try {
+			const response = await fetch(`${glbUrl}${npc.glb.toLowerCase()}`, {
+				method: 'HEAD'
+			});
+			if (response.status === 404) {
+				glbExists = false;
+			} else {
+				glbExists = true;
+			}
+		} catch {}
 	});
 </script>
 
