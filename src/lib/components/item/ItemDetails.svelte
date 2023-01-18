@@ -152,7 +152,7 @@
 			<p class="text-green">{item.set_name}</p>
 			<ul>
 				{#each item.set_data as set}
-					<a href={url(`/items/${set.Item1}`)}>
+					<a href={url(`/items/${set.Item1}`)} data-sveltekit-reload>
 						<li class="mt-1">{set.Item2}</li>
 					</a>
 				{/each}
@@ -174,7 +174,7 @@
 		{#if item.repackage_limit > 0}
 			<p class="text-gold">
 				Possible repackages: {item.repackage_limit} (Requires [
-				<a href={url(`/items/20302422`)}>Trader&apos;s Ribbon</a>
+				<a href={url(`/items/20302422`)} data-sveltekit-reload>Trader&apos;s Ribbon</a>
 				] x{item.repackage_count})
 			</p>
 		{/if}
