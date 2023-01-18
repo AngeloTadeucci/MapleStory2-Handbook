@@ -13,12 +13,12 @@
 </svelte:head>
 
 <div
-	class="m-auto flex flex-col items-center justify-center gap-10 rounded-md py-2 xl:flex-row xl:px-10"
+	class="m-auto flex w-3/4 flex-col items-center justify-center gap-10 rounded-md py-2 xl:flex-row xl:px-10"
 >
 	<div
-		class="flex w-3/4 flex-col items-center justify-center rounded-md border border-white pb-5  xl:w-1/2"
+		class="flex w-3/4 flex-col items-center justify-center rounded-md border border-gray-600 pb-5  xl:w-1/2"
 	>
-		<h1 class="mb-5 text-2xl text-white">Most Viewed Items</h1>
+		<h1 class="mb-5 mt-3 text-2xl text-white">Most Viewed Items</h1>
 		<div class="max-w-1/2 flex w-3/4 flex-col justify-center">
 			{#each data.props.mostViewedItems as item}
 				<div class="border-b border-white py-3 last:border-none hover:bg-zinc-800">
@@ -35,9 +35,9 @@
 	</div>
 
 	<div
-		class="flex w-3/4 flex-col items-center justify-center rounded-md border border-white pb-5 xl:w-1/2"
+		class="flex w-3/4 flex-col items-center justify-center rounded-md border border-gray-600 pb-5 xl:w-1/2"
 	>
-		<h1 class="mb-5 text-2xl text-white">Most Viewed NPCs</h1>
+		<h1 class="mb-5 mt-3 text-2xl text-white">Most Viewed NPCs</h1>
 		<div class="flex w-3/4 flex-col justify-center">
 			{#each data.props.mostViewedNpcs as npc}
 				<div class="border-b border-white py-3 last:border-none hover:bg-zinc-800">

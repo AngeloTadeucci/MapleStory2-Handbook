@@ -11,5 +11,6 @@ html {
 body {
 	color: white;
 	background: #212223;
+	min-height: 100vh;
 }
 /* } */
