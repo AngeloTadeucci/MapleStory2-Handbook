@@ -68,6 +68,7 @@ model items {
   box_id              Int          @default(0)
   item_type           Int          @default(0)
   item_boxes          item_boxes[]
+  represent_option    Int          @default(0)
 }
 
 model npcs {

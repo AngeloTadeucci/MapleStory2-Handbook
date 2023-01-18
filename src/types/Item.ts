@@ -48,6 +48,7 @@ export default interface Item {
 	box_id: number;
 	box_content?: ItemBox[];
 	item_type: number;
+	represent_option: number;
 }
 
 export interface SetInfo {

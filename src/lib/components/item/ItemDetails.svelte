@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconCode, Job, Rarity, SlotName, TransferType } from '$lib/Enums';
+	import { IconCode, Job, Rarity, SlotName, Stat, TransferType } from '$lib/Enums';
 	import { url } from '$lib/helpers/addBasePath';
 	import { unescape } from '$lib/helpers/htmlParser';
 	import itemHelper from '$lib/helpers/itemHelper';
@@ -10,13 +10,17 @@
 
 	export let item: Item;
 
-	const defenseValue = item.constants_stats.find((x) => x?.Item1.ItemAttribute == 20)?.Item1.Value;
+	const mainStat = () => {
+		if (item.represent_option === 27) {
+			const minAttack = item.constants_stats.find((x) => x.Item1.ItemAttribute == 27)?.Item1.Value;
 
-	const minAttack = item.constants_stats.find((x) => x.Item1.ItemAttribute == 27)?.Item1.Value;
-
-	const maxAttack = item.constants_stats.find((x) => x.Item1.ItemAttribute == 28)?.Item1.Value;
-
-	const healthValue = item.constants_stats.find((x) => x.Item1.ItemAttribute == 4)?.Item1.Value;
+			const maxAttack = item.constants_stats.find((x) => x.Item1.ItemAttribute == 28)?.Item1.Value;
+			return `${minAttack}~${maxAttack}`;
+		} else {
+			return item.constants_stats.find((x) => x.Item1.ItemAttribute == item.represent_option)?.Item1
+				.Value;
+		}
+	};
 
 	const generateItemDescription = () => {
 		let description: string = Rarity[item.rarity];
@@ -55,14 +59,14 @@
 				<ItemImage icon_path={item.icon_path} rarity={item.rarity} name={item.name} />
 				<div class="flex flex-col gap-1">
 					{#if !item.is_outfit}
-						{#if itemHelper.isArmor(item.slot)}
-							<p class="font-medium">Defense</p>
+						{#if itemHelper.isArmor(item.slot) || itemHelper.isAccessory(item.slot)}
+							<p class="font-medium">{Stat[item.represent_option]}</p>
 							<div class="value__container">
 								<div class={`value__container__blur text-3xl rarity-${item.rarity}`}>
-									{defenseValue}
+									{mainStat()}
 								</div>
 								<div class={`value__container__value rarity-black text-3xl`}>
-									{defenseValue}
+									{mainStat()}
 								</div>
 							</div>
 						{/if}
@@ -70,21 +74,10 @@
 							<p class="font-medium">Weapon Attack</p>
 							<div class="value__container">
 								<div class={`value__container__blur text-3xl rarity-${item.rarity}`}>
-									{minAttack}~{maxAttack}
+									{mainStat()}
 								</div>
 								<div class={`value__container__value rarity-black text-3xl`}>
-									{minAttack}~{maxAttack}
-								</div>
-							</div>
-						{/if}
-						{#if itemHelper.isAccessory(item.slot)}
-							<p class="font-medium">Health</p>
-							<div class="value__container">
-								<div class={`value__container__blur text-3xl rarity-${item.rarity}`}>
-									{healthValue}
-								</div>
-								<div class={`value__container__value rarity-black text-3xl`}>
-									{healthValue}
+									{mainStat()}
 								</div>
 							</div>
 						{/if}
@@ -131,7 +124,7 @@
 			<ItemBasicAttributes
 				constantsStats={item.constants_stats}
 				staticStats={item.static_stats}
-				itemSlot={item.slot}
+				representOption={item.represent_option}
 			/>
 		{/if}
 		{#if item.random_stats.length > 0}
@@ -159,7 +152,7 @@
 			<p class="text-green">{item.set_name}</p>
 			<ul>
 				{#each item.set_data as set}
-					<a href={url(`/item/${set.Item1}`)}>
+					<a href={url(`/items/${set.Item1}`)}>
 						<li class="mt-1">{set.Item2}</li>
 					</a>
 				{/each}
@@ -181,7 +174,7 @@
 		{#if item.repackage_limit > 0}
 			<p class="text-gold">
 				Possible repackages: {item.repackage_limit} (Requires [
-				<a href={url(`/item/20302422`)}>Trader&apos;s Ribbon</a>
+				<a href={url(`/items/20302422`)}>Trader&apos;s Ribbon</a>
 				] x{item.repackage_count})
 			</p>
 		{/if}
