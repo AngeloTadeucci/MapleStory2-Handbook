@@ -87,7 +87,11 @@
 			</div>
 			<div class="mt-5 flex h-4/5 flex-col items-center">
 				{#each menus as menu}
-					<a href={url(menu.path)} class="px-2 py-2 font-sans font-bold text-white">{menu.name}</a>
+					<a
+						href={url(menu.path)}
+						class="px-2 py-2 font-sans font-bold text-white"
+						on:click={() => (open = false)}>{menu.name}</a
+					>
 				{/each}
 				<a
 					href="https://ko-fi.com/angelotadeucci"
