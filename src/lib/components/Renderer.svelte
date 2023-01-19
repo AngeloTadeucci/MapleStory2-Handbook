@@ -15,7 +15,7 @@
 	}
 
 	const glbUrl = env.PUBLIC_NODE_ENV === 'development' ? '/glbs/' : env.PUBLIC_MODELS_URL;
-	const iconPath = url(`/${cover.toLowerCase().split('/').slice(2).join('/')}`);
+	const iconPath = url(`/${cover.split('/').slice(2).join('/')}`);
 </script>
 
 <svelte:head>
@@ -26,7 +26,7 @@
 </svelte:head>
 
 <model-viewer
-	src="{glbUrl}{model.toLowerCase()}"
+	src="{glbUrl}{model}"
 	alt={name}
 	camera-controls
 	{...{ cameraTarget, customOrbit, orientation }}

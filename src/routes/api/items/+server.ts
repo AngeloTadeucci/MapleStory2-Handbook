@@ -14,7 +14,11 @@ export const GET = (async ({ url }) => {
 	const search = url.searchParams.get('search') ?? '';
 	const limit = Number(url.searchParams.get('limit') ?? 20);
 
-	const searchString = `'%${search}%'`;
+	if (search.includes('"')) {
+		return json([]);
+	}
+
+	const searchString = `"%${search}%"`;
 
 	const items = await prisma.$queryRawUnsafe<SearchItem[]>(
 		`SELECT id, name, rarity, icon_path, main_description, guide_description, tooltip_description FROM maple2_codex.items WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${

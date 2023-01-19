@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { StatRangeList } from 'src/types/Item';
+	import CopyId from '../CopyId.svelte';
 
 	export let randomStats: StatRangeList[];
 	export let randomStatCount: number;
@@ -21,7 +22,7 @@
 	</div>
 	<div class="limit-size {toggleBonus ? '' : 'limit-size--active'}">
 		<ul>
-			{#each randomStats as stat}
+			{#each randomStats as stat, index}
 				<li class="mt-1">
 					{#if stat.Item2.includes('{0:0.1f}')}
 						{stat.Item2.replace(
@@ -34,6 +35,11 @@
 						{stat.Item2.replace('{0}', `${stat.Item1.ValueMin} ~ ${stat.Item1.ValueMax}`)}
 					{/if}
 				</li>
+				{#if index === 2 && !toggleBonus}
+					{#if randomStats.length > 3}
+						<li class="mt-1"><wbr /></li>
+					{/if}
+				{/if}
 			{/each}
 		</ul>
 	</div>
@@ -51,7 +57,7 @@
 	.limit-size {
 		&--active {
 			display: -webkit-box;
-			-webkit-line-clamp: 3;
+			-webkit-line-clamp: 4;
 			-webkit-box-orient: vertical;
 			overflow: hidden;
 		}

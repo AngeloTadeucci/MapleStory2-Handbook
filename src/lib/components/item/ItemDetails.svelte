@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { IconCode, Job, Rarity, SlotName, Stat, TransferType } from '$lib/Enums';
 	import { url } from '$lib/helpers/addBasePath';
-	import { unescape } from '$lib/helpers/htmlParser';
+	import { closeMissingTags, unescape } from '$lib/helpers/htmlParser';
 	import itemHelper from '$lib/helpers/itemHelper';
 	import type Item from 'src/types/Item';
 	import ItemImage from '../ItemImage.svelte';
@@ -137,11 +137,11 @@
 			<div class="item-middle__descriptions">
 				{#if item.guide_description.length > 0}
 					<p class="item-middle__descriptions__guide">
-						{@html unescape(item.guide_description)}
+						{@html closeMissingTags(unescape(item.guide_description), true)}
 					</p>
 				{/if}
 				{#if item.tooltip_description.length > 0}
-					<p>{@html unescape(item.tooltip_description)}</p>
+					<p>{@html closeMissingTags(unescape(item.tooltip_description))}</p>
 				{/if}
 			</div>
 		{/if}
@@ -234,9 +234,6 @@
 
 			&__guide {
 				margin-bottom: 15px;
-				font {
-					color: white;
-				}
 			}
 		}
 	}

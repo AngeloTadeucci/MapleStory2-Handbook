@@ -5,6 +5,7 @@
 	import type { SearchItem } from 'src/types/Item';
 	import { url } from '$lib/helpers/addBasePath';
 	import CopyId from '$lib/components/CopyId.svelte';
+	import debounce from 'lodash.debounce';
 
 	let page = 0;
 	let searchTerm = '';
@@ -51,30 +52,22 @@
 	<title>MS2 Handbook - Items</title>
 </svelte:head>
 
-<div>
+<div class="m-auto w-3/4">
 	<h1 class="mb-4 text-4xl font-bold">Items</h1>
 	<input
 		type="text"
 		placeholder="Search 🔎"
 		class="mb-4 rounded-lg border p-2"
 		bind:value={searchTerm}
-		on:keyup={async (e) => {
-			if (e.key === 'Enter') {
+		on:keyup={debounce(
+			async () => {
 				await fetchData();
+			},
+			500,
+			{
+				maxWait: 1000
 			}
-
-			if (e.key === 'Escape') {
-				searchTerm = '';
-			}
-
-			if (searchTerm.length === 0) {
-				await fetchData();
-			}
-
-			if (searchTerm.length > 2) {
-				await fetchData();
-			}
-		}}
+		)}
 	/>
 
 	<table class="min-w-full">

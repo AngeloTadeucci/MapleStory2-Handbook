@@ -9,7 +9,7 @@
 	let image = '';
 	export let { portrait, name } = {} as NpcImageProp;
 	const noImage = url('/resource/sprites/disable overlay.png');
-	const fixIconPath = () => url(`/${portrait.toLowerCase().split('/').slice(2).join('/')}`);
+	const fixIconPath = () => url(`/${portrait.split('/').slice(2).join('/')}`);
 
 	const handleMissingImage = () => {
 		image = noImage;

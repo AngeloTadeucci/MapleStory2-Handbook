@@ -20,7 +20,4 @@
 		grid-template-rows: 9rem 1fr auto;
 		min-height: 100vh;
 	}
-	main {
-		display: grid;
-	}
 </style>

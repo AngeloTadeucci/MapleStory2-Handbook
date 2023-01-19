@@ -9,25 +9,22 @@
 </script>
 
 <svelte:head>
-	<title>MS2 Handbook</title>
+	<title>MapleStory 2 Handbook</title>
 </svelte:head>
 
 <div
-	class="m-auto flex w-3/4 flex-col items-center justify-center gap-10 rounded-md py-2 xl:flex-row xl:px-10"
+	class="mt-5 flex flex-col gap-10 rounded-md py-2 md:mt-10 md:flex-col lg:m-auto lg:flex-row xl:w-3/4"
 >
 	<div
-		class="flex w-3/4 flex-col items-center justify-center rounded-md border border-gray-600 pb-5  xl:w-1/2"
+		class="mx-5 flex flex-col items-center justify-center rounded-md border border-gray-600 px-5 pb-5 lg:w-1/2 lg:justify-center"
 	>
 		<h1 class="mb-5 mt-3 text-2xl text-white">Most Viewed Items</h1>
-		<div class="max-w-1/2 flex w-3/4 flex-col justify-center">
+		<div class="flex w-full flex-col lg:w-3/4">
 			{#each data.props.mostViewedItems as item}
-				<div class="border-b border-white py-3 last:border-none hover:bg-zinc-800">
-					<a
-						class="flex flex-row items-center justify-between px-5"
-						href={url(`/items/${item.id}`)}
-					>
+				<div class="w-full border-b border-white py-3 last:border-none hover:bg-zinc-800 ">
+					<a class="flex flex-row items-center " href={url(`/items/${item.id}`)}>
 						<ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />
-						<p class="ml-8 text-white">{item.name}</p>
+						<p class="ml-8 w-1/2 text-white line-clamp-1 lg:w-3/4">{item.name}</p>
 					</a>
 				</div>
 			{/each}
@@ -35,15 +32,15 @@
 	</div>
 
 	<div
-		class="flex w-3/4 flex-col items-center justify-center rounded-md border border-gray-600 pb-5 xl:w-1/2"
+		class="mx-5 flex flex-col items-center justify-center rounded-md border border-gray-600 px-5 pb-5 lg:w-1/2 lg:justify-center"
 	>
 		<h1 class="mb-5 mt-3 text-2xl text-white">Most Viewed NPCs</h1>
-		<div class="flex w-3/4 flex-col justify-center">
+		<div class="flex w-full flex-col lg:w-3/4">
 			{#each data.props.mostViewedNpcs as npc}
-				<div class="border-b border-white py-3 last:border-none hover:bg-zinc-800">
-					<a class="flex flex-row items-center justify-between px-5" href={url(`/npcs/${npc.id}`)}>
+				<div class="w-full border-b border-white py-3 last:border-none hover:bg-zinc-800">
+					<a class="flex flex-row items-center " href={url(`/npcs/${npc.id}`)}>
 						<NpcImage portrait={npc.portrait} name={npc.name} />
-						<p class="ml-8 text-white">{npc.name}</p>
+						<p class="ml-8 w-1/2 text-white line-clamp-1 lg:w-3/4">{npc.name}</p>
 					</a>
 				</div>
 			{/each}

@@ -41,7 +41,7 @@
 		}
 
 		try {
-			const response = await fetch(`${glbUrl}${item.glb[0].toLowerCase()}`, {
+			const response = await fetch(`${glbUrl}${item.glb[0]}`, {
 				method: 'HEAD'
 			});
 			if (response.status === 404) {
@@ -55,30 +55,39 @@
 
 <svelte:head>
 	<title>MS2 Handbook - {item.name}</title>
+	<!-- Open graph -->
+	<meta property="og:title" content="MapleStory 2 Handbook" />
+	<meta property="og:description" content={item.name} />
+	<meta property="og:image" content={url(`/${item.icon_path.split('/').slice(2).join('/')}`)} />
+	<meta property="og:url" content={url(`/items/${item.id}`)} />
 </svelte:head>
 
-<div class="flex items-center gap-1">
-	<p>Item</p>
-	&gt;
-	<CopyId id={item.id} />
-</div>
-<div class="content mt-3 rounded-lg border p-6">
-	<p class="text-4xl">{item.name}</p>
-	<div class="flex flex-row flex-wrap justify-start gap-16 gap-y-2">
-		<ItemDetails {item} />
-		{#if item.glb.length > 0 && glbExists}
-			<div class="model mt-7 flex items-center justify-center px-3 pt-2">
-				<Renderer cover={item.icon_path} model={item.glb[0]} name={item.name} />
-				<img
-					src={url('/item/mouse_controls.png')}
-					class="absolute bottom-5 left-5 hidden md:block"
-					alt="Mouse Controls"
-				/>
-			</div>
-		{/if}
-		{#if boxContent.length > 0}
-			<ItemBoxContent {boxContent} />
-		{/if}
+<div class="grid justify-center">
+	<div class="ml-4 flex items-center gap-1">
+		<p>Item</p>
+		&gt;
+		<CopyId id={item.id} />
+	</div>
+	<div class="content mx-4 mt-3 rounded-lg border p-6">
+		<p class="text-4xl">{item.name}</p>
+		<div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
+			<ItemDetails {item} />
+			{#if item.glb.length > 0 && glbExists}
+				<div
+					class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-[799px] lg:w-[575px]"
+				>
+					<Renderer cover={item.icon_path} model={item.glb[0]} name={item.name} />
+					<img
+						src={url('/item/mouse_controls.png')}
+						class="absolute bottom-5 left-5 hidden md:block"
+						alt="Mouse Controls"
+					/>
+				</div>
+			{/if}
+			{#if boxContent.length > 0}
+				<ItemBoxContent {boxContent} />
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -92,7 +101,7 @@
 	.model {
 		position: relative;
 		background-image: url('/item/render_box.png');
-		width: 575px;
-		height: 799px;
+		background-size: cover;
+		background-repeat: no-repeat;
 	}
 </style>
