@@ -61,7 +61,7 @@
 	{#if open}
 		<div class="fixed inset-0 z-10 bg-header-black px-12 pb-6">
 			<div class="flex h-32 items-center">
-				<a href={url('/')}>
+				<a href={url('/')} on:click={() => (open = false)}>
 					<img
 						src={url('/logo.png')}
 						width={112}
