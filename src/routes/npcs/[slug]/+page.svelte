@@ -51,8 +51,7 @@
 <svelte:head>
 	<title>MS2 Handbook - {npc.name}</title>
 	<!-- Open graph -->
-	<meta property="og:title" content="MapleStory 2 Handbook" />
-	<meta property="og:description" content={npc.name} />
+	<meta property="og:title" content={npc.name} />
 	<meta property="og:image" content={url(`/${npc.portrait.split('/').slice(2).join('/')}`)} />
 	<meta property="og:url" content={url(`/npcs/${npc.id}`)} />
 </svelte:head>
