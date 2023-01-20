@@ -11,4 +11,6 @@ vite.config.ts.timestamp-*
 static/resource/image/portrait/
 static/resource/image/item/
 static/glbs
+static/gltf
 glbs/
+gltf/
