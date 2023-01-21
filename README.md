@@ -32,6 +32,7 @@ This project is open to contributions, feel free to fork and submit pull request
 ## Todo
 
 - [ ] Create infinite scrolling for /items and /npcs
+- [ ] Add search params to url in /items and /npcs
 - [ ] Finish NPC details page
 - [ ] Add maps, quests, trophies, dungeons, skills, dyes and more.
 
