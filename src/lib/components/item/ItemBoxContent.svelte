@@ -65,7 +65,11 @@
 			{/if}
 			<div class="flex flex-col gap-3">
 				{#each filtered as content}
-					<a href={url(`/item/${content.item_id}`)} class="flex items-center gap-4">
+					<a
+						href={url(`/items/${content.item_id}`)}
+						data-sveltekit-reload
+						class="flex items-center gap-4"
+					>
 						<ItemImage
 							icon_path={content.item1.icon_path}
 							rarity={content.rarity}
@@ -84,7 +88,11 @@
 {#if !hasSmartDropRate}
 	<ItemListContainer gap={4}>
 		{#each boxContent as content}
-			<a href={url(`/item/${content.item_id}`)} class="flex items-center gap-4">
+			<a
+				href={url(`/items/${content.item_id}`)}
+				data-sveltekit-reload
+				class="flex items-center gap-4"
+			>
 				<ItemImage
 					icon_path={content.item1.icon_path}
 					rarity={content.rarity}
