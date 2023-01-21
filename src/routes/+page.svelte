@@ -47,13 +47,3 @@
 		</div>
 	</div>
 </div>
-
-<style lang="scss">
-	.main-container {
-		background-image: url('home_background.png');
-		background-size: auto;
-		background-repeat: repeat-x;
-		background-position: bottom;
-		background-blend-mode: multiply;
-	}
-</style>

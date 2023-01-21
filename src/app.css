@@ -4,6 +4,7 @@
 
 /* disable media for now, fix style for light mode before enabling it again */
 /* @media (prefers-color-scheme: dark) { */
+/* } */
 html {
 	color-scheme: dark;
 }
@@ -13,4 +14,11 @@ body {
 	background: #212223;
 	min-height: 100vh;
 }
-/* } */
+
+.main-container {
+	background-image: url('/home_background.png');
+	background-size: auto;
+	background-repeat: repeat-x;
+	background-position: bottom;
+	background-blend-mode: multiply;
+}

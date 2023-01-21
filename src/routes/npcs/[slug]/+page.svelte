@@ -82,7 +82,7 @@
 		&gt;
 		<CopyId id={npc.id} />
 	</div>
-	<div class="content mx-4 mt-3 rounded-lg border p-6">
+	<div class="main-container mx-4 mt-3 rounded-xl bg-zinc-800 p-6 pb-40">
 		<p class="text-4xl">{npc.name}</p>
 		<div class=" gap-16 gap-y-2 pt-7">
 			{#if loadingGltf}
@@ -128,12 +128,6 @@
 </div>
 
 <style lang="scss">
-	.content {
-		background: #2b2c2e;
-		border-color: #37393d;
-		min-height: fit-content;
-	}
-
 	.model {
 		position: relative;
 		background-image: url('/item/render_box.png');

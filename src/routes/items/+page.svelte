@@ -6,14 +6,23 @@
 	import { url } from '$lib/helpers/addBasePath';
 	import CopyId from '$lib/components/CopyId.svelte';
 	import debounce from 'lodash.debounce';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
+	import IntersectionObserver from 'svelte-intersection-observer';
+	import Spinner from '$lib/components/Spinner.svelte';
 
-	let page = 0;
-	let searchTerm = '';
+	let searchPage: number = 0;
+	let searchTerm = $page.url.searchParams.get('search') || '';
 
 	let data: SearchItem[] = [];
+	let lastBatch: SearchItem[] = [];
+
+	let lastSearchTerm = searchTerm;
 
 	async function fetchData() {
-		const response = await fetch(url(`/api/items?search=${searchTerm}&page=${page}&limit=20`));
+		const response = await fetch(
+			url(`/api/items?search=${searchTerm}&page=${searchPage}&limit=20`)
+		);
 
 		const items = await response.json();
 
@@ -26,8 +35,13 @@
 		if (data.length > 0 && data[data.length - 1].id === items[items.length - 1].id) {
 			return;
 		}
+		if (lastSearchTerm !== searchTerm) {
+			data = [];
+		}
 
-		data = items;
+		lastBatch = items;
+		data = [...data, ...items];
+		lastSearchTerm = searchTerm;
 	}
 
 	onMount(() => {
@@ -46,13 +60,33 @@
 			return 'No description';
 		}
 	}
+
+	let element: any;
+	let intersecting: boolean;
+
+	$: {
+		if (intersecting) {
+			intersecting = false;
+
+			debounce(
+				() => {
+					searchPage++;
+					fetchData();
+				},
+				300,
+				{
+					maxWait: 1000
+				}
+			)();
+		}
+	}
 </script>
 
 <svelte:head>
 	<title>MS2 Handbook - Items</title>
 </svelte:head>
 
-<div class="m-auto w-3/4">
+<div class="main-container mx-4 rounded-xl bg-zinc-800 px-5 pt-2 pb-40 lg:m-auto lg:w-3/4">
 	<h1 class="mb-4 text-4xl font-bold">Items</h1>
 	<input
 		type="text"
@@ -61,6 +95,9 @@
 		bind:value={searchTerm}
 		on:keyup={debounce(
 			async () => {
+				$page.url.searchParams.set('search', searchTerm);
+				searchPage = 0;
+				goto($page.url.href, { keepFocus: true, replaceState: true });
 				await fetchData();
 			},
 			500,
@@ -70,39 +107,41 @@
 		)}
 	/>
 
-	<table class="min-w-full">
-		<thead class="border-b border-blue-ascent">
-			<tr>
-				<th scope="col" class="py-4 pr-6 text-left">Icon</th>
-				<th scope="col" class="hidden py-4 pr-6 text-left lg:table-caption">Id</th>
-				<th scope="col" class="py-4 pr-6 text-left">Name</th>
-				<th scope="col" class="hidden py-4 pr-6 text-left lg:table-caption">Description</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each data as item}
-				<tr
-					class="cursor-pointer border-b border-blue-ascent last:border-none hover:bg-zinc-800"
-					on:click={() => {
-						// shit code, why can't we use anchor tag around the whole row?
-						window.location.href = url(`/items/${item.id}`);
-					}}
-				>
-					<td class="flex flex-col items-center justify-center py-4 lg:table-cell lg:flex-row">
-						<ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />
-						<CopyId id={item.id} extraClass="lg:hidden mt-4" />
-					</td>
-					<td class="hidden lg:table-cell">
-						<CopyId id={item.id} />
-					</td>
-					<td class="align-middle">{item.name}</td>
-					<td class="hidden h-full w-96 align-middle lg:table-cell">
-						<p class="line-clamp-3 ">
-							{@html getDescription(item)}
-						</p>
-					</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	<div class="flex flex-row border-b border-blue-ascent">
+		<div class="w-1/2 py-4 pr-6 text-left lg:w-1/4">Icon</div>
+		<div class="hidden py-4 pr-6 text-left lg:block lg:w-1/4">Id</div>
+		<div class="py-4 pr-6 text-left lg:w-1/4">Name</div>
+		<div class="hidden py-4 pr-6 text-left lg:block lg:w-1/4">Description</div>
+	</div>
+	{#each data as item}
+		<a
+			href={url(`/items/${item.id}`)}
+			class="flex items-center border-b border-blue-ascent py-4 last:border-none hover:bg-zinc-800"
+		>
+			<div class="flex w-1/2 flex-col items-center py-4 lg:w-1/4 lg:flex-row">
+				<ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />
+				<CopyId id={item.id} extraClass="lg:hidden mt-4" />
+			</div>
+			<div class="hidden lg:block lg:w-1/4">
+				<CopyId id={item.id} />
+			</div>
+			<div class="lg:w-1/4">{item.name}</div>
+			<div class="hidden h-full w-96  lg:block lg:w-1/4">
+				<p class="line-clamp-3 ">{@html getDescription(item)}</p>
+			</div>
+		</a>
+	{/each}
+	{#if data.length > 0}
+		<div class="mt-5 flex justify-center">
+			{#if lastBatch.length < 20}
+				<h2>No more results</h2>
+			{:else}
+				<IntersectionObserver {element} bind:intersecting threshold={0.1}>
+					<div bind:this={element}>
+						<Spinner />
+					</div>
+				</IntersectionObserver>
+			{/if}
+		</div>
+	{/if}
 </div>

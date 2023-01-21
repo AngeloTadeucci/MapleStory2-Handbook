@@ -67,7 +67,7 @@
 		&gt;
 		<CopyId id={item.id} />
 	</div>
-	<div class="content mx-4 mt-3 rounded-lg border p-6">
+	<div class="main-container mx-4 mt-3 rounded-xl bg-zinc-800 p-6 pb-40">
 		<p class="text-4xl">{item.name}</p>
 		<div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
 			<ItemDetails {item} />
@@ -96,12 +96,6 @@
 </div>
 
 <style lang="scss">
-	.content {
-		background: #2b2c2e;
-		border-color: #37393d;
-		min-height: fit-content;
-	}
-
 	.model {
 		position: relative;
 		background-image: url('/item/render_box.png');
