@@ -47,7 +47,7 @@ model items {
   tradeable_count     Int          @default(0)
   repackage_count     Int          @default(0)
   sell_price          Json
-  glb                 Json
+  kfms                Json
   icon_code           Int          @db.TinyInt
   move_disable        Int          @db.TinyInt
   remake_disable      Int          @db.TinyInt
@@ -74,7 +74,7 @@ model items {
 model npcs {
   id          Int    @id
   name        String @db.VarChar(100)
-  glb         String @db.Text
+  kfm         String @db.Text
   is_boss     Int    @default(0) @db.TinyInt
   npc_type    Int    @default(0)
   gender      Int    @default(0) @db.TinyInt
@@ -82,4 +82,5 @@ model npcs {
   portrait    String @default("") @db.VarChar(200)
   stats       String @db.Text
   visit_count Int    @default(0)
+  animations  Json
 }

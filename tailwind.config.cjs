@@ -13,6 +13,8 @@ module.exports = {
         'header-black': '#1b1d1e',
         'red': '#e93b3b',
         'gold': '#ffd200',
+        'blue-ascent': '#225d7c',
+        'blue-ascent-bright': '#84d6ff',
       }
     }
   },

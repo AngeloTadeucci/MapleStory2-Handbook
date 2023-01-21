@@ -1,21 +1,36 @@
-<script lang="ts">
+<script script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import { url } from '$lib/helpers/addBasePath';
+	import { onMount, afterUpdate } from 'svelte';
 	type RendererProps = {
 		model: string;
 		cover: string;
 		name: string;
+		selectedAnimation?: string;
+		animationSpeed?: number;
 		customOrbit?: string;
 		cameraTarget?: string;
 		orientation?: string;
 	};
-	export let { model, cover, name, customOrbit, cameraTarget, orientation } = {} as RendererProps;
-	if (!orientation) {
-		orientation = '0deg -90deg 0deg';
-	}
+	export let {
+		model,
+		cover,
+		name,
+		customOrbit,
+		cameraTarget,
+		orientation,
+		selectedAnimation,
+		animationSpeed
+	} = {} as RendererProps;
 
-	const glbUrl = env.PUBLIC_NODE_ENV === 'development' ? '/glbs/' : env.PUBLIC_MODELS_URL;
+	const gltfUrl = env.PUBLIC_NODE_ENV === 'development' ? '/gltf/' : env.PUBLIC_MODELS_URL;
 	const iconPath = url(`/${cover.split('/').slice(2).join('/')}`);
+
+	onMount(async () => {
+		orientation ??= '0deg -90deg 0deg';
+		selectedAnimation ??= model;
+		animationSpeed ??= 1;
+	});
 </script>
 
 <svelte:head>
@@ -26,27 +41,15 @@
 </svelte:head>
 
 <model-viewer
-	src="{glbUrl}{model}"
+	src="{gltfUrl}{model}/{selectedAnimation}.gltf"
 	alt={name}
 	camera-controls
 	{...{ cameraTarget, customOrbit, orientation }}
-	reveal="manual"
+	autoplay
+	max-field-of-view="70deg"
 	touch-action="pan-y"
 	style="width: 550px; height: 760px; --iconPath: url({iconPath});"
->
-	<div id="lazy-load-poster" slot="poster" />
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<div
-		id="button-load"
-		slot="poster"
-		on:click={(e) => {
-			// @ts-ignore
-			document.querySelector('model-viewer')?.dismissPoster();
-		}}
-	>
-		Load 3D Model
-	</div>
-</model-viewer>
+/>
 
 <style>
 	#lazy-load-poster {

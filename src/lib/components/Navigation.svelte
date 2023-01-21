@@ -26,13 +26,13 @@
 	</a>
 
 	<div class="hidden md:flex">
-		<div class="ml-12 mr-12 h-20 w-px border-l border-gray-600" />
+		<div class="ml-10 mr-6 h-20 w-px border-l border-gray-600" />
 
 		{#each menus as menu, index}
 			<div class="flex items-center">
 				<a href={url(menu.path)} class="px-2 py-2 font-sans font-bold text-white">{menu.name}</a>
 				{#if index !== menus.length - 1}
-					<div class="ml-12 mr-12 h-14 w-px border-l border-gray-600" />
+					<div class="mx-6 h-14 w-px border-l border-gray-600" />
 				{/if}
 			</div>
 		{/each}

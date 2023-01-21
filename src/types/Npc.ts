@@ -1,7 +1,7 @@
 export interface Npc {
 	id: number;
 	name: string;
-	glb: string;
+	kfm: string;
 	is_boss: number;
 	npc_type: number;
 	gender: number;
@@ -9,6 +9,7 @@ export interface Npc {
 	portrait: string;
 	stats: Stats;
 	visit_count: number;
+	animations: string[];
 }
 
 export interface Stats {

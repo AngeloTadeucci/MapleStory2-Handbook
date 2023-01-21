@@ -57,7 +57,7 @@
 	<input
 		type="text"
 		placeholder="Search 🔎"
-		class="mb-4 rounded-lg border p-2"
+		class="mb-4 rounded-lg border border-blue-ascent p-2"
 		bind:value={searchTerm}
 		on:keyup={debounce(
 			async () => {
@@ -71,7 +71,7 @@
 	/>
 
 	<table class="min-w-full">
-		<thead class="border-b">
+		<thead class="border-b border-blue-ascent">
 			<tr>
 				<th scope="col" class="py-4 pr-6 text-left">Icon</th>
 				<th scope="col" class="hidden py-4 pr-6 text-left lg:table-caption">Id</th>
@@ -82,7 +82,7 @@
 		<tbody>
 			{#each data as item}
 				<tr
-					class="cursor-pointer border-b last:border-none hover:bg-zinc-800"
+					class="cursor-pointer border-b border-blue-ascent last:border-none hover:bg-zinc-800"
 					on:click={() => {
 						// shit code, why can't we use anchor tag around the whole row?
 						window.location.href = url(`/items/${item.id}`);

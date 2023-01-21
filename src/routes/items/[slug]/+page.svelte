@@ -16,9 +16,9 @@
 	const item = resultItem as unknown as Item;
 	const boxContent = resultBoxContent as unknown as ItemBox[];
 
-	let glbExists: boolean;
+	let gltfExists: boolean;
 
-	const glbUrl = env.PUBLIC_NODE_ENV === 'development' ? '/glbs/' : env.PUBLIC_MODELS_URL;
+	const gltfUrl = env.PUBLIC_NODE_ENV === 'development' ? '/gltf/' : env.PUBLIC_MODELS_URL;
 
 	async function incrementViewCount() {
 		await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
@@ -36,18 +36,18 @@
 		}
 
 		incrementViewCount();
-		if (item.glb.length <= 0) {
+		if (item.kfms.length <= 0) {
 			return;
 		}
 
 		try {
-			const response = await fetch(`${glbUrl}${item.glb[0]}`, {
+			const response = await fetch(`${gltfUrl}${item.kfms[0]}/${item.kfms[0]}.gltf`, {
 				method: 'HEAD'
 			});
 			if (response.status === 404) {
-				glbExists = false;
+				gltfExists = false;
 			} else {
-				glbExists = true;
+				gltfExists = true;
 			}
 		} catch {}
 	});
@@ -71,11 +71,16 @@
 		<p class="text-4xl">{item.name}</p>
 		<div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
 			<ItemDetails {item} />
-			{#if item.glb.length > 0 && glbExists}
+			{#if item.kfms.length > 0 && gltfExists}
 				<div
 					class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-[799px] lg:w-[575px]"
 				>
-					<Renderer cover={item.icon_path} model={item.glb[0]} name={item.name} />
+					<Renderer
+						cover={item.icon_path}
+						model={item.kfms[0]}
+						name={item.name}
+						orientation="90deg 0deg 90deg"
+					/>
 					<img
 						src={url('/item/mouse_controls.png')}
 						class="absolute bottom-5 left-5 hidden md:block"

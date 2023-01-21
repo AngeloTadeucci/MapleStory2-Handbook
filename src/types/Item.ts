@@ -28,7 +28,7 @@ export default interface Item {
 	repackage_scrolls: string;
 	repackage_count: number;
 	sell_price: number[];
-	glb: string[];
+	kfms: string[];
 	icon_code: number;
 	move_disable: number;
 	remake_disable: number;
