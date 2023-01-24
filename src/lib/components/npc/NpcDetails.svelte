@@ -35,8 +35,8 @@
 					Shop ID: {npc.shop_id}
 				</p>
 			{/if}
-			<hr class="my-4" />
-			{#if npc.field_metadata.length > 0}
+			{#if npc.field_metadata?.length > 0}
+				<hr class="my-4" />
 				<div class="flex flex-col ">
 					{#if npc.npc_type === 0}
 						Main Habitat:
