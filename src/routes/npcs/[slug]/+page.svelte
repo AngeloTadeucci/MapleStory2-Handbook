@@ -89,37 +89,39 @@
 		<div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
 			<NpcDetails {npc} />
 			{#if npc.kfm.length > 0 && !loadingGltf && selectedAnimation}
-				<div class="flex items-center gap-5">
-					<select
-						class="mb-2 rounded-md border border-blue-ascent p-2"
-						bind:value={selectedAnimation}
-					>
-						<option value={npc.kfm}>Default</option>
-						{#each validAnimations as animation}
-							<option value={animation}>{animation}</option>
-						{/each}
-					</select>
-					<!-- {#if validAnimations.length > 0}
+				<div>
+					<div class="flex items-center gap-5">
+						<select
+							class="mb-2 rounded-md border border-blue-ascent p-2"
+							bind:value={selectedAnimation}
+						>
+							<option value={npc.kfm}>Default</option>
+							{#each validAnimations as animation}
+								<option value={animation}>{animation}</option>
+							{/each}
+						</select>
+						<!-- {#if validAnimations.length > 0}
 						<div class="flex flex-col ">
 							Animation Speed: {animationSpeed}
 							<input type="range" min="0.5" max="5.0" step="0.1" bind:value={animationSpeed} />
 						</div>
 					{/if} -->
-				</div>
+					</div>
 
-				<div class="model px-3 pt-2">
-					<Renderer
-						cover={npc.portrait}
-						model={npc.kfm}
-						name={npc.name}
-						{selectedAnimation}
-						{animationSpeed}
-					/>
-					<img
-						src={url('/item/mouse_controls.png')}
-						class="absolute bottom-5 left-5 hidden md:block"
-						alt="Mouse Controls"
-					/>
+					<div class="model px-3 pt-2">
+						<Renderer
+							cover={npc.portrait}
+							model={npc.kfm}
+							name={npc.name}
+							{selectedAnimation}
+							{animationSpeed}
+						/>
+						<img
+							src={url('/item/mouse_controls.png')}
+							class="absolute bottom-5 left-5 hidden md:block"
+							alt="Mouse Controls"
+						/>
+					</div>
 				</div>
 			{/if}
 		</div>
