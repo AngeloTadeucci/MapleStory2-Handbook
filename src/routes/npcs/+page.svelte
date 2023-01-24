@@ -110,7 +110,7 @@
 			<div class="hidden lg:block lg:w-1/4">
 				<CopyId id={npc.id} />
 			</div>
-			<div class="text-left lg:w-1/4">{npc.name}</div>
+			<div class="text-left lg:w-1/4">{npc.title ?? npc.title} {npc.name}</div>
 		</a>
 	{/each}
 	{#if data.length > 0}

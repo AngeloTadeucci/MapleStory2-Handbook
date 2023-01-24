@@ -7,10 +7,12 @@
 	import Renderer from '$lib/components/Renderer.svelte';
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
+	import NpcDetails from '$lib/components/npc/NpcDetails.svelte';
 
 	export let data: PageData;
 
 	const npc = data.props.npc as unknown as Npc;
+
 	let loadingGltf = true;
 
 	let validAnimations: string[] = [];
@@ -83,11 +85,10 @@
 		<CopyId id={npc.id} />
 	</div>
 	<div class="main-container mx-4 mt-3 rounded-xl bg-zinc-800 p-6 pb-40">
-		<p class="text-4xl">{npc.name}</p>
-		<div class=" gap-16 gap-y-2 pt-7">
-			{#if loadingGltf}
-				Loading ...
-			{:else if npc.kfm.length > 0 && !loadingGltf && selectedAnimation}
+		<p class="text-4xl">{npc.title ?? npc.title} {npc.name}</p>
+		<div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
+			<NpcDetails {npc} />
+			{#if npc.kfm.length > 0 && !loadingGltf && selectedAnimation}
 				<div class="flex items-center gap-5">
 					<select
 						class="mb-2 rounded-md border border-blue-ascent p-2"
@@ -120,8 +121,6 @@
 						alt="Mouse Controls"
 					/>
 				</div>
-			{:else}
-				Model not found :(
 			{/if}
 		</div>
 	</div>

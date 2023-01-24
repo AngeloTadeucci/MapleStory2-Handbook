@@ -21,7 +21,7 @@ export const GET = (async ({ url }) => {
 	const searchString = `"%${search}%"`;
 
 	const npcs = await prisma.$queryRawUnsafe<SearchNpc[]>(
-		`SELECT id, name, portrait FROM maple2_codex.npcs WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${
+		`SELECT id, name, portrait, title FROM maple2_codex.npcs WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${
 			Number(url.searchParams.get('page') ?? 0) * 20
 		}`
 	);

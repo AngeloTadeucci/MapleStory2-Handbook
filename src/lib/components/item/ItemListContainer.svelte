@@ -1,14 +1,15 @@
 <script lang="ts">
 	type Props = {
 		gap?: number;
+		classname?: string;
 	};
-	export let { gap } = {} as Props;
+	export let { gap, classname } = {} as Props;
 	if (!gap) {
 		gap = 1;
 	}
 </script>
 
-<div class="lg:mt-7">
+<div class={classname ? classname : 'lg:mt-7'}>
 	<div class="box__top" />
 	<div class="box__middle flex flex-col gap-{gap} p-4">
 		<slot />

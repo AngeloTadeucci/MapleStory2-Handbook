@@ -10,6 +10,16 @@ export interface Npc {
 	stats: Stats;
 	visit_count: number;
 	animations: string[];
+	race: string;
+	class_name: string;
+	field_metadata: FieldMetadata[];
+	title: string;
+	shop_id: number;
+}
+
+export interface FieldMetadata {
+	Item1: string; // name
+	Item2: number; // id
 }
 
 export interface Stats {
@@ -74,4 +84,4 @@ export interface Stats {
 	ScaleBaseSpaRate4: number;
 }
 
-export type SearchNpc = Pick<Npc, 'id' | 'name' | 'portrait'>;
+export type SearchNpc = Pick<Npc, 'id' | 'name' | 'portrait' | 'title'>;
