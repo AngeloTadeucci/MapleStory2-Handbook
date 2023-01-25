@@ -97,7 +97,7 @@
 			async () => {
 				$page.url.searchParams.set('search', searchTerm);
 				searchPage = 0;
-				goto($page.url.href, { keepFocus: true, replaceState: true });
+				goto($page.url.href, { keepFocus: true, replaceState: true, noScroll: true });
 				await fetchData();
 			},
 			500,
