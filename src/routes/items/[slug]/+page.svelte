@@ -4,11 +4,11 @@
 	import ItemBoxContent from '$lib/components/item/ItemBoxContent.svelte';
 	import Renderer from '$lib/components/Renderer.svelte';
 	import { url } from '$lib/helpers/addBasePath';
-	import type Item from 'src/types/Item';
-	import type { ItemBox } from 'src/types/ItemBox';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 	import CopyId from '$lib/components/CopyId.svelte';
+	import type Item from '../../../types/Item';
+	import type { ItemBox } from '../../../types/ItemBox';
 
 	export let data: PageData;
 	const { item: resultItem, boxContent: resultBoxContent } = data.props;

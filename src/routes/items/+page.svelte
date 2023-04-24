@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import ItemImage from '$lib/components/ItemImage.svelte';
 	import { unescape } from '$lib/helpers/htmlParser';
-	import type { SearchItem } from 'src/types/Item';
 	import { url } from '$lib/helpers/addBasePath';
 	import CopyId from '$lib/components/CopyId.svelte';
 	import debounce from 'lodash.debounce';
@@ -10,6 +9,7 @@
 	import { goto } from '$app/navigation';
 	import IntersectionObserver from 'svelte-intersection-observer';
 	import Spinner from '$lib/components/Spinner.svelte';
+	import type { SearchItem } from '../../types/Item';
 
 	let searchPage: number = 0;
 	let searchTerm = $page.url.searchParams.get('search') || '';
@@ -86,7 +86,7 @@
 	<title>MS2 Handbook - Items</title>
 </svelte:head>
 
-<div class="main-container mx-4 rounded-xl bg-zinc-800 px-5 pt-2 pb-40 lg:m-auto lg:w-3/4">
+<div class="main-container mx-4 rounded-xl bg-zinc-800 px-5 pb-40 pt-2 lg:m-auto lg:w-3/4">
 	<h1 class="mb-4 text-4xl font-bold">Items</h1>
 	<input
 		type="text"
@@ -126,8 +126,8 @@
 				<CopyId id={item.id} />
 			</div>
 			<div class="lg:w-1/4">{item.name}</div>
-			<div class="hidden h-full w-96  lg:block lg:w-1/4">
-				<p class="line-clamp-3 ">{@html getDescription(item)}</p>
+			<div class="hidden h-full w-96 lg:block lg:w-1/4">
+				<p class="line-clamp-3">{@html getDescription(item)}</p>
 			</div>
 		</a>
 	{/each}

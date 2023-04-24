@@ -9,7 +9,7 @@
 	// - skills
 </script>
 
-<ItemListContainer classname="lg:mt-0">
+<ItemListContainer>
 	<div>
 		<div class="mb-2">
 			<NpcImage name={npc.name} portrait={npc.portrait} />

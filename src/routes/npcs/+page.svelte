@@ -1,14 +1,14 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import CopyId from '$lib/components/CopyId.svelte';
 	import NpcImage from '$lib/components/NpcImage.svelte';
-	import { url } from '$lib/helpers/addBasePath';
-	import type { SearchNpc } from 'src/types/Npc';
-	import { afterUpdate, beforeUpdate, onMount } from 'svelte';
-	import debounce from 'lodash.debounce';
-	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
-	import IntersectionObserver from 'svelte-intersection-observer';
 	import Spinner from '$lib/components/Spinner.svelte';
+	import { url } from '$lib/helpers/addBasePath';
+	import debounce from 'lodash.debounce';
+	import { onMount } from 'svelte';
+	import IntersectionObserver from 'svelte-intersection-observer';
+	import type { SearchNpc } from '../../types/Npc';
 
 	let searchPage: number = 0;
 	let searchTerm = $page.url.searchParams.get('search') || '';
@@ -72,7 +72,7 @@
 	<title>MS2 Handbook - NPCs</title>
 </svelte:head>
 
-<div class="main-container mx-4 rounded-xl bg-zinc-800 px-5 pt-2 pb-40 lg:m-auto lg:w-3/4">
+<div class="main-container mx-4 rounded-xl bg-zinc-800 px-5 pb-40 pt-2 lg:m-auto lg:w-3/4">
 	<h1 class="mb-4 text-4xl font-bold">NPCs</h1>
 	<input
 		type="text"

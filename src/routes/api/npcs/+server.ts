@@ -1,8 +1,8 @@
 import { json } from '@sveltejs/kit';
-import type { SearchNpc } from 'src/types/Npc';
 import type { RequestHandler } from './$types';
 import DBClient from '$lib/prismaClient';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
+import type { SearchNpc } from '../../../types/Npc';
 const prisma = DBClient.getInstance().prisma;
 
 const rateLimiter = new RateLimiterMemory({

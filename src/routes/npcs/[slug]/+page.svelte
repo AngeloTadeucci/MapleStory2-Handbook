@@ -3,11 +3,11 @@
 
 	import CopyId from '$lib/components/CopyId.svelte';
 	import { url } from '$lib/helpers/addBasePath';
-	import type { Npc } from 'src/types/Npc';
 	import Renderer from '$lib/components/Renderer.svelte';
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
 	import NpcDetails from '$lib/components/npc/NpcDetails.svelte';
+	import type { Npc } from '../../../types/Npc';
 
 	export let data: PageData;
 
@@ -54,7 +54,7 @@
 			selectedAnimation = npc.kfm;
 
 			await Promise.all(
-				npc.animations.map(async (animation) => {
+				npc.animations.map(async (animation: any) => {
 					const response = await fetch(`${gltfUrl}${npc.kfm}/${animation}.gltf`);
 
 					if (response.ok) {
@@ -121,6 +121,14 @@
 							class="absolute bottom-5 left-5 hidden md:block"
 							alt="Mouse Controls"
 						/>
+						<!-- svelte-ignore a11y-click-events-have-key-events TODO -->
+						<!-- <img
+							src={url('/icons/open_in_new.svg')}
+							class="absolute top-5 right-5"
+							alt="Open in new tab"
+							title="Open in new tab"
+							on:click={() => window.open(`/npcs/${npc.id}/model`)}
+						/> -->
 					</div>
 				</div>
 			{/if}

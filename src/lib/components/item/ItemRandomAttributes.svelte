@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { StatRangeList } from 'src/types/Item';
-	import CopyId from '../CopyId.svelte';
+	import type { StatRangeList } from '../../../types/Item';
 
 	export let randomStats: StatRangeList[];
 	export let randomStatCount: number;
