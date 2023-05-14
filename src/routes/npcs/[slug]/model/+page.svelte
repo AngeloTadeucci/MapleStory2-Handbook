@@ -19,6 +19,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>MS2 Handbook - {npc.name} Model</title>
+</svelte:head>
+
 {#if npc.kfm.length > 0}
 	<div class="">
 		<ModelOnlyRenderer {npc} advancedControls />

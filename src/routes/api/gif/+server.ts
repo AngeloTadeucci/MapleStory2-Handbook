@@ -63,10 +63,10 @@ export const POST = async ({ request }) => {
 				status: 400
 			});
 		}
-		fs.writeFileSync(join(folder, fileName), base64Data, 'base64');
+		fs.writeFileSync(folder + fileName, base64Data, 'base64');
 	}
 
-	if (!fs.existsSync(join(folder, baseFileName, '0.png'))) {
+	if (!fs.existsSync(folder + baseFileName + '0.png')) {
 		return new Response(JSON.stringify({ message: 'No screenshot saved' }), {
 			status: 400
 		});
@@ -111,7 +111,7 @@ async function convertToGif(
 
 	return new Promise(function (resolve, reject) {
 		if (!fs.existsSync(folder + fileName.replace('*', '0'))) {
-			reject(false);
+			reject(400);
 			return;
 		}
 
