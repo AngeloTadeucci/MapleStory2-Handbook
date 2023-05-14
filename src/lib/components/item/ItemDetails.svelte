@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { IconCode, Job, Rarity, SlotName, Stat, TransferType } from '$lib/Enums';
-	import { url } from '$lib/helpers/addBasePath';
-	import { closeMissingTags, unescape } from '$lib/helpers/htmlParser';
-	import itemHelper from '$lib/helpers/itemHelper';
-	import type Item from 'src/types/Item';
+	import { IconCode, Job, Rarity, SlotName, Stat, TransferType } from '../../Enums';
+	import { url } from '../../helpers/addBasePath';
+	import { closeMissingTags, unescapeHtml } from '../../helpers/htmlParser';
+	import itemHelper from '../../helpers/itemHelper';
+	import type Item from '../../types/Item';
 	import ItemImage from '../ItemImage.svelte';
 	import ItemBasicAttributes from './ItemBasicAttributes.svelte';
 	import ItemRandomAttributes from './ItemRandomAttributes.svelte';
@@ -137,11 +137,11 @@
 			<div class="item-middle__descriptions">
 				{#if item.guide_description.length > 0}
 					<p class="item-middle__descriptions__guide">
-						{@html closeMissingTags(unescape(item.guide_description), true)}
+						{@html closeMissingTags(unescapeHtml(item.guide_description), true)}
 					</p>
 				{/if}
 				{#if item.tooltip_description.length > 0}
-					<p>{@html closeMissingTags(unescape(item.tooltip_description))}</p>
+					<p>{@html closeMissingTags(unescapeHtml(item.tooltip_description))}</p>
 				{/if}
 			</div>
 		{/if}

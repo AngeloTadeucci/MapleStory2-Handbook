@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { StatRangeList } from '../../../types/Item';
+	import type { StatRangeList } from '../../types/Item';
 
 	export let randomStats: StatRangeList[];
 	export let randomStatCount: number;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { StatList, StatRangeList } from 'src/types/Item';
+	import type { StatList, StatRangeList } from '../../types/Item';
 
 	export let constantsStats: StatList[];
 	export let staticStats: StatRangeList[];
@@ -20,7 +20,26 @@
 			{/each}
 			{#each staticStats as stat}
 				<li class="mt-1">
-					{stat.Item2.replace('{0}', `${stat.Item1.ValueMin} ~ ${stat.Item1.ValueMax}`)}
+					{#if stat.Item2.includes('{0:0.1f}')}
+						{#if stat.Item1.ValueMin === stat.Item1.ValueMax}
+							{stat.Item2.replace('{0:0.1f}', `${stat.Item1.ValueMin / 100}`)}
+						{:else}
+							{stat.Item2.replace(
+								'{0:0.1f}',
+								`${stat.Item1.ValueMin / 100} ~ ${stat.Item1.ValueMax / 100}`
+							)}
+						{/if}
+					{:else if stat.Item2.includes('{0:d')}
+						{#if stat.Item1.ValueMin === stat.Item1.ValueMax}
+							{stat.Item2.replace('{0:d}', `${stat.Item1.ValueMin}`)}
+						{:else}
+							{stat.Item2.replace('{0:d}', `${stat.Item1.ValueMin} ~ ${stat.Item1.ValueMax}`)}
+						{/if}
+					{:else if stat.Item1.ValueMin === stat.Item1.ValueMax}
+						{stat.Item2.replace('{0}', `${stat.Item1.ValueMin}`)}
+					{:else}
+						{stat.Item2.replace('{0}', `${stat.Item1.ValueMin} ~ ${stat.Item1.ValueMax}`)}
+					{/if}
 				</li>
 			{/each}
 		</ul>
