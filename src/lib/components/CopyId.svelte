@@ -19,13 +19,12 @@
 </script>
 
 <button
-	on:click={(e) => {
+	on:click|stopPropagation|preventDefault={(e) => {
 		navigator.clipboard.writeText(id.toString());
-		e.stopPropagation();
 		toastStore.trigger(t);
 	}}
 	title="Copy ID"
-	class="flex items-center justify-center gap-2 rounded-lg border border-surface-100 p-1 px-2 {extraClass}"
+	class="flex items-center justify-center gap-2 rounded-lg border border-surface-100 p-1 px-2 {extraClass} z-20"
 >
 	{id}
 	<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
