@@ -63,10 +63,11 @@ export const POST = async ({ request }) => {
 				status: 400
 			});
 		}
-		fs.writeFileSync(folder + fileName, base64Data, 'base64');
+		const processingFile = join(folder, fileName);
+		fs.writeFileSync(processingFile, base64Data, 'base64');
 	}
 
-	if (!fs.existsSync(folder + baseFileName + '0.png')) {
+	if (!fs.existsSync(join(folder, baseFileName) + '0.png')) {
 		return new Response(JSON.stringify({ message: 'No screenshot saved' }), {
 			status: 400
 		});
@@ -109,8 +110,10 @@ async function convertToGif(
 
 	const outputFileName = `${model}-${animation}-${crypto.randomUUID()}.gif`;
 
+	const inputFile = join(folder, fileName);
+
 	return new Promise(function (resolve, reject) {
-		if (!fs.existsSync(folder + fileName.replace('*', '0'))) {
+		if (!fs.existsSync(inputFile.replace('*', '0'))) {
 			reject(400);
 			return;
 		}
@@ -120,10 +123,8 @@ async function convertToGif(
 			fs.mkdirSync(outputFolder, { recursive: true });
 		}
 
-		const ls = exec(
-			`gifski --fps ${framerate} -H ${height} -W ${width} --quality ${quality} ${
-				folder + fileName
-			} -o ${outputFile} `, // -H 320 -W 320 --quality 70 --motion-quality 40 --lossy-quality 40
+		const gifski = exec(
+			`gifski --fps ${framerate} -H ${height} -W ${width} --quality ${quality} ${inputFile} -o ${outputFile} `, // -H 320 -W 320 --quality 70 --motion-quality 40 --lossy-quality 40
 			function (error) {
 				if (error) {
 					console.log(error.stack);
@@ -133,7 +134,7 @@ async function convertToGif(
 			}
 		);
 
-		ls.on('exit', function (code) {
+		gifski.on('exit', function (code) {
 			if (code != 0) {
 				reject(code);
 			} else {
