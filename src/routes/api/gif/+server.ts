@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import { exec } from 'child_process';
 import fs from 'fs';
 import { z } from 'zod';
+import { join } from 'path';
 
 const schema = z.object({
 	model: z.string(),
@@ -36,7 +37,7 @@ export const POST = async ({ request }) => {
 	}
 
 	const appPath = process.cwd();
-	const folder = appPath + `\\static\\gifs\\processing\\${model}\\`;
+	const folder = join(appPath, 'static', 'gifs', 'processing', model);
 
 	// check if folder has items, if so delete all
 	if (fs.existsSync(folder)) {
@@ -62,10 +63,10 @@ export const POST = async ({ request }) => {
 				status: 400
 			});
 		}
-		fs.writeFileSync(folder + fileName, base64Data, 'base64');
+		fs.writeFileSync(join(folder, fileName), base64Data, 'base64');
 	}
 
-	if (!fs.existsSync(folder + baseFileName + '0.png')) {
+	if (!fs.existsSync(join(folder, baseFileName, '0.png'))) {
 		return new Response(JSON.stringify({ message: 'No screenshot saved' }), {
 			status: 400
 		});
@@ -104,7 +105,7 @@ async function convertToGif(
 	quality: number
 ) {
 	const appPath = process.cwd();
-	const outputFolder = appPath + `\\static\\gifs\\${model}\\`;
+	const outputFolder = join(appPath, 'static', 'gifs', model);
 
 	const outputFileName = `${model}-${animation}-${crypto.randomUUID()}.gif`;
 
@@ -114,14 +115,15 @@ async function convertToGif(
 			return;
 		}
 
-		if (!fs.existsSync(outputFolder + outputFileName)) {
+		const outputFile = join(outputFolder, outputFileName);
+		if (!fs.existsSync(outputFile)) {
 			fs.mkdirSync(outputFolder, { recursive: true });
 		}
 
 		const ls = exec(
 			`gifski --fps ${framerate} -H ${height} -W ${width} --quality ${quality} ${
 				folder + fileName
-			} -o ${outputFolder + outputFileName} `, // -H 320 -W 320 --quality 70 --motion-quality 40 --lossy-quality 40
+			} -o ${outputFile} `, // -H 320 -W 320 --quality 70 --motion-quality 40 --lossy-quality 40
 			function (error) {
 				if (error) {
 					console.log(error.stack);
