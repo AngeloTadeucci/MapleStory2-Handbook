@@ -167,6 +167,7 @@
 	<title>MS2 Handbook - NPCs</title>
 </svelte:head>
 
+<div class="mt-4 h-[1px]" />
 <div class="main-container mx-4 rounded-xl px-5 pb-40 pt-2 lg:m-auto lg:w-3/4">
 	<h1 class="mb-4 text-4xl font-bold">NPCs</h1>
 	<input
@@ -196,7 +197,7 @@
 		class="mt-5"
 	/>
 
-	<div class="flex flex-row border-b border-surface-300">
+	<div class="flex flex-row border-b border-primary-800">
 		<div class="w-1/2 py-4 pr-6 text-left lg:w-1/4">Icon</div>
 		<div class="hidden py-4 pr-6 text-left lg:block lg:w-1/4">Id</div>
 		<div class="py-4 pr-6 text-left lg:w-1/4">Name</div>
@@ -213,7 +214,7 @@
 	{/if}
 	{#each paginatedSource as npc}
 		<a
-			class="unstyled flex cursor-pointer items-center border-b border-surface-300 last:border-none hover:bg-surface-hover-token"
+			class="unstyled flex cursor-pointer items-center border-b border-primary-800 last:border-none hover:bg-surface-hover-token"
 			href={url(`/npcs/${npc.id}`)}
 		>
 			<div class="flex w-1/2 flex-col items-center py-4 lg:w-1/4 lg:flex-row">

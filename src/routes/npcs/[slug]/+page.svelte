@@ -6,10 +6,15 @@
 	import type { Npc } from '$lib/types/Npc';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
+	import { env } from '$env/dynamic/public';
 
 	export let data: PageData;
 
 	const npc = data.props.npc as unknown as Npc;
+
+	let gltfExists: boolean;
+
+	const gltfUrl = env.PUBLIC_NODE_ENV === 'development' ? '/gltf/' : env.PUBLIC_MODELS_URL;
 
 	async function incrementViewCount() {
 		await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
@@ -27,6 +32,19 @@
 		}
 
 		incrementViewCount();
+		if (npc.kfm.length <= 0) {
+			return;
+		}
+		try {
+			const response = await fetch(`${gltfUrl}${npc.kfm}/${npc.kfm}.gltf`, {
+				method: 'HEAD'
+			});
+			if (response.status === 404) {
+				gltfExists = false;
+			} else {
+				gltfExists = true;
+			}
+		} catch {}
 	});
 </script>
 
@@ -41,7 +59,7 @@
 
 <div class="mt-5 grid justify-center">
 	<div class="ml-4 flex items-center gap-1">
-		<p>NPC</p>
+		<a href="/npcs" class="unstyled underline">NPC</a>
 		&gt;
 		<CopyId id={npc.id} />
 	</div>
@@ -49,7 +67,7 @@
 		<h1>{npc.title ?? npc.title} {npc.name}</h1>
 		<div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
 			<NpcDetails {npc} />
-			{#if npc.kfm.length > 0}
+			{#if npc.kfm.length > 0 && gltfExists}
 				<div>
 					<div class="model px-3 pt-2">
 						<NpcRenderer {npc} />

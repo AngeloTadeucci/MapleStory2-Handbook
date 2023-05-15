@@ -24,7 +24,7 @@
 		toastStore.trigger(t);
 	}}
 	title="Copy ID"
-	class="flex items-center justify-center gap-2 rounded-lg border border-surface-100 p-1 px-2 {extraClass} z-20"
+	class="flex items-center justify-center gap-2 rounded-lg border border-primary-800 p-1 px-2 {extraClass}"
 >
 	{id}
 	<img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />

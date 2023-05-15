@@ -64,11 +64,11 @@
 
 <div class="mt-5 grid justify-center">
 	<div class="ml-4 flex items-center gap-1">
-		<p>Item</p>
+		<a href="/items" class="unstyled underline">Item</a>
 		&gt;
 		<CopyId id={item.id} />
 	</div>
-	<div class="main-container mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
+	<div class="main-container mx-4 mt-3 rounded-xl p-6 pb-40">
 		<h1>{item.name}</h1>
 		<div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
 			<ItemDetails {item} />
@@ -76,9 +76,7 @@
 				<div
 					class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-[799px] lg:w-[575px]"
 				>
-					<ItemRenderer
-						item={item}
-					/>
+					<ItemRenderer {item} />
 					<img
 						src={url('/item/mouse_controls.png')}
 						class="absolute bottom-5 left-5 hidden md:block"

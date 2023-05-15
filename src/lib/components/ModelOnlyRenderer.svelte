@@ -161,7 +161,7 @@
 	</div>
 {:else}
 	<div class="flex min-h-screen flex-row">
-		<div class="flex w-[70%] items-center justify-center">
+		<div class="flex w-[70%] items-center justify-center bg-surface-600">
 			<model-viewer
 				bind:this={modelViewer}
 				src="{gltfUrl}{npc.kfm}/{selectedAnimation}.gltf"
@@ -183,7 +183,7 @@
 						<div class="flex w-full flex-col">
 							<span class="font-bold">Change animation</span>
 							<select
-								class="select mb-2 p-2 border-surface-800-100-token"
+								class="select mb-2 border border-primary-800 p-2"
 								bind:value={selectedAnimation}
 							>
 								<option value={npc.kfm}>Default</option>
@@ -284,7 +284,7 @@
 			{:else}
 				<div class="flex items-center gap-5">
 					<select
-						class="select mb-2 w-1/2 p-2 border-surface-800-100-token"
+						class="select mb-2 w-1/2 border border-primary-800 p-2"
 						bind:value={selectedAnimation}
 					>
 						<option value={npc.kfm}>Default</option>
