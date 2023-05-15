@@ -107,7 +107,7 @@ async function convertToGif(
 ) {
 	let appPath = process.cwd();
 
-	appPath = appPath.substring(0, appPath.lastIndexOf('\\'));
+	appPath = appPath.substring(0, appPath.lastIndexOf('/'));
 
 	const outputFolder = join(appPath, 'gifs', model);
 
