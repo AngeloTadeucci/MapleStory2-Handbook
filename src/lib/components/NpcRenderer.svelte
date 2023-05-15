@@ -1,7 +1,7 @@
 <script script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import type { Npc } from '$lib/types/Npc';
-	import { ProgressRadial, RangeSlider } from '@skeletonlabs/skeleton';
+	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { url } from '../helpers/addBasePath';
 
@@ -17,7 +17,6 @@
 
 	let validAnimations: string[] = [];
 	let selectedAnimation = '';
-	let animationSpeed: number = 1;
 	let loadingGltf = true;
 	let orientation = '';
 	let cameraTarget = '';
@@ -51,11 +50,6 @@
 		loadingGltf = false;
 	});
 
-	let modelViewer: any;
-	$: if (modelViewer) {
-		modelViewer.timeScale = animationSpeed;
-	}
-
 	export const ssr = false;
 </script>
 
@@ -79,18 +73,6 @@
 				{/each}
 			</select>
 		</div>
-		{#if validAnimations.length > 0}
-			<div class="flex w-1/2 flex-col">
-				<RangeSlider name="range-slider" bind:value={animationSpeed} max={5} step={0.1} min={0.1}>
-					<div class="flex items-center justify-between">
-						<div class="font-bold">Animation Speed</div>
-						<div class="text-xs">{animationSpeed} / {5}</div>
-					</div>
-				</RangeSlider>
-			</div>
-		{/if}
-	</div>
-	<div class="relative">
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<button class="button absolute right-5 top-5 z-10">
 			<img
@@ -100,19 +82,18 @@
 				on:click={() => window.open(`/npcs/${npc.id}/model`)}
 			/>
 		</button>
-		<model-viewer
-			bind:this={modelViewer}
-			src="{gltfUrl}{npc.kfm}/{selectedAnimation}.gltf"
-			alt={npc.name}
-			camera-controls
-			{...{ cameraTarget, customOrbit, orientation }}
-			autoplay
-			max-field-of-view="70deg"
-			touch-action="pan-y"
-			interaction-prompt="none"
-			style={customStyle ?? `width: 550px; height: 760px; --iconPath: url(${iconPath});`}
-		/>
 	</div>
+	<model-viewer
+		src="{gltfUrl}{npc.kfm}/{selectedAnimation}.gltf"
+		alt={npc.name}
+		camera-controls
+		{...{ cameraTarget, customOrbit, orientation }}
+		autoplay
+		max-field-of-view="70deg"
+		touch-action="pan-y"
+		interaction-prompt="none"
+		style={customStyle ?? `width: 550px; height: 760px; --iconPath: url(${iconPath});`}
+	/>
 {/if}
 
 <style>
