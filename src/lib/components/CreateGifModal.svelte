@@ -8,6 +8,7 @@
 	import type { Npc } from '$lib/types/Npc';
 	import type { ZodIssue } from 'zod';
 	import { gifSchema } from '$lib/schemas/gif';
+	import { env } from '$env/dynamic/public';
 
 	type CreateGifProps = {
 		npc: Npc;
@@ -81,7 +82,7 @@
 		if (response.ok) {
 			const { url } = await response.json();
 			// open gif in new tab
-			window.open(url, '_blank');
+			window.open(env.PUBLIC_GIFS_URL + url, '_blank');
 		} else {
 			const { message } = await response.json();
 

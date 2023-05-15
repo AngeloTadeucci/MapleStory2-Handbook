@@ -86,7 +86,7 @@ export const POST = async ({ request }) => {
 		);
 		fs.rmSync(folder, { recursive: true });
 
-		return json({ url: `/gifs/${model}/${gif}` });
+		return json({ url: `${model}/${gif}` });
 	} catch (err) {
 		fs.rmSync(folder, { recursive: true });
 		return new Response(JSON.stringify({ message: 'Failed to create gif', code: err }), {
@@ -105,8 +105,11 @@ async function convertToGif(
 	width: number,
 	quality: number
 ) {
-	const appPath = process.cwd();
-	const outputFolder = join(appPath, 'static', 'gifs', model);
+	let appPath = process.cwd();
+
+	appPath = appPath.substring(0, appPath.lastIndexOf('\\'));
+
+	const outputFolder = join(appPath, 'gifs', model);
 
 	const outputFileName = `${model}-${animation}-${crypto.randomUUID()}.gif`;
 
