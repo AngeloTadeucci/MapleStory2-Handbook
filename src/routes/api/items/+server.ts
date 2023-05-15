@@ -1,8 +1,7 @@
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { json, type RequestHandler } from '@sveltejs/kit';
 import DBClient from '$lib/prismaClient';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-import type { SearchItem } from '../../../types/Item';
+import type { SearchItem } from '$lib/types/Item';
 const prisma = DBClient.getInstance().prisma;
 
 const rateLimiter = new RateLimiterMemory({
@@ -13,20 +12,52 @@ const rateLimiter = new RateLimiterMemory({
 export const GET = (async ({ url }) => {
 	const search = url.searchParams.get('search') ?? '';
 	const limit = Number(url.searchParams.get('limit') ?? 20);
+	const offset = Number(url.searchParams.get('page') ?? 0) * limit;
+	const rarityString = url.searchParams.get('rarity');
+	const jobString = url.searchParams.get('job');
+	const slotString = url.searchParams.get('slot');
 
 	if (search.includes('"')) {
-		return json([]);
+		return json({ items: [], total: 0 });
 	}
 
 	const searchString = `"%${search}%"`;
 
-	const items = await prisma.$queryRawUnsafe<SearchItem[]>(
-		`SELECT id, name, rarity, icon_path, main_description, guide_description, tooltip_description FROM maple2_codex.items WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${
-			Number(url.searchParams.get('page') ?? 0) * 20
-		}`
-	);
+	let itemsStatement = `SELECT id, name, rarity, icon_path, main_description, guide_description, tooltip_description, job_limit, item_preset FROM maple2_codex.items WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
+	if (rarityString) {
+		// rarity in db is one single value, but we want to allow multiple rarities to be searched
+		itemsStatement += ` AND rarity IN (${rarityString})`;
+	}
 
-	return json(items);
+	if (jobString) {
+		itemsStatement += ` AND JSON_CONTAINS(job_limit, '[${jobString}]')`;
+	}
+
+	if (slotString) {
+		// type in db is one single value, but we want to allow multiple types to be searched
+		itemsStatement += ` AND item_preset IN (${slotString})`;
+	}
+
+	itemsStatement += ` LIMIT ${limit} OFFSET ${offset}`;
+	const items = await prisma.$queryRawUnsafe<SearchItem[]>(itemsStatement);
+
+	let countStatement = `SELECT COUNT(*) as count FROM maple2_codex.items WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
+	if (rarityString) {
+		countStatement += ` AND rarity IN (${rarityString})`;
+	}
+
+	if (jobString) {
+		countStatement += ` AND JSON_CONTAINS(job_limit, '[${jobString}]')`;
+	}
+
+	if (slotString) {
+		countStatement += ` AND item_preset IN (${slotString})`;
+	}
+
+	const itemCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(countStatement);
+	const total = Number(itemCount[0].count); // bigint here cast as number since it'll never get that big uwu
+
+	return json({ items, total });
 }) satisfies RequestHandler;
 
 export const POST = (async (req) => {

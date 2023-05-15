@@ -1,4 +1,4 @@
-export function unescape(html: string): string {
+export function unescapeHtml(html: string): string {
 	let returnText = html;
 	returnText = returnText.replaceAll(/&nbsp;/gi, ' ');
 	returnText = returnText.replaceAll(/&amp;/gi, '&');

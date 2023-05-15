@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Npc } from 'src/types/Npc';
+	import type { Npc } from '../../types/Npc';
 	import ItemListContainer from '../item/ItemListContainer.svelte';
 	import NpcImage from '../NpcImage.svelte';
 
@@ -37,7 +37,7 @@
 			{/if}
 			{#if npc.field_metadata?.length > 0}
 				<hr class="my-4" />
-				<div class="flex flex-col ">
+				<div class="flex flex-col">
 					{#if npc.npc_type === 0}
 						Main Habitat:
 					{:else}

@@ -1,5 +1,5 @@
 <script>
-	import { url } from '$lib/helpers/addBasePath';
+	import { url } from '../helpers/addBasePath';
 </script>
 
 <footer class="py-2 text-center">

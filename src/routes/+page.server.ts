@@ -1,5 +1,6 @@
+import DBClient from '../lib/prismaClient';
 import type { PageServerLoad } from './$types';
-import DBClient from '$lib/prismaClient';
+
 const prisma = DBClient.getInstance().prisma;
 
 export const load = (async () => {

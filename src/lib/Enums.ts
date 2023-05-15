@@ -171,3 +171,15 @@ export enum Stat {
 	'Bonus Attack' = 33,
 	'Pet Bonus Attack' = 34
 }
+
+export function enumToWhitelist<T extends { [index: string]: any }>(enumObj: T): string[] {
+	const result = [];
+
+	for (const key in enumObj) {
+		if (!isNaN(Number(key))) {
+			result.push(String(enumObj[key]));
+		}
+	}
+
+	return result;
+}

@@ -2,13 +2,14 @@
 	import { env } from '$env/dynamic/public';
 	import ItemDetails from '$lib/components/item/ItemDetails.svelte';
 	import ItemBoxContent from '$lib/components/item/ItemBoxContent.svelte';
-	import Renderer from '$lib/components/Renderer.svelte';
+	import Renderer from '$lib/components/NpcRenderer.svelte';
 	import { url } from '$lib/helpers/addBasePath';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 	import CopyId from '$lib/components/CopyId.svelte';
-	import type Item from '../../../types/Item';
-	import type { ItemBox } from '../../../types/ItemBox';
+	import type { ItemBox } from '$lib/types/ItemBox';
+	import type Item from '$lib/types/Item';
+	import ItemRenderer from '$lib/components/ItemRenderer.svelte';
 
 	export let data: PageData;
 	const { item: resultItem, boxContent: resultBoxContent } = data.props;
@@ -61,26 +62,21 @@
 	<meta property="og:url" content={url(`/items/${item.id}`)} />
 </svelte:head>
 
-<div class="grid justify-center">
+<div class="mt-5 grid justify-center">
 	<div class="ml-4 flex items-center gap-1">
-		<p>Item</p>
+		<a href="/items" class="unstyled underline">Item</a>
 		&gt;
 		<CopyId id={item.id} />
 	</div>
-	<div class="main-container mx-4 mt-3 rounded-xl bg-zinc-800 p-6 pb-40">
-		<p class="text-4xl">{item.name}</p>
+	<div class="main-container mx-4 mt-3 rounded-xl p-6 pb-40">
+		<h1>{item.name}</h1>
 		<div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
 			<ItemDetails {item} />
 			{#if item.kfms.length > 0 && gltfExists}
 				<div
 					class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-[799px] lg:w-[575px]"
 				>
-					<Renderer
-						cover={item.icon_path}
-						model={item.kfms[0]}
-						name={item.name}
-						orientation="90deg 0deg 90deg"
-					/>
+					<ItemRenderer {item} />
 					<img
 						src={url('/item/mouse_controls.png')}
 						class="absolute bottom-5 left-5 hidden md:block"

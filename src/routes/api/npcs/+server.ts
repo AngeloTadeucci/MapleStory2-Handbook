@@ -1,8 +1,7 @@
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { json, type RequestHandler } from '@sveltejs/kit';
 import DBClient from '$lib/prismaClient';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-import type { SearchNpc } from '../../../types/Npc';
+import type { SearchNpc } from '$lib/types/Npc';
 const prisma = DBClient.getInstance().prisma;
 
 const rateLimiter = new RateLimiterMemory({
@@ -13,20 +12,22 @@ const rateLimiter = new RateLimiterMemory({
 export const GET = (async ({ url }) => {
 	const search = url.searchParams.get('search') ?? '';
 	const limit = Number(url.searchParams.get('limit') ?? 20);
+	const offset = Number(url.searchParams.get('page') ?? 0) * limit;
 
 	if (search.includes('"')) {
-		return json([]);
+		return json({ npcs: [], total: 0 });
 	}
 
 	const searchString = `"%${search}%"`;
 
-	const npcs = await prisma.$queryRawUnsafe<SearchNpc[]>(
-		`SELECT id, name, portrait, title FROM maple2_codex.npcs WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${
-			Number(url.searchParams.get('page') ?? 0) * 20
-		}`
-	);
+	const npcsStatement = `SELECT id, name, portrait, title FROM maple2_codex.npcs WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${offset}`;
+	const npcs = await prisma.$queryRawUnsafe<SearchNpc[]>(npcsStatement);
 
-	return json(npcs);
+	const totalStatement = `SELECT COUNT(*) as count FROM maple2_codex.npcs WHERE name LIKE ${searchString} OR id LIKE ${searchString}`;
+	const npcCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(totalStatement);
+	const total = Number(npcCount[0].count); // bigint here cast as number since it'll never get that big uwu
+
+	return json({ npcs, total });
 }) satisfies RequestHandler;
 
 export const POST = (async (req) => {

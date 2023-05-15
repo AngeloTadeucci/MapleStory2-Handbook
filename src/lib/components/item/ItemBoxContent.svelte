@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Job, Jobs } from '$lib/Enums';
-	import { url } from '$lib/helpers/addBasePath';
-	import type { ItemBox } from 'src/types/ItemBox';
+	import { Job, Jobs } from '../../Enums';
+	import { url } from '../../helpers/addBasePath';
+	import type { ItemBox } from '../../types/ItemBox';
 	import ItemImage from '../ItemImage.svelte';
 	import ItemListContainer from './ItemListContainer.svelte';
 
@@ -68,7 +68,7 @@
 					<a
 						href={url(`/items/${content.item_id}`)}
 						data-sveltekit-reload
-						class="flex items-center gap-4"
+						class="unstyled flex items-center gap-4"
 					>
 						<ItemImage
 							icon_path={content.item1.icon_path}

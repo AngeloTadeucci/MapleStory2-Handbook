@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { url } from '$lib/helpers/addBasePath';
+	import { url } from '../helpers/addBasePath';
 
 	type NpcImageProp = {
 		portrait: string;
