@@ -12,6 +12,7 @@ module.exports = {
 				'gold': '#ffd200',
 				'blue-ascent': '#225d7c',
 				'blue-ascent-bright': '#84d6ff',
+				'gray2': '#37393D',
 			}
 		}
 	},

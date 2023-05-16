@@ -230,7 +230,7 @@
 	<title>MS2 Handbook - Items</title>
 </svelte:head>
 
-<div class="mt-4 h-[1px]" />
+<div class="mt-8 h-[1px]" />
 <div class="main-container mx-4 rounded-xl px-5 pb-10 pt-2 lg:m-auto lg:w-3/4">
 	<h1 class="mb-4 text-4xl font-bold">Items</h1>
 	<div class="mb-4 flex items-center justify-between">
@@ -342,7 +342,7 @@
 		on:amount={onAmountChange}
 		class="mt-5"
 	/>
-	<div class="flex flex-row border-b border-primary-800">
+	<div class="flex flex-row border-b border-gray2">
 		<div class="w-1/2 py-4 pr-6 text-left lg:w-2/12">Icon</div>
 		<div class="hidden py-4 pr-6 text-left lg:block lg:w-2/12">Id</div>
 		<div class="py-4 pr-6 text-left lg:w-1/3">Name</div>
@@ -361,7 +361,7 @@
 	{#each paginatedSource as item}
 		<a
 			href={url(`/items/${item.id}`)}
-			class="unstyled flex items-center border-b border-primary-800 last:border-none hover:bg-surface-hover-token"
+			class="unstyled flex items-center border-b border-gray2 last:border-none hover:bg-surface-hover-token"
 		>
 			<div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
 				<ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />

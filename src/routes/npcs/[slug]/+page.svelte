@@ -63,7 +63,7 @@
 		&gt;
 		<CopyId id={npc.id} />
 	</div>
-	<div class="main-container mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
+	<div class="main-container grid-image mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
 		<h1>{npc.title ?? npc.title} {npc.name}</h1>
 		<div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
 			<NpcDetails {npc} />

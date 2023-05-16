@@ -13,7 +13,7 @@
 </svelte:head>
 
 <div
-	class="home-container flex h-full flex-col items-start justify-center gap-2 rounded-xl bg-surface-500 py-4 md:flex-row md:gap-3 lg:m-auto lg:flex-row lg:gap-10 xl:w-3/4"
+	class="flex h-full flex-col items-start justify-center gap-2 rounded-xl bg-surface-500 py-8 md:flex-row md:gap-3 lg:m-auto lg:flex-row lg:gap-10 xl:w-3/4"
 >
 	<div
 		class="main-container flex w-full flex-col items-center justify-center rounded-md px-5 pb-5 lg:mx-5 lg:w-1/2 lg:justify-center"
@@ -22,7 +22,7 @@
 		<div class="flex w-full flex-col lg:w-3/4">
 			{#each data.props.mostViewedItems as item}
 				<div
-					class="w-full border-b border-primary-800 py-3 last:border-none hover:bg-surface-hover-token"
+					class="w-full border-b border-gray2 py-3 last:border-none hover:bg-surface-hover-token"
 				>
 					<a class="unstyled flex flex-row items-center" href={url(`/items/${item.id}`)}>
 						<ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />
@@ -40,7 +40,7 @@
 		<div class="flex w-full flex-col lg:w-3/4">
 			{#each data.props.mostViewedNpcs as npc}
 				<div
-					class="w-full border-b border-primary-800 py-3 last:border-none hover:bg-surface-hover-token"
+					class="w-full border-b border-gray2 py-3 last:border-none hover:bg-surface-hover-token"
 				>
 					<a class="unstyled flex flex-row items-center" href={url(`/npcs/${npc.id}`)}>
 						<NpcImage portrait={npc.portrait} name={npc.name} />
@@ -51,13 +51,3 @@
 		</div>
 	</div>
 </div>
-
-<style>
-	.home-container {
-		background-image: url('/home_background.png');
-		background-size: auto;
-		background-repeat: repeat-x;
-		background-position: bottom;
-		background-blend-mode: multiply;
-	}
-</style>

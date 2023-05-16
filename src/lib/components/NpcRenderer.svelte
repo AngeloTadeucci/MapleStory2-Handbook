@@ -66,7 +66,7 @@
 	<div class="mx-4 mt-2 flex items-center gap-5">
 		<div class="flex w-1/2 flex-col">
 			<span class="font-bold">Change animation</span>
-			<select class="select mb-2 border border-primary-800 p-2" bind:value={selectedAnimation}>
+			<select class="select mb-2 border border-gray2 p-2" bind:value={selectedAnimation}>
 				<option value={npc.kfm}>Default</option>
 				{#each validAnimations as animation}
 					<option value={animation}>{animation}</option>

@@ -183,7 +183,7 @@
 						<div class="flex w-full flex-col">
 							<span class="font-bold">Change animation</span>
 							<select
-								class="select mb-2 border border-primary-800 p-2"
+								class="select mb-2 border border-gray2 p-2"
 								bind:value={selectedAnimation}
 							>
 								<option value={npc.kfm}>Default</option>
@@ -284,7 +284,7 @@
 			{:else}
 				<div class="flex items-center gap-5">
 					<select
-						class="select mb-2 w-1/2 border border-primary-800 p-2"
+						class="select mb-2 w-1/2 border border-gray2 p-2"
 						bind:value={selectedAnimation}
 					>
 						<option value={npc.kfm}>Default</option>
