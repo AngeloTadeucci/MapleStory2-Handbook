@@ -15,9 +15,8 @@
 	type RendererProps = {
 		npc: Npc;
 		customStyle?: string;
-		advancedControls?: boolean;
 	};
-	export let { npc, customStyle, advancedControls = false } = {} as RendererProps;
+	export let { npc, customStyle } = {} as RendererProps;
 
 	const gltfUrl = env.PUBLIC_NODE_ENV === 'development' ? '/gltf/' : env.PUBLIC_MODELS_URL;
 	const iconPath = url(`/${npc.portrait.split('/').slice(2).join('/')}`);
@@ -160,8 +159,8 @@
 		<ProgressRadial width="w-32" />
 	</div>
 {:else}
-	<div class="flex min-h-screen flex-row">
-		<div class="flex w-[70%] items-center justify-center bg-surface-600">
+	<div class="block min-h-screen flex-row md:flex">
+		<div class="flex h-[40vh] items-center justify-center bg-surface-600 md:h-auto md:w-[70%]">
 			<model-viewer
 				bind:this={modelViewer}
 				src="{gltfUrl}{npc.kfm}/{selectedAnimation}.gltf"
@@ -176,134 +175,105 @@
 			/>
 		</div>
 
-		<div class="w-[30%]">
-			{#if advancedControls}
-				<div class="p-4">
-					<div class="flex flex-col items-center gap-5">
-						<div class="flex w-full flex-col">
-							<span class="font-bold">Change animation</span>
-							<select
-								class="select mb-2 border border-gray2 p-2"
-								bind:value={selectedAnimation}
-							>
-								<option value={npc.kfm}>Default</option>
-								{#each validAnimations as animation}
-									<option value={animation}>{animation}</option>
-								{/each}
-							</select>
-						</div>
-						{#if validAnimations.length > 0}
-							<div class="flex w-full flex-col">
-								<RangeSlider
-									name="range-slider"
-									bind:value={animationSpeed}
-									max={5}
-									step={0.1}
-									min={0.1}
-								>
-									<div class="flex items-center justify-between">
-										<div class="font-bold">Change animation speed</div>
-										<div class="text-xs">{animationSpeed} / {5}</div>
-									</div>
-								</RangeSlider>
-							</div>
-						{/if}
-						<div class="flex w-full flex-col">
-							<span class="font-bold">Change background color</span>
-							<input type="color" bind:value={rgb} class="w-[100%]" />
-						</div>
-					</div>
-					<div class="flex w-full justify-between gap-4 py-4">
-						<div>
-							<button class="btn-icon variant-filled-surface" on:click={playPause}>
-								{#if playing}
-									<img src="/icons/pause_circle.svg" alt="Pause" width="35" title="Pause" />
-								{:else}
-									<img src="/icons/play_circle.svg" alt="Play" width="35" title="Play" />
-								{/if}
-							</button>
-							<button class="btn-icon variant-filled-surface" on:click={reset}>
-								<img src="/icons/stop_circle.svg" alt="Stop" width="35" title="Stop" />
-							</button>
-						</div>
-					</div>
-					{#if modelViewer && modelViewer.duration > 0}
-						<RangeSlider
-							name="frame"
-							min={0.0}
-							max={Number((modelViewer.duration / animationSpeed).toFixed(2))}
-							step={0.01}
-							bind:value={frameStep}
-							disabled={playing}
-						>
-							<div class="flex items-center justify-between">
-								<div class="font-bold">Frame:</div>
-								<div class="text-xs">
-									{(frameStep / animationSpeed).toFixed(2)} / {(
-										modelViewer.duration / animationSpeed
-									).toFixed(2)}
-								</div>
-							</div>
-						</RangeSlider>
-					{:else}
-						<!-- fake range slider so layout doesnt jump. RangeSlide above only updates when we pause the animation, idk why -->
-						<RangeSlider name="frame" min={0.0} max={1} step={0.01} disabled={true}>
-							<div class="flex items-center justify-between">
-								<div class="font-bold">Frame:</div>
-								<div class="text-xs">
-									{0} / {1}
-								</div>
-							</div>
-						</RangeSlider>
-					{/if}
-
-					<div class="mt-4">
-						<label class="flex items-center space-x-2">
-							<input class="checkbox" type="checkbox" bind:checked={customSize} />
-							<p>Enable resize</p>
-						</label>
-					</div>
-					{#if customSize}
-						<p class="mt-4">Change the size of the canvas in pixels</p>
-						<div class="flex gap-4">
-							<label class="label">
-								<span>Height</span>
-								<input class={`input`} type="number" placeholder="Height" bind:value={height} />
-							</label>
-							<label class="label">
-								<span>Width</span>
-								<input class={`input`} type="number" placeholder="Width" bind:value={width} />
-							</label>
-						</div>
-					{/if}
-
-					<button on:click={openGifModal} class="btn variant-filled mt-4" type="button">
-						Create GIF
-					</button>
-				</div>
-			{:else}
-				<div class="flex items-center gap-5">
-					<select
-						class="select mb-2 w-1/2 border border-gray2 p-2"
-						bind:value={selectedAnimation}
-					>
+		<div class="h-[60vh] overflow-auto p-4 md:h-auto md:w-[30%] md:overflow-hidden">
+			<div class="flex flex-col items-center gap-5">
+				<div class="flex w-full flex-col">
+					<span class="font-bold">Change animation</span>
+					<select class="select mb-2 border border-gray2 p-2" bind:value={selectedAnimation}>
 						<option value={npc.kfm}>Default</option>
 						{#each validAnimations as animation}
 							<option value={animation}>{animation}</option>
 						{/each}
 					</select>
-					{#if validAnimations.length > 0}
-						<div class="flex w-1/2 flex-col">
-							<RangeSlider name="range-slider" bind:value={animationSpeed} max={5} step={0.1}>
-								<div class="flex items-center justify-between">
-									<div class="font-bold">Animation Speed</div>
-									<div class="text-xs">{animationSpeed} / {5}</div>
-								</div>
-							</RangeSlider>
+				</div>
+				{#if validAnimations.length > 0}
+					<div class="flex w-full flex-col">
+						<RangeSlider
+							name="range-slider"
+							bind:value={animationSpeed}
+							max={5}
+							step={0.1}
+							min={0.1}
+						>
+							<div class="flex items-center justify-between">
+								<div class="font-bold">Change animation speed</div>
+								<div class="text-xs">{animationSpeed} / {5}</div>
+							</div>
+						</RangeSlider>
+					</div>
+				{/if}
+				<div class="flex w-full flex-col">
+					<span class="font-bold">Change background color</span>
+					<input type="color" bind:value={rgb} class="w-[100%]" />
+				</div>
+			</div>
+			<div class="flex w-full justify-between gap-4 py-4">
+				<div>
+					<button class="btn-icon variant-filled-surface" on:click={playPause}>
+						{#if playing}
+							<img src="/icons/pause_circle.svg" alt="Pause" width="35" title="Pause" />
+						{:else}
+							<img src="/icons/play_circle.svg" alt="Play" width="35" title="Play" />
+						{/if}
+					</button>
+					<button class="btn-icon variant-filled-surface" on:click={reset}>
+						<img src="/icons/stop_circle.svg" alt="Stop" width="35" title="Stop" />
+					</button>
+				</div>
+			</div>
+			{#if modelViewer && modelViewer.duration > 0}
+				<RangeSlider
+					name="frame"
+					min={0.0}
+					max={Number((modelViewer.duration / animationSpeed).toFixed(2))}
+					step={0.01}
+					bind:value={frameStep}
+					disabled={playing}
+				>
+					<div class="flex items-center justify-between">
+						<div class="font-bold">Frame:</div>
+						<div class="text-xs">
+							{(frameStep / animationSpeed).toFixed(2)} / {(
+								modelViewer.duration / animationSpeed
+							).toFixed(2)}
 						</div>
-					{/if}
+					</div>
+				</RangeSlider>
+			{:else}
+				<!-- fake range slider so layout doesnt jump. RangeSlide above only updates when we pause the animation, idk why -->
+				<RangeSlider name="frame" min={0.0} max={1} step={0.01} disabled={true}>
+					<div class="flex items-center justify-between">
+						<div class="font-bold">Frame:</div>
+						<div class="text-xs">
+							{0} / {1}
+						</div>
+					</div>
+				</RangeSlider>
+			{/if}
+
+			<div class="mt-4">
+				<label class="flex items-center space-x-2">
+					<input class="checkbox" type="checkbox" bind:checked={customSize} />
+					<p>Enable resize</p>
+				</label>
+			</div>
+			{#if customSize}
+				<p class="mt-4">Change the size of the canvas in pixels</p>
+				<div class="flex gap-4">
+					<label class="label">
+						<span>Height</span>
+						<input class={`input`} type="number" placeholder="Height" bind:value={height} />
+					</label>
+					<label class="label">
+						<span>Width</span>
+						<input class={`input`} type="number" placeholder="Width" bind:value={width} />
+					</label>
 				</div>
 			{/if}
+
+			<button on:click={openGifModal} class="btn variant-filled mt-4" type="button">
+				Create GIF
+			</button>
 		</div>
 	</div>
 {/if}

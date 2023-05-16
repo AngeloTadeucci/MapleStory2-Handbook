@@ -25,7 +25,7 @@
 
 {#if npc.kfm.length > 0}
 	<div class="">
-		<ModelOnlyRenderer {npc} advancedControls />
+		<ModelOnlyRenderer {npc} />
 	</div>
 {:else}
 	<div class="flex items-center justify-center">
