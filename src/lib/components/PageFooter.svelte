@@ -14,7 +14,7 @@
 	<span>
 		Source code on <a
 			class="underline"
-			href="https://github.com/AngeloTadeucci/Maple2Codex-FrontEnd-Svelte">GitHub</a
+			href="https://github.com/AngeloTadeucci/MapleStory2-Handbook">GitHub</a
 		>
 	</span>
 </footer>
