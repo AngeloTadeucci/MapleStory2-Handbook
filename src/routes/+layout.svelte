@@ -1,13 +1,13 @@
 <script lang="ts">
-	// Your custom Skeleton theme:
 	import '../theme.postcss';
-	// If you have source.organizeImports set to true in VSCode, then it will auto change this ordering
 	import '@skeletonlabs/skeleton/styles/all.css';
 	import { AppShell, Toast } from '@skeletonlabs/skeleton';
-	// Most of your app wide CSS should be put in this file
 	import '../app.postcss';
+
 	import Navigation from '../lib/components/Navigation.svelte';
 	import PageFooter from '../lib/components/PageFooter.svelte';
+	// @ts-ignore
+	import { GoogleAnalytics } from '@beyonk/svelte-google-analytics';
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 	import { storePopup } from '@skeletonlabs/skeleton';
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
@@ -17,6 +17,7 @@
 	import { Modal } from '@skeletonlabs/skeleton';
 </script>
 
+<GoogleAnalytics properties={['G-KNN265BGLK']} />
 <Modal />
 <Toast />
 {#if $page.route.id?.includes('[slug]/model')}
