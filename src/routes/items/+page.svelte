@@ -66,6 +66,42 @@
 		currentPage: number;
 	};
 
+	function buildParams(
+		search: string,
+		page: number,
+		limit: number,
+		rarity: string,
+		slot: string,
+		job: string
+	) {
+		return paramsBuilder([
+			{
+				name: 'search',
+				value: search
+			},
+			{
+				name: 'page',
+				value: page
+			},
+			{
+				name: 'limit',
+				value: limit
+			},
+			{
+				name: 'rarity',
+				value: rarity
+			},
+			{
+				name: 'slot',
+				value: slot
+			},
+			{
+				name: 'job',
+				value: job
+			}
+		]);
+	}
+
 	async function fetchData(resetPaginator: boolean) {
 		loading = true;
 		let response;
@@ -81,63 +117,27 @@
 
 			response = await fetch(
 				url(
-					`/api/items${paramsBuilder([
-						{
-							name: 'search',
-							value: searchTerm
-						},
-						{
-							name: 'page',
-							value: 0
-						},
-						{
-							name: 'limit',
-							value: paginator.limit * (paginator.currentPage + 1)
-						},
-						{
-							name: 'rarity',
-							value: rarityList.map((x) => Rarity[x as keyof typeof Rarity]).join(',')
-						},
-						{
-							name: 'slot',
-							value: slotList.map((x) => SlotName[x as keyof typeof SlotName]).join(',')
-						},
-						{
-							name: 'job',
-							value: jobList.map((x) => Job[x as keyof typeof Job]).join(',')
-						}
-					])}`
+					`/api/items${buildParams(
+						searchTerm,
+						0,
+						paginator.limit * (paginator.currentPage + 1),
+						rarityList.map((x) => Rarity[x as keyof typeof Rarity]).join(','),
+						slotList.map((x) => SlotName[x as keyof typeof SlotName]).join(','),
+						jobList.map((x) => Job[x as keyof typeof Job]).join(',')
+					)}`
 				)
 			);
 		} else {
 			response = await fetch(
 				url(
-					`/api/items${paramsBuilder([
-						{
-							name: 'search',
-							value: searchTerm
-						},
-						{
-							name: 'page',
-							value: paginator.currentPage
-						},
-						{
-							name: 'limit',
-							value: paginator.limit
-						},
-						{
-							name: 'rarity',
-							value: rarityList.map((x) => Rarity[x as keyof typeof Rarity]).join(',')
-						},
-						{
-							name: 'slot',
-							value: slotList.map((x) => SlotName[x as keyof typeof SlotName]).join(',')
-						},
-						{
-							name: 'job',
-							value: jobList.map((x) => Job[x as keyof typeof Job]).join(',')
-						}
-					])}`
+					`/api/items${buildParams(
+						searchTerm,
+						paginator.currentPage,
+						paginator.limit,
+						rarityList.map((x) => Rarity[x as keyof typeof Rarity]).join(','),
+						slotList.map((x) => SlotName[x as keyof typeof SlotName]).join(','),
+						jobList.map((x) => Job[x as keyof typeof Job]).join(',')
+					)}`
 				)
 			);
 		}
@@ -214,6 +214,7 @@
 		paginator.limit = e.detail;
 		$page.url.searchParams.set('limit', e.detail);
 		goto($page.url.href, { keepFocus: true, replaceState: true });
+		data = [];
 		fetchData(true);
 	}
 
