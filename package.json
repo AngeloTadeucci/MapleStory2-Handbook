@@ -1,6 +1,6 @@
 {
 	"name": "maple2codex-svelte",
-	"version": "0.0.1",
+	"version": "0.1.1",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
@@ -16,7 +16,7 @@
 	"devDependencies": {
 		"@beyonk/svelte-google-analytics": "^2.6.4",
 		"@playwright/test": "^1.33.0",
-		"@skeletonlabs/skeleton": "^1.5.1",
+		"@skeletonlabs/skeleton": "1.5.1",
 		"@sveltejs/adapter-auto": "^2.0.1",
 		"@sveltejs/adapter-node": "^1.2.4",
 		"@sveltejs/kit": "^1.16.3",
@@ -46,6 +46,7 @@
 		"@floating-ui/dom": "^1.2.8",
 		"@prisma/client": "^4.14.0",
 		"dotenv": "^16.0.3",
+		"highlight.run": "^7.3.11",
 		"lodash.debounce": "^4.0.8",
 		"rate-limiter-flexible": "^2.4.1",
 		"sass": "^1.62.1",
