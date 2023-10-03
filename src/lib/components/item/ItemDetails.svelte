@@ -102,7 +102,7 @@
 				</p>
 			{/if}
 			{#if item.main_description.length > 0}
-				<p>{item.main_description}</p>
+				<p>{@html closeMissingTags(unescapeHtml(item.main_description), true)}</p>
 			{/if}
 		</div>
 		{#if item.gender !== 2}
