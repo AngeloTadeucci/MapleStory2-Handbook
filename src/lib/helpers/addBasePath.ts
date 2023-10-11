@@ -6,5 +6,5 @@ import { base } from '$app/paths';
  * @return {string} The constructed URL.
  */
 export const url = (path: string): string => {
-	return `${base}${path}`;
+  return `${base}${path}`;
 };

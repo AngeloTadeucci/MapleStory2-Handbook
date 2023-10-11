@@ -1,43 +1,43 @@
 <script lang="ts">
-	type Props = {
-		gap?: number;
-		classname?: string;
-	};
-	export let { gap, classname } = {} as Props;
-	if (!gap) {
-		gap = 1;
-	}
+  type Props = {
+    gap?: number;
+    classname?: string;
+  };
+  export let { gap, classname } = {} as Props;
+  if (!gap) {
+    gap = 1;
+  }
 </script>
 
 <div class={classname ? classname : 'lg:mt-7'}>
-	<div class="box__top" />
-	<div class="box__middle flex flex-col gap-{gap} p-4">
-		<slot />
-	</div>
-	<div class="box__bot" />
+  <div class="box__top" />
+  <div class="box__middle flex flex-col gap-{gap} p-4">
+    <slot />
+  </div>
+  <div class="box__bot" />
 </div>
 
 <style lang="scss">
-	.box {
-		&__top {
-			position: relative;
-			background-image: url('/item/item_box_top.png');
-			width: 575px;
-			height: 12px;
-		}
+  .box {
+    &__top {
+      position: relative;
+      background-image: url('/item/item_box_top.png');
+      width: 575px;
+      height: 12px;
+    }
 
-		&__middle {
-			position: relative;
-			background-image: url('/item/item_box_middle.png');
-			background-repeat: repeat-y;
-			width: 575px;
-		}
+    &__middle {
+      position: relative;
+      background-image: url('/item/item_box_middle.png');
+      background-repeat: repeat-y;
+      width: 575px;
+    }
 
-		&__bot {
-			position: relative;
-			background-image: url('/item/item_box_bot.png');
-			width: 575px;
-			height: 14px;
-		}
-	}
+    &__bot {
+      position: relative;
+      background-image: url('/item/item_box_bot.png');
+      width: 575px;
+      height: 14px;
+    }
+  }
 </style>
