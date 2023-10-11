@@ -16,10 +16,10 @@
 
 			const maxAttack = item.constants_stats.find((x) => x.Item1.ItemAttribute == 28)?.Item1.Value;
 			return `${minAttack}~${maxAttack}`;
-		} else {
-			return item.constants_stats.find((x) => x.Item1.ItemAttribute == item.represent_option)?.Item1
-				.Value;
 		}
+
+		return item.constants_stats.find((x) => x.Item1.ItemAttribute == item.represent_option)?.Item1
+			.Value;
 	};
 
 	const generateItemDescription = () => {
