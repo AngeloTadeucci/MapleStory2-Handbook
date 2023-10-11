@@ -4,6 +4,7 @@
   type NpcImageProp = {
     portrait: string;
     name: string;
+    asdas: string;
   };
 
   let image = '';
