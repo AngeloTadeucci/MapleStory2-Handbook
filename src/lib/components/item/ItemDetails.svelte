@@ -91,16 +91,20 @@
 			{#if item.gear_score > 0}
 				<p>Gear score {item.gear_score}</p>
 			{/if}
+
 			{#if item.level_min > 1}
 				<p>Requires level {item.level_min}</p>
 			{/if}
+
 			<p>{generateItemDescription()}</p>
+
 			{#if !item.job_limit.includes(Job.GlobalJob)}
 				<p>
 					Job:{' '}
 					{item.job_limit.length > 0 ? item.job_limit.map((j) => Job[j]).join(', ') : 'None'}
 				</p>
 			{/if}
+
 			{#if item.main_description.length > 0}
 				<p>{@html closeMissingTags(unescapeHtml(item.main_description), true)}</p>
 			{/if}
