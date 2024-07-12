@@ -90,3 +90,8 @@ model npcs {
   shop_id        Int    @default(0)
   skills         Json
 }
+
+model maps {
+  id             Int    @id
+  name           String @db.VarChar(100)
+}
