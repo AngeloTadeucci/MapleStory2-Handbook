@@ -4,9 +4,9 @@
   let menus = [
     { name: 'Items', path: '/items' },
     { name: 'NPCs', path: '/npcs' },
-    { name: 'Maps', path: '/maps' }
+    { name: 'Maps', path: '/maps' },
     // { name: 'Quests', path: '/quests' },
-    // { name: 'Trophies', path: '/trophies' },
+    { name: 'Trophies', path: '/trophies' }
     // { name: 'Dungeons', path: '/dungeons' },
     // { name: 'Skills', path: '/skills' },
     // { name: 'Dyes', path: '/dyes' },

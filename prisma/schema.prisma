@@ -94,4 +94,16 @@ model npcs {
 model maps {
   id             Int    @id
   name           String @db.VarChar(100)
+  visit_count    Int    @default(0)
+  portrait       String @default("") @db.VarChar(200)
+}
+
+model achieves {
+  id             Int    @id
+  name           String @db.VarChar(100)
+  visit_count    Int    @default(0)
+  portrait       String @default("") @db.VarChar(200)
+  description    String @db.Text
+  complete_description  String @db.Text
+  icon           String @db.VarChar(100)
 }

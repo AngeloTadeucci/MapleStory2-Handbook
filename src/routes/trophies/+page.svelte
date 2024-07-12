@@ -3,9 +3,10 @@
   import { page } from '$app/stores';
   import CopyId from '$lib/components/CopyId.svelte';
   import SelectChips from '$lib/components/SelectChips.svelte';
+  import TrophyImage from '$lib/components/TrophyImage.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
-  import type { SearchMap } from '$lib/types/Map';
+  import type { SearchTrophy } from '$lib/types/Trophy';
   import { Paginator, ProgressRadial } from '@skeletonlabs/skeleton';
   import type { PaginationSettings } from '@skeletonlabs/skeleton/dist/components/Paginator/types';
   import debounce from 'lodash.debounce';
@@ -15,8 +16,8 @@
 
   let lastSearchTerm = searchTerm;
 
-  let data: SearchMap[] = [];
-  let lastBatch: SearchMap[] = [];
+  let data: SearchTrophy[] = [];
+  let lastBatch: SearchTrophy[] = [];
   let loadedPages: number[] = [];
   let loading = false;
 
@@ -51,7 +52,7 @@
 
       response = await fetch(
         url(
-          `/api/maps${paramsBuilder([
+          `/api/trophies${paramsBuilder([
             {
               name: 'search',
               value: searchTerm
@@ -70,7 +71,7 @@
     } else {
       response = await fetch(
         url(
-          `/api/maps${paramsBuilder([
+          `/api/trophies${paramsBuilder([
             {
               name: 'search',
               value: searchTerm
@@ -89,10 +90,10 @@
     }
 
     const responseJson = await response.json();
-    const maps = responseJson.maps as SearchMap[];
+    const trophies = responseJson.trophies as SearchTrophy[];
     const total = responseJson.total as number;
 
-    if (maps.length === 0) {
+    if (trophies.length === 0) {
       data = [];
       paginator = {
         currentPage: 0,
@@ -109,8 +110,8 @@
       data = [];
     }
 
-    lastBatch = maps;
-    data = [...data, ...maps];
+    lastBatch = trophies;
+    data = [...data, ...trophies];
     lastSearchTerm = searchTerm;
     loadedPages.push(paginator.currentPage);
 
@@ -164,12 +165,12 @@
 </script>
 
 <svelte:head>
-  <title>MS2 Handbook - Maps</title>
+  <title>MS2 Handbook - Trophies</title>
 </svelte:head>
 
 <div class="mt-8 h-[1px]" />
 <div class="main-container mx-4 rounded-xl px-5 pb-40 pt-2 lg:m-auto lg:w-3/4">
-  <h1 class="mb-4 text-4xl font-bold">Maps</h1>
+  <h1 class="mb-4 text-4xl font-bold">Trophies</h1>
   <input
     type="text"
     placeholder="Search 🔎"
@@ -208,22 +209,22 @@
   {/if}
   {#if paginatedSource && paginatedSource.length === 0 && !loading}
     <div class="flex items-center justify-center">
-      <h2 class="my-10">No maps found</h2>
+      <h2 class="my-10">No trophies found</h2>
     </div>
   {/if}
-  {#each paginatedSource as map}
+  {#each paginatedSource as trophy}
     <a
       class="unstyled flex cursor-pointer items-center border-b border-gray2 last:border-none hover:bg-surface-hover-token"
-      href={url(`/maps/${map.id}`)}
+      href={url(`/trophies/${trophy.id}`)}
     >
-    <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
-      <img src="/resource/sprites/disable overlay.png" width="60" height="60" alt="Male">
-    </div>
+      <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
+        <TrophyImage icon={trophy.icon} name={trophy.name} />
+      </div>
       <div class="hidden lg:block lg:w-1/4">
-        <CopyId id={map.id} />
+        <CopyId id={trophy.id} />
       </div>
       <div class="text-left lg:w-1/4">
-        {map.name}
+        {trophy.name}
       </div>
     </a>
   {/each}
