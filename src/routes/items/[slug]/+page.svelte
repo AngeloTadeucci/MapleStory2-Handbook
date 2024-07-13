@@ -2,7 +2,6 @@
   import { env } from '$env/dynamic/public';
   import ItemDetails from '$lib/components/item/ItemDetails.svelte';
   import ItemBoxContent from '$lib/components/item/ItemBoxContent.svelte';
-  import Renderer from '$lib/components/NpcRenderer.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';

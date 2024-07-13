@@ -120,7 +120,9 @@
     display: inline-block;
     padding: 10px 18px 9px 40px;
     font-weight: 500;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2), 0 0 4px rgba(0, 0, 0, 0.25);
+    box-shadow:
+      0 0 8px rgba(0, 0, 0, 0.2),
+      0 0 4px rgba(0, 0, 0, 0.25);
     position: absolute;
     left: 50%;
     top: 50%;

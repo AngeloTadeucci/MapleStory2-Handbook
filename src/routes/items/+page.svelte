@@ -9,23 +9,20 @@
   import itemHelper from '$lib/helpers/itemHelper';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchItem } from '$lib/types/Item';
-  import { Paginator, ProgressRadial } from '@skeletonlabs/skeleton';
-  import type { PaginationSettings } from '@skeletonlabs/skeleton/dist/components/Paginator/types';
+  import { Paginator, ProgressRadial, type PaginationSettings } from '@skeletonlabs/skeleton';
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
   let searchTerm = $page.url.searchParams.get('search') || '';
+
   let paginator = {
-    currentPage: $page.url.searchParams.get('page')
-      ? parseInt($page.url.searchParams.get('page')!)
-      : 0,
-    offset: 0,
+    page: $page.url.searchParams.get('page') ? parseInt($page.url.searchParams.get('page')!) : 0,
     limit: $page.url.searchParams.get('limit')
       ? parseInt($page.url.searchParams.get('limit')!)
       : 10,
     size: 0,
     amounts: [10, 25, 50, 100, 200]
-  } as PaginatorType;
+  } as PaginationSettings;
 
   let rarityList: string[] = (() => {
     let rarity = $page.url.searchParams.get('rarity');
@@ -61,10 +58,6 @@
 
   let loadedPages: number[] = [];
   let loading = false;
-
-  type PaginatorType = PaginationSettings & {
-    currentPage: number;
-  };
 
   function buildParams(
     search: string,
@@ -106,10 +99,10 @@
     loading = true;
     let response;
     // check if data doesnt have items but current page is not 0
-    if (data.length === 0 && paginator.currentPage !== 0) {
+    if (data.length === 0 && paginator.page !== 0) {
       loadedPages = (() => {
         let pages = [];
-        for (let i = 0; i < paginator.currentPage; i++) {
+        for (let i = 0; i < paginator.page; i++) {
           pages.push(i);
         }
         return pages;
@@ -120,7 +113,7 @@
           `/api/items${buildParams(
             searchTerm,
             0,
-            paginator.limit * (paginator.currentPage + 1),
+            paginator.limit * (paginator.page + 1),
             rarityList.map((x) => Rarity[x as keyof typeof Rarity]).join(','),
             slotList.map((x) => SlotName[x as keyof typeof SlotName]).join(','),
             jobList.map((x) => Job[x as keyof typeof Job]).join(',')
@@ -132,7 +125,7 @@
         url(
           `/api/items${buildParams(
             searchTerm,
-            paginator.currentPage,
+            paginator.page,
             paginator.limit,
             rarityList.map((x) => Rarity[x as keyof typeof Rarity]).join(','),
             slotList.map((x) => SlotName[x as keyof typeof SlotName]).join(','),
@@ -149,12 +142,11 @@
     if (items.length === 0) {
       data = [];
       paginator = {
-        currentPage: 0,
-        offset: 0,
+        page: 0,
         limit: paginator.limit,
         size: total,
         amounts: [10, 25, 50, 100, 200]
-      };
+      } satisfies PaginationSettings;
       loading = false;
       return;
     }
@@ -167,7 +159,7 @@
     lastBatch = items;
     data = [...data, ...items];
     lastSearchTerm = searchTerm;
-    loadedPages.push(paginator.currentPage);
+    loadedPages.push(paginator.page);
 
     const amounts = [10, 25, 50, 100, 200].filter((amount) => amount <= total);
     if (amounts.length === 0) {
@@ -184,16 +176,16 @@
 
     paginator = {
       ...paginator,
-      offset: paginator.currentPage,
+      page: paginator.page,
       size: total,
       amounts: amounts
-    } as PaginatorType;
+    } satisfies PaginationSettings;
     loading = false;
   }
 
   $: paginatedSource = data.slice(
-    paginator.offset * paginator.limit, // start
-    paginator.offset * paginator.limit + paginator.limit // end
+    paginator.page * paginator.limit,
+    paginator.page * paginator.limit + paginator.limit
   );
 
   onMount(() => {
@@ -202,7 +194,7 @@
   });
 
   function onPageChange(e: CustomEvent): void {
-    paginator.currentPage = e.detail;
+    paginator.page = e.detail;
     $page.url.searchParams.set('page', e.detail);
     goto($page.url.href, { keepFocus: true, replaceState: true });
     if (!loadedPages.includes(e.detail)) {
@@ -244,7 +236,7 @@
         async () => {
           $page.url.searchParams.set('search', searchTerm);
 
-          paginator.currentPage = 0;
+          paginator.page = 0;
           $page.url.searchParams.set('page', '0');
 
           goto($page.url.href, { keepFocus: true, replaceState: true });
@@ -274,7 +266,7 @@
             slotList = [];
             jobList = [];
 
-            paginator.currentPage = 0;
+            paginator.page = 0;
             paginator.limit = 10;
             searchTerm = '';
 

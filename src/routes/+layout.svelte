@@ -1,7 +1,4 @@
 <script lang="ts">
-  import '../theme.postcss';
-  import '@skeletonlabs/skeleton/styles/all.css';
-  import { AppShell, Toast } from '@skeletonlabs/skeleton';
   import '../app.postcss';
 
   import Navigation from '../lib/components/Navigation.svelte';
@@ -9,8 +6,9 @@
   // @ts-ignore
   import { GoogleAnalytics } from '@beyonk/svelte-google-analytics';
   import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-  import { storePopup } from '@skeletonlabs/skeleton';
-  storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+  import { AppShell, initializeStores, Toast } from '@skeletonlabs/skeleton';
+
+  initializeStores();
 
   import { page } from '$app/stores';
 

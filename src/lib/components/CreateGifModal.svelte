@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
-    modalStore,
-    toastStore,
+    getModalStore,
+    getToastStore,
     type ToastSettings,
     ProgressRadial
   } from '@skeletonlabs/skeleton';
@@ -17,6 +17,9 @@
   };
   export let { npc, modelViewer, selectedAnimation } = {} as CreateGifProps;
   export let parent: any;
+
+  const toastStore = getToastStore();
+  const modalStore = getModalStore();
 
   let resize = false;
   let loading = false;
