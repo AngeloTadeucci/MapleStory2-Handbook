@@ -8,67 +8,68 @@ datasource db {
 }
 
 model item_boxes {
-  uid             Int @id @default(autoincrement())
+  uid             Int   @id @default(autoincrement())
   box_id          Int
   item1           items @relation(fields: [item_id], references: [id])
   item_id         Int
   item_id2        Int
   min_count       Int
   max_count       Int
-  rarity          Int @db.TinyInt
+  rarity          Int   @db.TinyInt
   smart_drop_rate Int
   group_drop_id   Int
 }
 
 model items {
-  id                  Int    @id
-  name                String @db.VarChar(100)
-  tooltip_description String @db.Text
-  guide_description   String @db.Text
-  main_description    String @db.Text
-  rarity              Int    @default(1) @db.UnsignedTinyInt
-  is_outfit           Int    @db.TinyInt
+  id                  Int          @id
+  name                String       @db.VarChar(100)
+  tooltip_description String       @db.Text
+  guide_description   String       @db.Text
+  main_description    String       @db.Text
+  rarity              Int          @default(1) @db.UnsignedTinyInt
+  is_outfit           Int          @db.TinyInt
   job_limit           Json
   job_recommend       Json
-  level_min           Int    @default(0)
-  level_max           Int    @default(0)
-  gender              Int    @default(0) @db.UnsignedTinyInt
-  icon_path           String @default("") @db.VarChar(100)
-  visit_count         Int    @default(0)
-  pet_id              Int    @default(0)
-  is_ugc              Int    @default(0) @db.TinyInt
-  transfer_type       Int    @default(0)
-  sellable            Int    @default(0) @db.TinyInt
-  breakable           Int    @default(0) @db.TinyInt
-  fusionable          Int    @default(0) @db.TinyInt
-  skill_id            Int    @default(0)
-  skill_level         Int    @default(0)
-  stack_limit         Int    @default(0)
-  tradeable_count     Int    @default(0)
-  repackage_count     Int    @default(0)
+  level_min           Int          @default(0)
+  level_max           Int          @default(0)
+  gender              Int          @default(0) @db.UnsignedTinyInt
+  icon_path           String       @default("") @db.VarChar(100)
+  visit_count         Int          @default(0)
+  pet_id              Int          @default(0)
+  is_ugc              Int          @default(0) @db.TinyInt
+  transfer_type       Int          @default(0)
+  sellable            Int          @default(0) @db.TinyInt
+  breakable           Int          @default(0) @db.TinyInt
+  fusionable          Int          @default(0) @db.TinyInt
+  skill_id            Int          @default(0)
+  skill_level         Int          @default(0)
+  stack_limit         Int          @default(0)
+  tradeable_count     Int          @default(0)
+  repackage_count     Int          @default(0)
   sell_price          Json
   kfms                Json
-  icon_code           Int    @db.TinyInt
-  move_disable        Int    @db.TinyInt
-  remake_disable      Int    @db.TinyInt
+  icon_code           Int          @db.TinyInt
+  move_disable        Int          @db.TinyInt
+  remake_disable      Int          @db.TinyInt
   gear_score          Int
-  enchantable         Int    @db.TinyInt
-  dyeable             Int    @db.TinyInt
+  enchantable         Int          @db.TinyInt
+  dyeable             Int          @db.TinyInt
   constants_stats     Json
   static_stats        Json
   random_stats        Json
-  random_stat_count   Int    @db.TinyInt
-  slot                Int    @db.UnsignedTinyInt
+  random_stat_count   Int          @db.TinyInt
+  slot                Int          @db.UnsignedTinyInt
   set_info            Json
-  set_name            String @default("") @db.VarChar(100)
-  item_preset         String @default("") @db.VarChar(4)
-  glamour_count       Int    @default(0)
-  repackage_scrolls   String @db.Text
-  repackage_limit     Int    @default(0)
-  box_id              Int    @default(0)
-  item_type           Int    @default(0)
-  represent_option    Int    @default(0)
+  set_name            String       @default("") @db.VarChar(100)
+  item_preset         String       @default("") @db.VarChar(4)
+  glamour_count       Int          @default(0)
+  repackage_scrolls   String       @db.Text
+  repackage_limit     Int          @default(0)
+  box_id              Int          @default(0)
+  item_type           Int          @default(0)
+  represent_option    Int          @default(0)
   item_boxes          item_boxes[]
+  additional_effects  String       @db.Text
 }
 
 model npcs {
@@ -89,4 +90,12 @@ model npcs {
   title          String @default("") @db.VarChar(100)
   shop_id        Int    @default(0)
   skills         Json
+}
+
+model additional_effects {
+  id          Int    @id
+  icon_path   String @db.VarChar(100)
+  name        String @db.VarChar(400)
+  description String @db.Text
+  levels      Json
 }

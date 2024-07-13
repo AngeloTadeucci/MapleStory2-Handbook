@@ -35,10 +35,27 @@ export const load = (async ({ params }) => {
     }
   });
 
+  const additionalEffectDescriptions = [];
+  if (item.additional_effects) {
+    const additionalEffects = JSON.parse(item.additional_effects);
+    for (const effect of additionalEffects) {
+      const description = await prisma.additional_effects.findFirst({
+        where: {
+          id: effect.Item1
+        }
+      });
+      if (description === null || description === undefined) {
+        continue;
+      }
+      additionalEffectDescriptions.push(description);
+    }
+  }
+
   return {
     props: {
       item,
-      boxContent
+      boxContent,
+      additionalEffectDescriptions
     }
   };
 }) satisfies PageServerLoad;

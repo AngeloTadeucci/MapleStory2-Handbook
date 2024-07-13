@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import type { ItemBox } from './ItemBox';
 
 export default interface Item {
@@ -49,11 +50,17 @@ export default interface Item {
   box_content?: ItemBox[];
   item_type: number;
   represent_option: number;
+  additional_effects: string;
 }
 
 export interface SetInfo {
   Item1: string; // item name
   Item2: number; // item id
+}
+
+export interface AdditionalEffects {
+  Item1: number; // skill id
+  Item2: number; // skill level
 }
 
 export interface StatList {
@@ -94,3 +101,11 @@ export type SearchItem = Pick<
   | 'guide_description'
   | 'tooltip_description'
 >;
+
+export interface AdditionalEffectDescription {
+  id: number;
+  icon_path: string;
+  name: string;
+  description: string;
+  levels: Prisma.JsonValue;
+}

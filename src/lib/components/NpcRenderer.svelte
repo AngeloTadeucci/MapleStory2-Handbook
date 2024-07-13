@@ -73,14 +73,11 @@
         {/each}
       </select>
     </div>
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <button class="button absolute right-5 top-5 z-10">
-      <img
-        src={url('/icons/open_in_new.svg')}
-        alt="Open in new tab"
-        title="Open in new tab"
-        on:click={() => window.open(`/npcs/${npc.id}/model`)}
-      />
+    <button
+      class="button absolute right-5 top-5 z-10"
+      on:click={() => window.open(`/npcs/${npc.id}/model`)}
+    >
+      <img src={url('/icons/open_in_new.svg')} alt="Open in new tab" title="Open in new tab" />
     </button>
   </div>
   <model-viewer
