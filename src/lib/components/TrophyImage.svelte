@@ -13,7 +13,6 @@
   const handleMissingImage = () => {
     image = noImage;
   };
-
   $: image = icon === '' ? noImage : url(`/resource/image/trophy/${icon}`);
 </script>
 
