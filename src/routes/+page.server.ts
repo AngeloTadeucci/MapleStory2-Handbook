@@ -28,10 +28,37 @@ export const load = (async () => {
     },
     take: 5
   });
+
+  const mostViewedMaps = await prisma.maps.findMany({
+    select: {
+      id: true,
+      name: true,
+      portrait: true
+    },
+    orderBy: {
+      visit_count: 'desc'
+    },
+    take: 5
+  });
+
+  const mostViewedTrophies = await prisma.achieves.findMany({
+    select: {
+      id: true,
+      name: true,
+      icon: true
+    },
+    orderBy: {
+      visit_count: 'desc'
+    },
+    take: 5
+  });
+
   return {
     props: {
       mostViewedItems,
-      mostViewedNpcs
+      mostViewedNpcs,
+      mostViewedMaps,
+      mostViewedTrophies
     }
   };
 }) satisfies PageServerLoad;
