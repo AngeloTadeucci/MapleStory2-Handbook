@@ -25,10 +25,6 @@
 
   async function fetchData(clearCache: boolean) {
     // check if we have the data cached
-    console.log(
-      '🚀 ~ fetchData ~ data[paginator.page] && !clearCache:',
-      data[paginator.page] && !clearCache
-    );
     if (data[paginator.page] && !clearCache) {
       return;
     }

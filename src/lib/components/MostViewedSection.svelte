@@ -1,4 +1,3 @@
-<!-- src/lib/components/MostViewedSection.svelte -->
 <script lang="ts">
   import ItemImage from './ItemImage.svelte';
   import NpcImage from './NpcImage.svelte';

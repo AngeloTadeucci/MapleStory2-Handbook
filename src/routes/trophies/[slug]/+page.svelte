@@ -4,6 +4,7 @@
   import type { PageData } from './$types';
   import TrophyImage from '$lib/components/TrophyImage.svelte';
   import TrophyDetails from '$lib/components/trophies/TrophyDetails.svelte';
+  import { onMount } from 'svelte';
 
   export let data: PageData;
 
@@ -18,6 +19,14 @@
       });
     } catch {}
   }
+
+  onMount(async () => {
+    if (!trophy) {
+      return;
+    }
+
+    incrementViewCount();
+  });
 </script>
 
 <svelte:head>

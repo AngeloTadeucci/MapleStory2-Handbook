@@ -5,7 +5,6 @@
   import PageFooter from '../lib/components/PageFooter.svelte';
   // @ts-ignore
   import { GoogleAnalytics } from '@beyonk/svelte-google-analytics';
-  import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
   import { AppShell, initializeStores, Toast } from '@skeletonlabs/skeleton';
 
   initializeStores();

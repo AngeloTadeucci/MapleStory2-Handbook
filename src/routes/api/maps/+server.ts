@@ -44,7 +44,7 @@ export const POST = (async (req) => {
   try {
     await rateLimiter.consume(key);
 
-    const map = await prisma.map.findUnique({
+    const map = await prisma.maps.findUnique({
       where: {
         id: Number(mapId)
       }
@@ -56,7 +56,7 @@ export const POST = (async (req) => {
       });
     }
 
-    await prisma.map.update({
+    await prisma.maps.update({
       where: {
         id: Number(mapId)
       },

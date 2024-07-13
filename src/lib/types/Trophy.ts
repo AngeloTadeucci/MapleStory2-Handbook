@@ -10,8 +10,5 @@ export interface Trophy {
 
 export type SearchTrophy = Pick<
   Trophy,
-  'id' |
-  'name' |
-  'icon' |
-  'description' |
-  'complete_description'>;
+  'id' | 'name' | 'icon' | 'description' | 'complete_description'
+>;
