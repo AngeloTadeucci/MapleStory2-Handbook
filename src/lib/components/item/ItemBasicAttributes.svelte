@@ -1,9 +1,28 @@
 <script lang="ts">
-  import type { StatList, StatRangeList } from '../../types/Item';
+  import type {
+    AdditionalEffectDescription,
+    AdditionalEffects,
+    StatList,
+    StatRangeList
+  } from '../../types/Item';
 
   export let constantsStats: StatList[];
   export let staticStats: StatRangeList[];
   export let representOption: number;
+  export let additionalEffects: string;
+  export let additionalEffectsDescriptions: AdditionalEffectDescription[];
+
+  const descriptions: string[] = [];
+  if (additionalEffects) {
+    const effects = JSON.parse(additionalEffects) as AdditionalEffects[];
+
+    for (const effect of effects) {
+      const description = additionalEffectsDescriptions.find((x) => x.id === effect.Item1)?.name;
+      if (description) {
+        descriptions.push(description);
+      }
+    }
+  }
 
   let constantWithoutDefaultStat: StatList[] = constantsStats.filter(
     (x) => x.Item1.ItemAttribute !== representOption
@@ -22,12 +41,9 @@
         <li class="mt-1">
           {#if stat.Item2.includes('{0:0.1f}')}
             {#if stat.Item1.ValueMin === stat.Item1.ValueMax}
-              {stat.Item2.replace('{0:0.1f}', `${stat.Item1.ValueMin / 100}`)}
+              {stat.Item2.replace('{0:0.1f}', `${stat.Item1.ValueMin}`)}
             {:else}
-              {stat.Item2.replace(
-                '{0:0.1f}',
-                `${stat.Item1.ValueMin / 100} ~ ${stat.Item1.ValueMax / 100}`
-              )}
+              {stat.Item2.replace('{0:0.1f}', `${stat.Item1.ValueMin} ~ ${stat.Item1.ValueMax}`)}
             {/if}
           {:else if stat.Item2.includes('{0:d')}
             {#if stat.Item1.ValueMin === stat.Item1.ValueMax}
@@ -40,6 +56,11 @@
           {:else}
             {stat.Item2.replace('{0}', `${stat.Item1.ValueMin} ~ ${stat.Item1.ValueMax}`)}
           {/if}
+        </li>
+      {/each}
+      {#each descriptions as effect}
+        <li class="mt-1">
+          {effect}
         </li>
       {/each}
     </ul>

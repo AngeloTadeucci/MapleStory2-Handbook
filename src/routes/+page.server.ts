@@ -33,7 +33,7 @@ export const load = (async () => {
     select: {
       id: true,
       name: true,
-      portrait: true
+      icon: true
     },
     orderBy: {
       visit_count: 'desc'

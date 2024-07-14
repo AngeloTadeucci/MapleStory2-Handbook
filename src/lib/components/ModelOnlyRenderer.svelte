@@ -4,7 +4,7 @@
   import {
     ProgressRadial,
     RangeSlider,
-    modalStore,
+    getModalStore,
     type ModalComponent,
     type ModalSettings
   } from '@skeletonlabs/skeleton';
@@ -17,6 +17,8 @@
     customStyle?: string;
   };
   export let { npc, customStyle } = {} as RendererProps;
+
+  const modalStore = getModalStore();
 
   const gltfUrl = env.PUBLIC_NODE_ENV === 'development' ? '/gltf/' : env.PUBLIC_MODELS_URL;
   const iconPath = url(`/${npc.portrait.split('/').slice(2).join('/')}`);
@@ -302,7 +304,9 @@
     display: inline-block;
     padding: 10px 18px 9px 40px;
     font-weight: 500;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2), 0 0 4px rgba(0, 0, 0, 0.25);
+    box-shadow:
+      0 0 8px rgba(0, 0, 0, 0.2),
+      0 0 4px rgba(0, 0, 0, 0.25);
     position: absolute;
     left: 50%;
     top: 50%;

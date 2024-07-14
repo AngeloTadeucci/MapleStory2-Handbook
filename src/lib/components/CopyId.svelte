@@ -8,7 +8,7 @@
 
   export let { id, extraClass } = {} as Props;
 
-  import { toastStore } from '@skeletonlabs/skeleton';
+  import { getToastStore } from '@skeletonlabs/skeleton';
   import type { ToastSettings } from '@skeletonlabs/skeleton';
 
   const t: ToastSettings = {
@@ -16,6 +16,8 @@
     timeout: 1500,
     classes: 'variant-filled-success'
   };
+
+  const toastStore = getToastStore();
 </script>
 
 <button

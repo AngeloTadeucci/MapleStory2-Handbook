@@ -21,7 +21,7 @@ export const GET = (async ({ url }) => {
 
   const searchString = `"%${search}%"`;
 
-  const mapsStatement = `SELECT id, name FROM maps WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${offset}`;
+  const mapsStatement = `SELECT id, name, icon FROM maps WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${offset}`;
   const maps = await prisma.$queryRawUnsafe<SearchMap[]>(mapsStatement);
 
   const totalStatement = `SELECT COUNT(*) as count FROM maps WHERE name LIKE ${searchString} OR id LIKE ${searchString}`;
@@ -44,7 +44,7 @@ export const POST = (async (req) => {
   try {
     await rateLimiter.consume(key);
 
-    const map = await prisma.map.findUnique({
+    const map = await prisma.maps.findUnique({
       where: {
         id: Number(mapId)
       }
@@ -56,7 +56,7 @@ export const POST = (async (req) => {
       });
     }
 
-    await prisma.map.update({
+    await prisma.maps.update({
       where: {
         id: Number(mapId)
       },

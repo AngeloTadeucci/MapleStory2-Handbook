@@ -3,12 +3,14 @@
   import { url } from '../../helpers/addBasePath';
   import { closeMissingTags, unescapeHtml } from '../../helpers/htmlParser';
   import itemHelper from '../../helpers/itemHelper';
+  import type { AdditionalEffectDescription } from '../../types/Item';
   import type Item from '../../types/Item';
   import ItemImage from '../ItemImage.svelte';
   import ItemBasicAttributes from './ItemBasicAttributes.svelte';
   import ItemRandomAttributes from './ItemRandomAttributes.svelte';
 
   export let item: Item;
+  export let descriptions: AdditionalEffectDescription[];
 
   const mainStat = () => {
     if (item.represent_option === 27) {
@@ -129,6 +131,8 @@
         constantsStats={item.constants_stats}
         staticStats={item.static_stats}
         representOption={item.represent_option}
+        additionalEffectsDescriptions={descriptions}
+        additionalEffects={item.additional_effects}
       />
     {/if}
     {#if item.random_stats.length > 0}
@@ -139,13 +143,13 @@
     {/if}
     {#if item.guide_description.length > 0 || item.tooltip_description.length > 0}
       <div class="item-middle__descriptions">
+        {#if item.tooltip_description.length > 0}
+          <p>{@html closeMissingTags(unescapeHtml(item.tooltip_description))}</p>
+        {/if}
         {#if item.guide_description.length > 0}
           <p class="item-middle__descriptions__guide">
             {@html closeMissingTags(unescapeHtml(item.guide_description), true)}
           </p>
-        {/if}
-        {#if item.tooltip_description.length > 0}
-          <p>{@html closeMissingTags(unescapeHtml(item.tooltip_description))}</p>
         {/if}
       </div>
     {/if}
@@ -273,9 +277,15 @@
   }
 
   @mixin stroke($color: #000, $size: 1px) {
-    text-shadow: -#{$size} -#{$size} 0 $color, 0 -#{$size} 0 $color, #{$size} -#{$size} 0 $color,
-      #{$size} 0 0 $color, #{$size} #{$size} 0 $color, 0 #{$size} 0 $color,
-      -#{$size} #{$size} 0 $color, -#{$size} 0 0 $color;
+    text-shadow:
+      -#{$size} -#{$size} 0 $color,
+      0 -#{$size} 0 $color,
+      #{$size} -#{$size} 0 $color,
+      #{$size} 0 0 $color,
+      #{$size} #{$size} 0 $color,
+      0 #{$size} 0 $color,
+      -#{$size} #{$size} 0 $color,
+      -#{$size} 0 0 $color;
   }
 
   .rarity-1 {

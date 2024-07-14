@@ -1,4 +1,3 @@
-<!-- src/lib/components/MostViewedSection.svelte -->
 <script lang="ts">
   import ItemImage from './ItemImage.svelte';
   import NpcImage from './NpcImage.svelte';
@@ -14,7 +13,7 @@
 <div
   class="main-container flex w-full flex-col items-center justify-center rounded-md px-5 pb-5 lg:mx-5 lg:w-1/2 lg:justify-center"
 >
-  <h1 class="mb-5 mt-3 text-2xl">{title}</h1>
+  <h1 class="mb-5 mt-3">{title}</h1>
   <div class="flex w-full flex-col lg:w-3/4">
     {#each items as item}
       <div class="w-full border-b border-gray2 py-3 last:border-none hover:bg-surface-hover-token">
@@ -24,7 +23,7 @@
           {:else if type === 'npcs'}
             <NpcImage portrait={item.portrait} name={item.name} />
           {:else if type === 'maps'}
-            <MapImage portrait="" name={item.name} />
+            <MapImage icon={item.icon} name={item.name} />
           {:else if type === 'trophies'}
             <TrophyImage icon={item.icon} name={item.name} />
           {/if}

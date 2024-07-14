@@ -4,6 +4,7 @@
   import type { PageData } from './$types';
   import TrophyImage from '$lib/components/TrophyImage.svelte';
   import TrophyDetails from '$lib/components/trophies/TrophyDetails.svelte';
+  import { onMount } from 'svelte';
 
   export let data: PageData;
 
@@ -18,6 +19,14 @@
       });
     } catch {}
   }
+
+  onMount(async () => {
+    if (!trophy) {
+      return;
+    }
+
+    incrementViewCount();
+  });
 </script>
 
 <svelte:head>
@@ -25,7 +34,7 @@
   <!-- Open graph -->
   <meta property="og:title" content={trophy.name} />
   <meta property="og:description" content={trophy.name} />
-  <meta property="og:image" content={url(`/${trophy.portrait.split('/').slice(2).join('/')}`)} />
+  <meta property="og:image" content={url(`/resource/image/trophy/${trophy.icon}`)} />
   <meta property="og:url" content={url(`/trophies/${trophy.id}`)} />
 </svelte:head>
 

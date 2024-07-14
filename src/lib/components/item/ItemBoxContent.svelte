@@ -38,12 +38,7 @@
       <div class="ml-auto flex gap-2">
         {#each Jobs as job, index}
           {#if index > 1}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <img
-              src={url(`/resource/icons/job/${job}.png`)}
-              alt={Job[job]}
-              width={24}
-              height={25}
+            <button
               class="cursor-pointer {filterJob === job ? '' : 'brightness-50'}"
               on:click={() => {
                 if (filterJob === job) {
@@ -53,8 +48,14 @@
                 }
                 filterList();
               }}
-              title={Job[job]}
-            />
+            >
+              <img
+                src={url(`/resource/icons/job/${job}.png`)}
+                alt={Job[job]}
+                width={24}
+                height={25}
+              />
+            </button>
           {/if}
         {/each}
       </div>

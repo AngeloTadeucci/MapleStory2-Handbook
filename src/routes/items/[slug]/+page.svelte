@@ -2,7 +2,6 @@
   import { env } from '$env/dynamic/public';
   import ItemDetails from '$lib/components/item/ItemDetails.svelte';
   import ItemBoxContent from '$lib/components/item/ItemBoxContent.svelte';
-  import Renderer from '$lib/components/NpcRenderer.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
@@ -10,12 +9,18 @@
   import type { ItemBox } from '$lib/types/ItemBox';
   import type Item from '$lib/types/Item';
   import ItemRenderer from '$lib/components/ItemRenderer.svelte';
+  import type { AdditionalEffectDescription, AdditionalEffects } from '$lib/types/Item';
 
   export let data: PageData;
-  const { item: resultItem, boxContent: resultBoxContent } = data.props;
+  const {
+    item: resultItem,
+    boxContent: resultBoxContent,
+    additionalEffectDescriptions
+  } = data.props;
 
   const item = resultItem as unknown as Item;
   const boxContent = resultBoxContent as unknown as ItemBox[];
+  const descriptions = additionalEffectDescriptions as unknown as AdditionalEffectDescription[];
 
   let gltfExists: boolean;
 
@@ -42,6 +47,10 @@
     }
 
     try {
+      if (item.kfms[0] === 'empty') {
+        gltfExists = false;
+        return;
+      }
       const response = await fetch(`${gltfUrl}${item.kfms[0]}/${item.kfms[0]}.gltf`, {
         method: 'HEAD'
       });
@@ -71,7 +80,7 @@
   <div class="main-container grid-image mx-4 mt-3 rounded-xl p-6 pb-40">
     <h1>{item.name}</h1>
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
-      <ItemDetails {item} />
+      <ItemDetails {item} {descriptions} />
       {#if item.kfms.length > 0 && gltfExists}
         <div
           class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-[799px] lg:w-[575px]"

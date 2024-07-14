@@ -1,4 +1,9 @@
 /*place global styles here */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
 html,
 body {
   @apply h-full overflow-hidden;
@@ -15,4 +20,8 @@ body {
   background-repeat: repeat-x;
   background-position: bottom;
   background-blend-mode: multiply;
+}
+
+h1 {
+  @apply text-5xl text-white;
 }
