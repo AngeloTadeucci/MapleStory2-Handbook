@@ -1,17 +1,26 @@
-name: Build & Deploy
+name: Pull & Build & Deploy
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ['master']
 
 jobs:
   build:
     runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup Bun
-      uses: oven-sh/setup-bun@v2
-    - run: bun install
-    - run: bun run build
-    - run: pm2 restart ecosystem.config.cjs
+      - name: Pull Latest Changes
+        run: git pull origin master
+        working-directory: ${{ secrets.PROJECT_FOLDER }}
+
+      - name: Install Dependencies
+        run: bun install
+        working-directory: ${{ secrets.PROJECT_FOLDER }}
+
+      - name: Build
+        run: bun run build
+        working-directory: ${{ secrets.PROJECT_FOLDER }}
+
+      - name: Restart Application
+        run: pm2 restart ecosystem.config.cjs
+        working-directory: ${{ secrets.PROJECT_FOLDER }}
