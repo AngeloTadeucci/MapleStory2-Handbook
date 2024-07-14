@@ -8,7 +8,7 @@
   <span>
     Made by
     <a class="underline" href="https://github.com/AngeloTadeucci">Tadeucci</a>
-    - 2023
+    - 2024
   </span>
   <span> // </span>
   <span>
