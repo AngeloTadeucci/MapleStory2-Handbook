@@ -106,7 +106,6 @@
   });
 
   $: paginatedSource = data[paginator.page] || [];
-  $: console.log('🚀 ~ paginatedSource:', paginatedSource);
 
   function onPageChange(e: CustomEvent): void {
     paginator.page = e.detail;

@@ -47,7 +47,6 @@
     src={url(`/resource/image/map/bg/${map.bg}`)}
     alt={map.name}
     class="absolute -z-10 w-full h-full"
-    on:error={(e) => console.log('error', e)}
   />
   <div class="grid justify-center">
     <div class="mt-5 ml-4 flex items-center gap-1">
@@ -62,12 +61,7 @@
         <div
           class="px-3 pt-2 flex items-center justify-center border-gray-500 border-2 rounded-lg bg-surface-700"
         >
-          <img
-            src={url(`/resource/image/map/minimap/${map.minimap}`)}
-            alt={map.name}
-            class=""
-            on:error={(e) => console.log('error', e)}
-          />
+          <img src={url(`/resource/image/map/minimap/${map.minimap}`)} alt={map.name} class="" />
         </div>
       </div>
     </div>
