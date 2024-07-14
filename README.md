@@ -11,7 +11,7 @@ MapleStory 2 Handbook is a searchable database of items and NPCs in the popular 
 
 1. Clone the repository: `git clone https://github.com/AngeloTadeucci/MapleStory2-Handbook`
 2. Install dependencies: `bun install`
-3. Go to `/static/resource/image` and unzip **image.7z**
+3. Go to `/static/resource` and unzip **all** 7z files to `/static/resource/image`
 4. Import the database using this project: [MapleStory2-Handbook-BackEnd](https://github.com/AngeloTadeucci/MapleStory2-Handbook-BackEnd)
 5. Start the application: `bun run dev`
 
