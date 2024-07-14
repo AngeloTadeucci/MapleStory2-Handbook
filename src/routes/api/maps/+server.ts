@@ -21,7 +21,7 @@ export const GET = (async ({ url }) => {
 
   const searchString = `"%${search}%"`;
 
-  const mapsStatement = `SELECT id, name FROM maps WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${offset}`;
+  const mapsStatement = `SELECT id, name, icon FROM maps WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${offset}`;
   const maps = await prisma.$queryRawUnsafe<SearchMap[]>(mapsStatement);
 
   const totalStatement = `SELECT COUNT(*) as count FROM maps WHERE name LIKE ${searchString} OR id LIKE ${searchString}`;

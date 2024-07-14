@@ -2,7 +2,9 @@ export interface Map {
   id: number;
   name: string;
   visit_count: number;
-  portrait: string;
+  icon: string;
+  minimap: string;
+  bg: string;
 }
 
-export type SearchMap = Pick<Map, 'id' | 'name' | 'portrait'>;
+export type SearchMap = Pick<Map, 'id' | 'name' | 'icon'>;

@@ -34,7 +34,7 @@
   <!-- Open graph -->
   <meta property="og:title" content={trophy.name} />
   <meta property="og:description" content={trophy.name} />
-  <meta property="og:image" content={url(`/${trophy.portrait.split('/').slice(2).join('/')}`)} />
+  <meta property="og:image" content={url(`/resource/image/trophy/${trophy.icon}`)} />
   <meta property="og:url" content={url(`/trophies/${trophy.id}`)} />
 </svelte:head>
 

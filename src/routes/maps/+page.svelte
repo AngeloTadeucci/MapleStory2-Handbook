@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import CopyId from '$lib/components/CopyId.svelte';
+  import MapImage from '$lib/components/MapImage.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchMap } from '$lib/types/Map';
@@ -105,6 +106,7 @@
   });
 
   $: paginatedSource = data[paginator.page] || [];
+  $: console.log('🚀 ~ paginatedSource:', paginatedSource);
 
   function onPageChange(e: CustomEvent): void {
     paginator.page = e.detail;
@@ -178,14 +180,12 @@
     </div>
   {/if}
   {#each paginatedSource as map}
-    <!-- svelte-ignore a11y-invalid-attribute -->
     <a
       class="unstyled flex cursor-pointer items-center border-b border-gray2 last:border-none hover:bg-surface-hover-token"
-      href="#"
+      href={url(`/maps/${map.id}`)}
     >
-      <!-- href={url(`/maps/${map.id}`)} -->
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
-        <img src="/resource/sprites/disable overlay.png" width="60" height="60" alt="Male" />
+        <MapImage icon={map.icon} name={map.name} />
       </div>
       <div class="hidden lg:block lg:w-1/4">
         <CopyId id={map.id} />

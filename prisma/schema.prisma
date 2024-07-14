@@ -104,7 +104,9 @@ model maps {
   id          Int    @id
   name        String @db.VarChar(100)
   visit_count Int    @default(0)
-  portrait    String @default("") @db.VarChar(200)
+  minimap     String @default("") @db.VarChar(200)
+  icon        String @default("") @db.VarChar(200)
+  bg          String @default("") @db.VarChar(200)
 }
 
 model achieves {
