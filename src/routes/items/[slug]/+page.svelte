@@ -67,6 +67,7 @@
   <title>MS2 Handbook - {item.name}</title>
   <!-- Open graph -->
   <meta property="og:title" content={item.name} />
+  <meta property="og:description" content={item.name} />
   <meta property="og:image" content={url(`/${item.icon_path.split('/').slice(2).join('/')}`)} />
   <meta property="og:url" content={url(`/items/${item.id}`)} />
 </svelte:head>
