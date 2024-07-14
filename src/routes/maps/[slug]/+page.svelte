@@ -43,11 +43,13 @@
 </svelte:head>
 
 <div class="bg-surface-500 bg-opacity-60 relative">
-  <img
-    src={url(`/resource/image/map/bg/${map.bg}`)}
-    alt={map.name}
-    class="absolute -z-10 w-full h-full"
-  />
+  {#if map.bg}
+    <img
+      src={url(`/resource/image/map/bg/${map.bg}`)}
+      alt={map.name}
+      class="absolute -z-10 w-full h-full"
+    />
+  {/if}
   <div class="grid justify-center">
     <div class="mt-5 ml-4 flex items-center gap-1">
       <a href="/npcs" class="unstyled underline">Map</a>
@@ -57,12 +59,14 @@
     <div class="main-container grid-image mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
       <h1>{map.name}</h1>
       <div class="flex flex-col flex-wrap justify-start gap-8 gap-y-2 xl:flex-row">
-        <ItemListContainer>Soon tm</ItemListContainer>
-        <div
-          class="px-3 pt-2 flex items-center justify-center border-gray-500 border-2 rounded-lg bg-surface-700"
-        >
-          <img src={url(`/resource/image/map/minimap/${map.minimap}`)} alt={map.name} class="" />
-        </div>
+        <ItemListContainer>More info soon tm</ItemListContainer>
+        {#if map.minimap}
+          <div
+            class="px-3 pt-2 flex items-center justify-center border-gray-500 border-2 rounded-lg bg-surface-700"
+          >
+            <img src={url(`/resource/image/map/minimap/${map.minimap}`)} alt={map.name} class="" />
+          </div>
+        {/if}
       </div>
     </div>
   </div>
