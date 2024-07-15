@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Link from '$lib/components/Link.svelte';
   import type { Npc } from '../../types/Npc';
   import ItemListContainer from '../item/ItemListContainer.svelte';
   import NpcImage from './NpcImage.svelte';
@@ -45,9 +46,9 @@
           {/if}
           <div>
             {#each npc.field_metadata as field, index}
-              <span class="underline">
+              <Link href={`/maps/${field.Item2}`}>
                 {field.Item1}
-              </span>
+              </Link>
               {#if index < npc.field_metadata.length - 1}
                 <span class="-ml-1">, </span>
               {/if}
