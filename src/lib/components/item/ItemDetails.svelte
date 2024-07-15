@@ -303,7 +303,7 @@
   }
 
   .rarity-1 {
-    @include stroke(#ffffff, 4px);
+    @include stroke(#ffffff, 3px);
     filter: blur(2px);
   }
 
@@ -312,7 +312,7 @@
   }
 
   .rarity-2 {
-    @include stroke(#b0f350, 4px);
+    @include stroke(#b0f350, 3px);
     filter: blur(2px);
   }
 
@@ -321,7 +321,7 @@
   }
 
   .rarity-3 {
-    @include stroke(#45d1ff, 4px);
+    @include stroke(#45d1ff, 3px);
     filter: blur(2px);
   }
 
@@ -330,7 +330,7 @@
   }
 
   .rarity-4 {
-    @include stroke(#c888ff, 4px);
+    @include stroke(#c888ff, 3px);
     filter: blur(2px);
   }
 
@@ -339,7 +339,7 @@
   }
 
   .rarity-5 {
-    @include stroke(#ffd533, 4px);
+    @include stroke(#ffd533, 3px);
     filter: blur(2px);
   }
 
@@ -348,7 +348,7 @@
   }
 
   .rarity-6 {
-    @include stroke(#ff8c37, 4px);
+    @include stroke(#ff8c37, 3px);
     filter: blur(2px);
   }
 
@@ -357,6 +357,6 @@
   }
 
   .rarity-black {
-    @include stroke(#000000, 2px);
+    @include stroke(#000000, 1.5px);
   }
 </style>
