@@ -29,10 +29,10 @@
     </div>
     <div class="limit-size {toggleStats ? '' : 'limit-size--active'}">
       <ul>
-        {#each Object.entries(npc.stats) as [key, value], index}
+        {#each Object.entries(npc.stats) as [key, value]}
           {#if value > 0}
             <li>
-              {toReadableStat(key)}: {value}
+              {toReadableStat(key)}: {Number(value).toLocaleString()}
             </li>
           {/if}
         {/each}
