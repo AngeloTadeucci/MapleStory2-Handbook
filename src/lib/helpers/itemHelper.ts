@@ -9,6 +9,12 @@ const isAccessory = (slot: number) =>
 const isArmor = (slot: number) =>
   slot == 6 || slot == 7 || slot == 8 || slot == 9 || slot == 10 || slot == 11;
 
+const isConsumable = (id: number) => {
+  const group = Math.floor(id / 10000000);
+
+  return group === 2;
+};
+
 const getDescription = (item: SearchItem) => {
   if (item.main_description.length > 0) {
     return closeMissingTags(unescapeHtml(item.main_description), true);
@@ -25,5 +31,6 @@ export default {
   isWeapon,
   isAccessory,
   isArmor,
-  getDescription
+  getDescription,
+  isConsumable
 };

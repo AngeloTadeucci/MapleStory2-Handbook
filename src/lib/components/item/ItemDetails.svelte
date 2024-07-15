@@ -36,6 +36,8 @@
     }
     return (description += ' ' + IconCode[item.icon_code]);
   };
+
+  const fixedMainDescription = closeMissingTags(unescapeHtml(item.main_description), true);
 </script>
 
 <div class="relative mt-2 flex flex-col">
@@ -82,6 +84,18 @@
                   {mainStat()}
                 </div>
               </div>
+            {/if}
+          {/if}
+          {#if itemHelper.isConsumable(item.id)}
+            {#if fixedMainDescription.includes('<br>')}
+              <p class="text-sm">
+                {@html closeMissingTags(unescapeHtml(item.main_description), true).split('<br>')[0]}
+              </p>
+              <p class="text-2xl">
+                {@html closeMissingTags(unescapeHtml(item.main_description), true).split('<br>')[1]}
+              </p>
+            {:else}
+              <p class="text-2xl">{fixedMainDescription}</p>
             {/if}
           {/if}
         </div>
