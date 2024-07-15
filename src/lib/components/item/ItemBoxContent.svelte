@@ -2,7 +2,7 @@
   import { Job, Jobs } from '../../Enums';
   import { url } from '../../helpers/addBasePath';
   import type { ItemBox } from '../../types/ItemBox';
-  import ItemImage from '../ItemImage.svelte';
+  import ItemImage from './ItemImage.svelte';
   import ItemListContainer from './ItemListContainer.svelte';
 
   export let boxContent: ItemBox[];

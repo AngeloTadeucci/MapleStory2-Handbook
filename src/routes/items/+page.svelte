@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { Job, Rarity, SlotName, enumToWhitelist } from '$lib/Enums';
   import CopyId from '$lib/components/CopyId.svelte';
-  import ItemImage from '$lib/components/ItemImage.svelte';
+  import ItemImage from '$lib/components/item/ItemImage.svelte';
   import SelectChips from '$lib/components/SelectChips.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import itemHelper from '$lib/helpers/itemHelper';

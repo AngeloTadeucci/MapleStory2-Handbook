@@ -2,7 +2,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import CopyId from '$lib/components/CopyId.svelte';
-  import TrophyImage from '$lib/components/TrophyImage.svelte';
+  import TrophyImage from '$lib/components/trophies/TrophyImage.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchTrophy } from '$lib/types/Trophy';

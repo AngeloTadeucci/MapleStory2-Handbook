@@ -1,21 +1,19 @@
 <script lang="ts">
-  import { url } from '../helpers/addBasePath';
+  import { url } from '../../helpers/addBasePath';
 
-  type NpcImageProp = {
+  type TrophyImageProp = {
     portrait: string;
     name: string;
   };
 
   let image = '';
-  export let { portrait, name } = {} as NpcImageProp;
+  export let { portrait: icon, name } = {} as TrophyImageProp;
   const noImage = url('/resource/sprites/disable overlay.png');
-  const fixIconPath = () => url(`/${portrait.split('/').slice(2).join('/')}`);
 
   const handleMissingImage = () => {
     image = noImage;
   };
-
-  $: image = portrait === '' ? noImage : fixIconPath();
+  $: image = icon === '' ? noImage : url(`/resource/image/trophy/${icon}`);
 </script>
 
 <img src={image} width={60} height={60} alt={name} on:error={handleMissingImage} />

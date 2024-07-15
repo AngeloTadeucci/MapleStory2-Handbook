@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Trophy } from '../../types/Trophy';
   import ItemListContainer from '../item/ItemListContainer.svelte';
-  import TrophyImage from '../TrophyImage.svelte';
+  import TrophyImage from './TrophyImage.svelte';
 
   export let trophy: Trophy;
   // todo:

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import ItemImage from './ItemImage.svelte';
-  import NpcImage from './NpcImage.svelte';
+  import ItemImage from './item/ItemImage.svelte';
+  import NpcImage from './npc/NpcImage.svelte';
   import MapImage from './MapImage.svelte';
-  import TrophyImage from './TrophyImage.svelte';
+  import TrophyImage from './trophies/TrophyImage.svelte';
   import { url } from '../helpers/addBasePath';
 
   export let title: string;

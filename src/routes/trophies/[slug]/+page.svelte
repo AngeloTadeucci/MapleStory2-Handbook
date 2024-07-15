@@ -2,7 +2,7 @@
   import CopyId from '$lib/components/CopyId.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import type { PageData } from './$types';
-  import TrophyImage from '$lib/components/TrophyImage.svelte';
+  import TrophyImage from '$lib/components/trophies/TrophyImage.svelte';
   import TrophyDetails from '$lib/components/trophies/TrophyDetails.svelte';
   import { onMount } from 'svelte';
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Npc } from '../../types/Npc';
   import ItemListContainer from '../item/ItemListContainer.svelte';
-  import NpcImage from '../NpcImage.svelte';
+  import NpcImage from './NpcImage.svelte';
 
   export let npc: Npc;
   // todo:

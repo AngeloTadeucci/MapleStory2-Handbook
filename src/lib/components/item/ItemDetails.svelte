@@ -5,7 +5,7 @@
   import itemHelper from '../../helpers/itemHelper';
   import type { AdditionalEffectDescription } from '../../types/Item';
   import type Item from '../../types/Item';
-  import ItemImage from '../ItemImage.svelte';
+  import ItemImage from './ItemImage.svelte';
   import ItemBasicAttributes from './ItemBasicAttributes.svelte';
   import ItemRandomAttributes from './ItemRandomAttributes.svelte';
 
