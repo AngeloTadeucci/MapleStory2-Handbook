@@ -118,3 +118,20 @@ model achieves {
   complete_description String @db.Text
   icon                 String @db.VarChar(100)
 }
+
+model quests {
+  id                  Int    @id
+  name                String @db.VarChar(255)
+  description         String @db.Text
+  manualDescription   String @db.Text
+  completeDescription String @db.Text
+  questLevel          Int
+  requiredLevel       Int
+  requiredQuest       Json
+  selectableQuest     Json
+  startNpcId          Int
+  completeNpcId       Int
+  startRewards        Json
+  completeRewards     Json
+  visit_count         Int    @default(0)
+}
