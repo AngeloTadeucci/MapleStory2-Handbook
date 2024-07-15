@@ -11,7 +11,7 @@
 
 <div class={classname ? classname : 'lg:mt-7'}>
   <div class="box__top" />
-  <div class="box__middle flex flex-col gap-{gap} p-4">
+  <div class="box__middle flex flex-col gap-{gap} p-4 px-8">
     <slot />
   </div>
   <div class="box__bot" />

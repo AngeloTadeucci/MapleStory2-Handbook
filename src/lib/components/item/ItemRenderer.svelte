@@ -1,9 +1,9 @@
 <script script lang="ts">
   import { env } from '$env/dynamic/public';
   import { onMount } from 'svelte';
-  import { url } from '../helpers/addBasePath';
-  import { ProgressRadial, RangeSlider } from '@skeletonlabs/skeleton';
+  import { ProgressRadial } from '@skeletonlabs/skeleton';
   import type Item from '$lib/types/Item';
+  import { url } from '$lib/helpers/addBasePath';
 
   type RendererProps = {
     item: Item;
@@ -82,7 +82,9 @@
     display: inline-block;
     padding: 10px 18px 9px 40px;
     font-weight: 500;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2), 0 0 4px rgba(0, 0, 0, 0.25);
+    box-shadow:
+      0 0 8px rgba(0, 0, 0, 0.2),
+      0 0 4px rgba(0, 0, 0, 0.25);
     position: absolute;
     left: 50%;
     top: 50%;

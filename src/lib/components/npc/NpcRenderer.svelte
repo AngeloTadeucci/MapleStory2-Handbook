@@ -1,9 +1,9 @@
 <script script lang="ts">
   import { env } from '$env/dynamic/public';
+  import { url } from '$lib/helpers/addBasePath';
   import type { Npc } from '$lib/types/Npc';
   import { ProgressRadial } from '@skeletonlabs/skeleton';
   import { onMount } from 'svelte';
-  import { url } from '../helpers/addBasePath';
 
   type RendererProps = {
     npc: Npc;

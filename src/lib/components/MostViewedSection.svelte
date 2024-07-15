@@ -11,10 +11,10 @@
 </script>
 
 <div
-  class="main-container flex w-full flex-col items-center justify-center rounded-md px-5 pb-5 lg:mx-5 lg:w-1/2 lg:justify-center"
+  class="main-container flex w-full flex-col items-center justify-center rounded-md px-5 pb-5 lg:mx-5 lg:justify-center"
 >
   <h1 class="mb-5 mt-3">{title}</h1>
-  <div class="flex w-full flex-col lg:w-3/4">
+  <div class="flex w-full flex-col">
     {#each items as item}
       <div class="w-full border-b border-gray2 py-3 last:border-none hover:bg-surface-hover-token">
         <a class="unstyled flex flex-row items-center" href={url(`/${type}/${item.id}`)}>
@@ -32,7 +32,7 @@
           {:else if type === 'trophies'}
             <TrophyImage icon={item.icon} name={item.name} />
           {/if}
-          <p class="ml-8 line-clamp-1 w-1/2 lg:w-3/4">{item.name}</p>
+          <p class="ml-8 line-clamp-1 w-3/4">{item.name}</p>
         </a>
       </div>
     {/each}

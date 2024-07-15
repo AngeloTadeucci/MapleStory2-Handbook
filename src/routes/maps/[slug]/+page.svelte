@@ -1,7 +1,5 @@
 <script lang="ts">
   import CopyId from '$lib/components/CopyId.svelte';
-  import NpcRenderer from '$lib/components/NpcRenderer.svelte';
-  import NpcDetails from '$lib/components/npc/NpcDetails.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';

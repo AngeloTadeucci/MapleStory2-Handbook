@@ -177,6 +177,7 @@
     >
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
         <TrophyImage icon={trophy.icon} name={trophy.name} />
+        <CopyId id={trophy.id} extraClass="lg:hidden mt-4" />
       </div>
       <div class="hidden lg:block lg:w-1/4">
         <CopyId id={trophy.id} />

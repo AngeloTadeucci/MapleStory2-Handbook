@@ -185,6 +185,7 @@
     >
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
         <MapImage icon={map.icon} name={map.name} />
+        <CopyId id={map.id} extraClass="lg:hidden mt-4" />
       </div>
       <div class="hidden lg:block lg:w-1/4">
         <CopyId id={map.id} />

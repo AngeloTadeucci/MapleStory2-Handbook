@@ -8,8 +8,8 @@
   import CopyId from '$lib/components/CopyId.svelte';
   import type { ItemBox } from '$lib/types/ItemBox';
   import type Item from '$lib/types/Item';
-  import ItemRenderer from '$lib/components/ItemRenderer.svelte';
-  import type { AdditionalEffectDescription, AdditionalEffects } from '$lib/types/Item';
+  import type { AdditionalEffectDescription } from '$lib/types/Item';
+  import ItemRenderer from '$lib/components/item/ItemRenderer.svelte';
 
   export let data: PageData;
   const {
