@@ -121,7 +121,7 @@
         </p>
       {/if}
 
-      {#if item.main_description.length > 0}
+      {#if item.main_description.length > 0 && !itemHelper.isConsumable(item.id)}
         <p>{@html closeMissingTags(unescapeHtml(item.main_description), true)}</p>
       {/if}
     </div>
