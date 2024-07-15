@@ -9,7 +9,8 @@ export const load = (async () => {
       id: true,
       name: true,
       icon_path: true,
-      rarity: true
+      rarity: true,
+      is_outfit: true
     },
     orderBy: {
       visit_count: 'desc'

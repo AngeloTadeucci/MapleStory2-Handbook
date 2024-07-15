@@ -8,7 +8,7 @@ export default interface Item {
   guide_description: string;
   main_description: string;
   rarity: number;
-  is_outfit: boolean | number;
+  is_outfit: boolean;
   job_limit: number[];
   level_min: number;
   level_max: number;
@@ -100,6 +100,7 @@ export type SearchItem = Pick<
   | 'main_description'
   | 'guide_description'
   | 'tooltip_description'
+  | 'is_outfit'
 >;
 
 export interface AdditionalEffectDescription {

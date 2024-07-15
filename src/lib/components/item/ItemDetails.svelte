@@ -60,7 +60,12 @@
         title="Rarity"
       />
       <div class="mt-2 flex gap-4">
-        <ItemImage icon_path={item.icon_path} rarity={item.rarity} name={item.name} />
+        <ItemImage
+          iconPath={item.icon_path}
+          rarity={item.rarity}
+          name={item.name}
+          isOutfit={item.is_outfit}
+        />
         <div class="flex flex-col gap-1">
           {#if !item.is_outfit}
             {#if itemHelper.isArmor(item.slot) || itemHelper.isAccessory(item.slot)}

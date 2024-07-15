@@ -2,25 +2,28 @@
   import { url } from '$lib/helpers/addBasePath';
 
   type ItemImageProp = {
-    icon_path: string;
+    iconPath: string;
     name: string;
     rarity: number;
-    min_count?: number;
-    max_count?: number;
+    minCount?: number;
+    maxCount?: number;
+    isOutfit?: boolean;
   };
 
   let image = '';
-  export let { icon_path, rarity, name, min_count, max_count } = {} as ItemImageProp;
+  export let { iconPath, rarity, name, minCount, maxCount, isOutfit } = {} as ItemImageProp;
   const noImage = url('/resource/sprites/disable overlay.png');
-  const fixIconPath = () => url(`/${icon_path.split('/').slice(2).join('/')}`);
+  const fixIconPath = () => url(`/${iconPath.split('/').slice(2).join('/')}`);
 
   const calcMinMaxCount = () => {
-    if (min_count && max_count) {
-      if (min_count !== max_count) {
-        return `${min_count} ~ ${max_count}`;
+    if (maxCount) {
+      if (minCount !== maxCount) {
+        return `${minCount} ~ ${maxCount}`;
       }
-      return `${min_count}`;
+
+      return `${minCount}`;
     }
+    return `${minCount}`;
   };
 
   const handleMissingImage = (event: Event) => {
@@ -28,7 +31,7 @@
     image = noImage;
   };
 
-  $: image = icon_path === '' ? noImage : fixIconPath();
+  $: image = iconPath === '' ? noImage : fixIconPath();
 </script>
 
 <div class="frame relative">
@@ -57,16 +60,42 @@
     style="left: 2px; top: 2px;"
     on:error={handleMissingImage}
   />
-  {#if min_count}
-    <p class="absolute bottom-0 right-0">
+  {#if isOutfit}
+    <img
+      src={url('/resource/sprites/icon_skin.png')}
+      width={16}
+      height={15}
+      alt="outfit"
+      class="absolute"
+      style="left: 0px; bottom: -2px;"
+    />
+  {/if}
+  {#if minCount && minCount > 1}
+    <p class="absolute bottom-0 right-0 shadow">
       {calcMinMaxCount()}
     </p>
   {/if}
 </div>
 
-<style>
+<style lang="scss">
   .frame {
     height: 60px;
     width: 60px;
+  }
+
+  @mixin stroke($color: #000, $size: 1px) {
+    text-shadow:
+      -#{$size} -#{$size} 0 $color,
+      0 -#{$size} 0 $color,
+      #{$size} -#{$size} 0 $color,
+      #{$size} 0 0 $color,
+      #{$size} #{$size} 0 $color,
+      0 #{$size} 0 $color,
+      -#{$size} #{$size} 0 $color,
+      -#{$size} 0 0 $color;
+  }
+
+  .shadow {
+    @include stroke(#000000, 2px);
   }
 </style>

@@ -341,7 +341,12 @@
       class="unstyled flex items-center border-b border-gray2 last:border-none hover:bg-surface-hover-token"
     >
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
-        <ItemImage icon_path={item.icon_path} name={item.name} rarity={item.rarity} />
+        <ItemImage
+          iconPath={item.icon_path}
+          name={item.name}
+          rarity={item.rarity}
+          isOutfit={item.is_outfit}
+        />
         <CopyId id={item.id} extraClass="lg:hidden mt-4" />
       </div>
       <div class="hidden lg:block lg:w-2/12">

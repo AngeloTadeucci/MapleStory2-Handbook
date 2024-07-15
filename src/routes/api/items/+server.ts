@@ -23,7 +23,7 @@ export const GET = (async ({ url }) => {
 
   const searchString = `"%${search}%"`;
 
-  let itemsStatement = `SELECT id, name, rarity, icon_path, main_description, guide_description, tooltip_description, job_limit, item_preset FROM maple2_codex.items WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
+  let itemsStatement = `SELECT id, name, rarity, icon_path, main_description, guide_description, tooltip_description, job_limit, item_preset, is_outfit FROM maple2_codex.items WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
   if (rarityString) {
     // rarity in db is one single value, but we want to allow multiple rarities to be searched
     itemsStatement += ` AND rarity IN (${rarityString})`;

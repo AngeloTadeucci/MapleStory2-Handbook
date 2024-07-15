@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import DBClient from '$lib/prismaClient';
 import { redirect } from '@sveltejs/kit';
+import type Item from '$lib/types/Item';
 const prisma = DBClient.getInstance().prisma;
 
 export const load = (async ({ params }) => {
@@ -50,6 +51,9 @@ export const load = (async ({ params }) => {
       additionalEffectDescriptions.push(description);
     }
   }
+
+  const result: Item = item as unknown as Item;
+  result.is_outfit = item.is_outfit === 1;
 
   return {
     props: {

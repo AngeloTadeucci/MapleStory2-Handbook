@@ -72,11 +72,11 @@
             class="unstyled flex items-center gap-4"
           >
             <ItemImage
-              icon_path={content.item1.icon_path}
+              iconPath={content.item1.icon_path}
               rarity={content.rarity}
               name={content.item1.name}
-              min_count={content.min_count}
-              max_count={content.max_count}
+              minCount={content.min_count}
+              maxCount={content.max_count}
             />
             {content.item1.name}
           </a>
@@ -93,42 +93,17 @@
         href={url(`/items/${content.item_id}`)}
         data-sveltekit-reload
         class="flex items-center gap-4"
+        id={String(content.item_id)}
       >
         <ItemImage
-          icon_path={content.item1.icon_path}
+          iconPath={content.item1.icon_path}
           rarity={content.rarity}
           name={content.item1.name}
-          min_count={content.min_count}
-          max_count={content.max_count}
+          minCount={content.min_count}
+          maxCount={content.max_count}
         />
-        <p class={`text-${content.rarity}`}>{content.item1.name}</p>
+        <p>{content.item1.name}</p>
       </a>
     {/each}
   </ItemListContainer>
 {/if}
-
-<style lang="scss">
-  .text-1 {
-    color: #ffffff;
-  }
-
-  .text-2 {
-    color: #b0f350;
-  }
-
-  .text-3 {
-    color: #45d1ff;
-  }
-
-  .text-4 {
-    color: #c888ff;
-  }
-
-  .text-5 {
-    color: #ffd533;
-  }
-
-  .text-6 {
-    color: #ff8c37;
-  }
-</style>
