@@ -16,7 +16,7 @@
           <h2 class="text-xl font-bold mb-2">Book {book[0]} - {lang.toUpperCase()}</h2>
           <a class="bg-white relative" href={`/storybooks/${book[0]}/${lang}`}>
             <img
-              src={`/resource/storybooks/${book[0]}/${lang}/${book[1][lang]?.at(0)}`}
+              src={`/resource/image/storybooks/${book[0]}/${lang}/${book[1][lang]?.at(0)}`}
               alt=""
               class="w-[214px] h-[300px] cursor-pointer"
             />

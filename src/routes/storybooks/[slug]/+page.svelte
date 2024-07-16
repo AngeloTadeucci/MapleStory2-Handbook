@@ -19,7 +19,9 @@
         <h2 class="text-xl font-bold mb-2">Book {data.props.bookId} - {book[0].toUpperCase()}</h2>
         <a class="bg-white" href={`/storybooks/${data.props.bookId}/${book[0]}`}>
           <img
-            src={url(`/resource/storybooks/${data.props.bookId}/${book[0]}/${book[1]?.at(0)}`)}
+            src={url(
+              `/resource/image/storybooks/${data.props.bookId}/${book[0]}/${book[1]?.at(0)}`
+            )}
             alt=""
             class="w-[214px] h-[300px] cursor-pointer"
           />

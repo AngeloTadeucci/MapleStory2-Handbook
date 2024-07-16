@@ -18,7 +18,7 @@
     <div class="svelte-mz1063 lg:mt-7">
       {#each images as image}
         <img
-          src={url(`/resource/storybooks/${data.props.bookId}/${data.props.lang}/${image}`)}
+          src={url(`/resource/image/storybooks/${data.props.bookId}/${data.props.lang}/${image}`)}
           alt=""
           class="mb-1"
         />
