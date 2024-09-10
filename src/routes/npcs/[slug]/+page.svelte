@@ -5,8 +5,8 @@
   import type { Npc } from '$lib/types/Npc';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
-  import { env } from '$env/dynamic/public';
   import NpcRenderer from '$lib/components/npc/NpcRenderer.svelte';
+  import getGltfUrl from '$lib/getGltfUrl';
 
   export let data: PageData;
 
@@ -14,7 +14,7 @@
 
   let gltfExists: boolean;
 
-  const gltfUrl = env.PUBLIC_NODE_ENV === 'development' ? '/gltf/' : env.PUBLIC_MODELS_URL;
+  const gltfUrl = getGltfUrl();
 
   async function incrementViewCount() {
     await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds

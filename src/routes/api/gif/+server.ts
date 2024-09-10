@@ -37,14 +37,14 @@ export const POST = async ({ request }) => {
   }
 
   const appPath = process.cwd();
-  const folder = join(appPath, 'static', 'gifs', 'processing', model);
+  const processingFolder = join(appPath, 'static', 'gifs', 'processing', model);
 
-  // check if folder has items, if so delete all
-  if (fs.existsSync(folder)) {
-    fs.rmSync(folder, { recursive: true });
-    fs.mkdirSync(folder, { recursive: true });
+  // check if processing folder has items, if so delete all
+  if (fs.existsSync(processingFolder)) {
+    fs.rmSync(processingFolder, { recursive: true });
+    fs.mkdirSync(processingFolder, { recursive: true });
   } else {
-    fs.mkdirSync(folder, { recursive: true });
+    fs.mkdirSync(processingFolder, { recursive: true });
   }
 
   const baseFileName = `${model}-${animation}-`;
@@ -63,11 +63,11 @@ export const POST = async ({ request }) => {
         status: 400
       });
     }
-    const processingFile = join(folder, fileName);
+    const processingFile = join(processingFolder, fileName);
     fs.writeFileSync(processingFile, base64Data, 'base64');
   }
 
-  if (!fs.existsSync(join(folder, baseFileName) + '0.png')) {
+  if (!fs.existsSync(join(processingFolder, baseFileName) + '0.png')) {
     return new Response(JSON.stringify({ message: 'No screenshot saved' }), {
       status: 400
     });
@@ -75,7 +75,7 @@ export const POST = async ({ request }) => {
 
   try {
     const gif = await convertToGif(
-      folder,
+      processingFolder,
       `${baseFileName}*.png`,
       model,
       animation,
@@ -84,11 +84,11 @@ export const POST = async ({ request }) => {
       width,
       quality
     );
-    fs.rmSync(folder, { recursive: true });
+    fs.rmSync(processingFolder, { recursive: true });
 
     return json({ url: `${model}/${gif}` });
   } catch (err) {
-    fs.rmSync(folder, { recursive: true });
+    fs.rmSync(processingFolder, { recursive: true });
     return new Response(JSON.stringify({ message: 'Failed to create gif', code: err }), {
       status: 500
     });
@@ -107,7 +107,7 @@ async function convertToGif(
 ) {
   let appPath = process.cwd();
 
-  appPath = appPath.substring(0, appPath.lastIndexOf('/'));
+  appPath = appPath.substring(0, appPath.lastIndexOf(process.platform === 'win32' ? '\\' : '/'));
 
   const outputFolder = join(appPath, 'gifs', model);
 

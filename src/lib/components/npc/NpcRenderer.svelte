@@ -1,5 +1,5 @@
 <script script lang="ts">
-  import { env } from '$env/dynamic/public';
+  import getGltfUrl from '$lib/getGltfUrl';
   import { url } from '$lib/helpers/addBasePath';
   import type { Npc } from '$lib/types/Npc';
   import { ProgressRadial } from '@skeletonlabs/skeleton';
@@ -12,7 +12,7 @@
   };
   export let { npc, customStyle, advancedControls = false } = {} as RendererProps;
 
-  const gltfUrl = env.PUBLIC_NODE_ENV === 'development' ? '/gltf/' : env.PUBLIC_MODELS_URL;
+  const gltfUrl = getGltfUrl();
   const iconPath = url(`/${npc.portrait.split('/').slice(2).join('/')}`);
 
   let validAnimations: string[] = [];

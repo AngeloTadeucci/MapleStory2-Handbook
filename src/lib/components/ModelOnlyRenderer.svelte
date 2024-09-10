@@ -1,5 +1,4 @@
 <script script lang="ts">
-  import { env } from '$env/dynamic/public';
   import type { Npc } from '$lib/types/Npc';
   import {
     ProgressRadial,
@@ -11,6 +10,7 @@
   import { onMount } from 'svelte';
   import { url } from '../helpers/addBasePath';
   import CreateGifModal from './CreateGifModal.svelte';
+  import getGltfUrl from '$lib/getGltfUrl';
 
   type RendererProps = {
     npc: Npc;
@@ -20,7 +20,7 @@
 
   const modalStore = getModalStore();
 
-  const gltfUrl = env.PUBLIC_NODE_ENV === 'development' ? '/gltf/' : env.PUBLIC_MODELS_URL;
+  const gltfUrl = getGltfUrl();
   const iconPath = url(`/${npc.portrait.split('/').slice(2).join('/')}`);
 
   let validAnimations: string[] = [];

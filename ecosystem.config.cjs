@@ -2,8 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'ms2_handbook',
-      interpreter: 'bun',
-      script: 'build/index.js'
+      interpreter: 'node',
+      script: '--env-file=.env build'
     }
   ]
 };

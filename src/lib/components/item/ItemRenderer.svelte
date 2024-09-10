@@ -1,16 +1,16 @@
 <script script lang="ts">
-  import { env } from '$env/dynamic/public';
   import { onMount } from 'svelte';
   import { ProgressRadial } from '@skeletonlabs/skeleton';
   import type Item from '$lib/types/Item';
   import { url } from '$lib/helpers/addBasePath';
+  import getGltfUrl from '$lib/getGltfUrl';
 
   type RendererProps = {
     item: Item;
   };
   export let { item } = {} as RendererProps;
 
-  const gltfUrl = env.PUBLIC_NODE_ENV === 'development' ? '/gltf/' : env.PUBLIC_MODELS_URL;
+  const gltfUrl = getGltfUrl();
   const iconPath = url(`/${item.icon_path.split('/').slice(2).join('/')}`);
 
   let loadingGltf = true;
