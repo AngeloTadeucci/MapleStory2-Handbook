@@ -2,8 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'ms2_handbook',
-      interpreter: 'node',
-      script: '--env-file=.env build'
+      script: 'bash',
+      args: ['-c', 'node --env-file=.env build'],
     }
   ]
 };
