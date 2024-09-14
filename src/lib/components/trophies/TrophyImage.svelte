@@ -16,4 +16,11 @@
   $: image = icon === '' ? noImage : url(`/resource/image/trophy/${icon}`);
 </script>
 
-<img src={image} width={60} height={60} alt={name} on:error={handleMissingImage} />
+<img
+  src={image}
+  width={60}
+  height={60}
+  alt={name}
+  on:error={handleMissingImage}
+  class="h-[60px] w-[60px] hidden sm:block"
+/>

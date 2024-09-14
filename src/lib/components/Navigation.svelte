@@ -2,15 +2,15 @@
   import { url } from '../helpers/addBasePath';
 
   let menus = [
-    { name: 'Items', path: '/items' },
-    { name: 'NPCs', path: '/npcs' },
-    { name: 'Maps', path: '/maps' },
-    { name: 'Quests', path: '/quests' },
-    { name: 'Trophies', path: '/trophies' },
-    { name: 'Story Books', path: '/storybooks' }
+    { name: 'Items', path: '/items', extraClass: 'hidden md:flex' },
+    { name: 'NPCs', path: '/npcs', extraClass: 'hidden md:flex' },
+    { name: 'Maps', path: '/maps', extraClass: 'hidden min-[800px]:flex' },
+    { name: 'Quests', path: '/quests', extraClass: 'hidden min-[900px]:flex' },
+    { name: 'Trophies', path: '/trophies', extraClass: 'hidden lg:flex' },
+    { name: 'Dyes', path: '/dyes', extraClass: 'hidden min-[1150px]:flex' },
+    { name: 'Story Books', path: '/storybooks', extraClass: 'hidden min-[1200px]:flex' }
     // { name: 'Dungeons', path: '/dungeons' },
     // { name: 'Skills', path: '/skills' },
-    // { name: 'Dyes', path: '/dyes' },
   ];
   let open = false;
 </script>
@@ -31,7 +31,7 @@
     <div class="ml-10 mr-6 h-20 w-px border-l border-gray2" />
 
     {#each menus as menu, index}
-      <div class="flex items-center">
+      <div class={`items-center ${menu.extraClass} xl:`}>
         <a href={url(menu.path)} class="unstyled px-2 py-2 font-sans font-bold">{menu.name}</a>
         {#if index !== menus.length - 1}
           <div class="mx-6 h-14 w-px border-l border-gray2" />
@@ -89,12 +89,15 @@
       </button>
     </div>
     <div class="mt-5 flex h-4/5 flex-col items-center">
-      {#each menus as menu}
+      {#each menus as menu, index}
         <a
           href={url(menu.path)}
-          class="unstyled px-2 py-2 font-sans font-bold"
+          class="unstyled px-2 font-sans font-bold"
           on:click={() => (open = false)}>{menu.name}</a
         >
+        {#if index !== menus.length - 1}
+          <div class="h-px w-full border-t border-gray2 my-4" />
+        {/if}
       {/each}
       <a
         href="https://ko-fi.com/angelotadeucci"

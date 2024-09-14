@@ -1,14 +1,13 @@
 <script lang="ts">
   import CopyId from '$lib/components/CopyId.svelte';
+  import TrophyGrade from '$lib/components/trophies/TrophyGrade.svelte';
   import { url } from '$lib/helpers/addBasePath';
-  import type { PageData } from './$types';
-  import TrophyImage from '$lib/components/trophies/TrophyImage.svelte';
-  import TrophyDetails from '$lib/components/trophies/TrophyDetails.svelte';
   import { onMount } from 'svelte';
+  import type { PageData } from './$types';
 
   export let data: PageData;
 
-  const trophy = data.props.trophy as unknown as TrophyDetails;
+  const trophy = data.props.trophy;
 
   async function incrementViewCount() {
     await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
@@ -46,9 +45,10 @@
   </div>
   <div class="main-container grid-image mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
     <h1>{trophy.name}</h1>
-    <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row" />
-    <div class="svelte-mz1063 lg:mt-7">
-      <TrophyImage icon={trophy.icon} name={trophy.name} />
+    <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-4 mt-4">
+      {#each trophy.grades as grade}
+        <TrophyGrade {trophy} {grade} />
+      {/each}
     </div>
   </div>
 </div>

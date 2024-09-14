@@ -117,6 +117,7 @@ model achieves {
   description          String @db.Text
   complete_description String @db.Text
   icon                 String @db.VarChar(100)
+  grades               String @db.Text
 }
 
 model quests {
