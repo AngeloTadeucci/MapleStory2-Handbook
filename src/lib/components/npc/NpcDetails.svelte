@@ -4,11 +4,15 @@
   import ItemListContainer from '../item/ItemListContainer.svelte';
   import NpcImage from './NpcImage.svelte';
 
-  export let npc: Npc;
+  interface Props {
+    npc: Npc;
+  }
+
+  let { npc }: Props = $props();
   // todo:
   // - skills
 
-  let toggleStats: boolean = false;
+  let toggleStats: boolean = $state(false);
 </script>
 
 <ItemListContainer>
@@ -20,7 +24,7 @@
       <p>Stats:</p>
       <button
         class="text-ascendant cursor-pointer"
-        on:click={() => {
+        onclick={() => {
           toggleStats = !toggleStats;
         }}
       >

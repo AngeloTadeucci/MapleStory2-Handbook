@@ -6,8 +6,7 @@
     name: string;
   };
 
-  let image = '';
-  export let { portrait, name } = {} as NpcImageProp;
+  let { portrait, name }: NpcImageProp = $props();
   const noImage = url('/resource/sprites/disable overlay.png');
   const fixIconPath = () => url(`/${portrait.split('/').slice(2).join('/')}`);
 
@@ -15,7 +14,7 @@
     image = noImage;
   };
 
-  $: image = portrait === '' ? noImage : fixIconPath();
+  let image = $derived(portrait === '' ? noImage : fixIconPath());
 </script>
 
-<img src={image} width={60} height={60} alt={name} on:error={handleMissingImage} />
+<img src={image} width={60} height={60} alt={name} onerror={handleMissingImage} />

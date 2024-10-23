@@ -14,16 +14,16 @@
     npc: Npc;
     modelViewer: any;
     selectedAnimation: string;
+    parent: any;
   };
-  export let { npc, modelViewer, selectedAnimation } = {} as CreateGifProps;
-  export let parent: any;
+  let { npc, modelViewer, selectedAnimation, parent }: CreateGifProps = $props();
 
   const toastStore = getToastStore();
   const modalStore = getModalStore();
 
-  let resize = false;
-  let loading = false;
-  let statusMessage = '';
+  let resize = $state(false);
+  let loading = $state(false);
+  let statusMessage = $state('');
 
   const cBase = 'card p-4 shadow-xl space-y-4';
   const cHeader = 'text-2xl font-bold';
@@ -35,9 +35,10 @@
     quality: 70
   };
 
-  let errors: ZodIssue[] = [];
+  let errors: ZodIssue[] = $state([]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: Event) => {
+    e.preventDefault();
     if (!modelViewer) {
       modalStore.close();
     }
@@ -189,8 +190,8 @@
       </p>
     {/if}
     <footer class="modal-footer {parent.regionFooter}">
-      <button class="btn {parent.buttonNeutral}" on:click={parent.onClose}>Close</button>
-      <button class="btn {parent.buttonPositive}" on:click|preventDefault={handleSubmit}>
+      <button class="btn {parent.buttonNeutral}" onclick={parent.onClose}>Close</button>
+      <button class="btn {parent.buttonPositive}" onclick={handleSubmit}>
         {#if loading}
           <ProgressRadial width="w-6" track="stroke-black" />
         {:else}

@@ -11,7 +11,11 @@
   import ItemRenderer from '$lib/components/item/ItemRenderer.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
 
-  export let data: PageData;
+  interface Props {
+    data: PageData;
+  }
+
+  let { data }: Props = $props();
   const {
     item: resultItem,
     boxContent: resultBoxContent,
@@ -22,7 +26,7 @@
   const boxContent = resultBoxContent as unknown as ItemBox[];
   const descriptions = additionalEffectDescriptions as unknown as AdditionalEffectDescription[];
 
-  let gltfExists: boolean;
+  let gltfExists: boolean = $state();
 
   const gltfUrl = getGltfUrl();
 

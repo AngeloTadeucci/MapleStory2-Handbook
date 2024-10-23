@@ -10,20 +10,21 @@
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
-  let searchTerm = $page.url.searchParams.get('search') || '';
-  let lastSearchTerm = searchTerm;
+  let searchTerm = $state($page.url.searchParams.get('search') || '');
 
-  let data: SearchMap[][] = [];
-  let loading = false;
+  let data: SearchMap[][] = $state([]);
+  let loading = $state(false);
 
-  let paginator: PaginationSettings = {
+  let paginator: PaginationSettings = $state({
     page: 0,
     limit: 10,
     size: 0,
     amounts: [10, 25, 50, 100, 200]
-  };
+  });
 
   async function fetchData(clearCache: boolean) {
+    let lastSearchTerm = searchTerm;
+
     // check if we have the data cached
     if (data[paginator.page] && !clearCache) {
       return;
@@ -105,7 +106,7 @@
     fetchData(false);
   });
 
-  $: paginatedSource = data[paginator.page] || [];
+  let paginatedSource = $derived(data[paginator.page] || []);
 
   function onPageChange(e: CustomEvent): void {
     paginator.page = e.detail;
@@ -145,7 +146,7 @@
   <title>MS2 Handbook - Maps</title>
 </svelte:head>
 
-<div class="mt-8 h-[1px]" />
+<div class="mt-8 h-[1px]"></div>
 <div class="main-container mx-4 rounded-xl px-5 pb-40 pt-2 lg:m-auto lg:w-3/4">
   <h1 class="mb-4 text-4xl font-bold">Maps</h1>
   <input
@@ -153,7 +154,7 @@
     placeholder="Search 🔎"
     class="input w-1/2 px-4 py-2 border-token lg:w-1/3"
     bind:value={searchTerm}
-    on:keyup={debouncedSearch}
+    onkeyup={debouncedSearch}
   />
   <Paginator
     bind:settings={paginator}

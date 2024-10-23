@@ -8,11 +8,15 @@
   import NpcRenderer from '$lib/components/npc/NpcRenderer.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
 
-  export let data: PageData;
+  interface Props {
+    data: PageData;
+  }
+
+  let { data }: Props = $props();
 
   const npc = data.props.npc as unknown as Npc;
 
-  let gltfExists: boolean;
+  let gltfExists: boolean = $state();
 
   const gltfUrl = getGltfUrl();
 

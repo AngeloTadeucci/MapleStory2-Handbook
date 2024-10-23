@@ -10,8 +10,7 @@
     isOutfit?: boolean;
   };
 
-  let image = '';
-  export let { iconPath, rarity, name, minCount, maxCount, isOutfit } = {} as ItemImageProp;
+  let { iconPath, rarity, name, minCount, maxCount, isOutfit }: ItemImageProp = $props();
   const noImage = url('/resource/sprites/disable overlay.png');
   const fixIconPath = () => url(`/${iconPath.split('/').slice(2).join('/')}`);
 
@@ -31,7 +30,7 @@
     image = noImage;
   };
 
-  $: image = iconPath === '' ? noImage : fixIconPath();
+  let image = $derived(iconPath === '' ? noImage : fixIconPath());
 </script>
 
 <div class="frame relative">
@@ -58,7 +57,7 @@
     alt={name}
     class="absolute"
     style="left: 2px; top: 2px;"
-    on:error={handleMissingImage}
+    onerror={handleMissingImage}
   />
   {#if isOutfit}
     <img

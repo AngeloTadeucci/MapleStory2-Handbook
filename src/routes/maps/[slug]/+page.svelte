@@ -6,7 +6,11 @@
   import type { Map } from '$lib/types/Map';
   import ItemListContainer from '$lib/components/item/ItemListContainer.svelte';
 
-  export let data: PageData;
+  interface Props {
+    data: PageData;
+  }
+
+  let { data }: Props = $props();
 
   const map = data.props.map as unknown as Map;
 

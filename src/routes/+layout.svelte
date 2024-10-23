@@ -17,23 +17,29 @@
   import { page } from '$app/stores';
 
   import { Modal } from '@skeletonlabs/skeleton';
+  import type { Snippet } from 'svelte';
+  interface Props {
+    children: Snippet;
+  }
+
+  let { children }: Props = $props();
 </script>
 
 <GoogleAnalytics properties={['G-KNN265BGLK']} />
 <Modal />
 <Toast />
 {#if $page.route.id?.includes('[slug]/model')}
-  <slot />
+  {@render children()}
 {:else}
   <AppShell>
-    <svelte:fragment slot="header">
-      <Navigation />
-    </svelte:fragment>
+    {#snippet header()}
+        <Navigation />
+      {/snippet}
     <!-- Router Slot -->
-    <slot />
+    {@render children()}
     <!-- ---- / ---- -->
-    <svelte:fragment slot="pageFooter">
-      <PageFooter />
-    </svelte:fragment>
+    {#snippet pageFooter()}
+        <PageFooter />
+      {/snippet}
   </AppShell>
 {/if}

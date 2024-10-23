@@ -1,4 +1,4 @@
-<script script lang="ts">
+<script lang="ts">
   import type { Npc } from '$lib/types/Npc';
   import {
     ProgressRadial,
@@ -16,7 +16,7 @@
     npc: Npc;
     customStyle?: string;
   };
-  export let { npc, customStyle } = {} as RendererProps;
+  let { npc, customStyle }: RendererProps = $props();
 
   const modalStore = getModalStore();
 
@@ -24,13 +24,13 @@
   const iconPath = url(`/${npc.portrait.split('/').slice(2).join('/')}`);
 
   let validAnimations: string[] = [];
-  let selectedAnimation = '';
-  let animationSpeed: number = 1;
-  let loadingGltf = true;
-  let orientation = '';
+  let selectedAnimation = $state('');
+  let animationSpeed: number = $state(1);
+  let loadingGltf = $state(true);
+  let orientation = $state('');
   let cameraTarget = '';
   let customOrbit = '';
-  let customSize = false;
+  let customSize = $state(false);
 
   onMount(async () => {
     orientation = '0deg -90deg 0deg';
@@ -60,12 +60,14 @@
     loadingGltf = false;
   });
 
-  let modelViewer: any;
-  $: if (modelViewer) {
-    modelViewer.timeScale = animationSpeed;
-  }
+  let modelViewer: any = $state();
+  $effect(() => {
+    if (modelViewer) {
+      modelViewer.timeScale = animationSpeed;
+    }
+  });
 
-  let playing = true;
+  let playing = $state(true);
   const playPause = () => {
     if (modelViewer) {
       if (playing) {
@@ -86,17 +88,21 @@
       frameStep = 0;
     }
   };
-  let frameStep = 0;
-  $: if (modelViewer && frameStep > 0 && !playing) {
-    modelViewer.currentTime = frameStep / animationSpeed;
-  }
+  let frameStep = $state(0);
+  $effect(() => {
+    if (modelViewer && frameStep > 0 && !playing) {
+      modelViewer.currentTime = frameStep / animationSpeed;
+    }
+  });
 
   let lastAnimation: string | undefined = '';
-  $: if (modelViewer && selectedAnimation !== lastAnimation) {
-    modelViewer.animationName = selectedAnimation;
-    lastAnimation = selectedAnimation;
-    playing = true;
-  }
+  $effect(() => {
+    if (modelViewer && selectedAnimation !== lastAnimation) {
+      modelViewer.animationName = selectedAnimation;
+      lastAnimation = selectedAnimation;
+      playing = true;
+    }
+  });
 
   const openGifModal = async () => {
     if (selectedAnimation == npc.kfm) {
@@ -138,15 +144,17 @@
     return;
   };
 
-  let rgb: string = '#35171f';
-  let width: number = 300;
-  let height: number = 300;
+  let rgb: string = $state('#35171f');
+  let width: number = $state(300);
+  let height: number = $state(300);
 
-  $: customStyle = `${
-    customSize
-      ? `resize: both; overflow: auto; width: ${width}px; height: ${height}px;`
-      : 'width: 100%; height: 100%;'
-  } background-color: ${rgb}`;
+  $effect(() => {
+    customStyle = `${
+      customSize
+        ? `resize: both; overflow: auto; width: ${width}px; height: ${height}px;`
+        : 'width: 100%; height: 100%;'
+    } background-color: ${rgb}`;
+  });
 
   export const ssr = false;
 </script>
@@ -174,7 +182,7 @@
         touch-action="pan-y"
         interaction-prompt="none"
         style={customStyle ?? `width: 550px; height: 760px; --iconPath: url(${iconPath});`}
-      />
+      ></model-viewer>
     </div>
 
     <div class="h-[60vh] overflow-auto p-4 md:h-auto md:w-[30%] md:overflow-hidden">
@@ -211,14 +219,14 @@
       </div>
       <div class="flex w-full justify-between gap-4 py-4">
         <div>
-          <button class="btn-icon variant-filled-surface" on:click={playPause}>
+          <button class="btn-icon variant-filled-surface" onclick={playPause}>
             {#if playing}
               <img src="/icons/pause_circle.svg" alt="Pause" width="35" title="Pause" />
             {:else}
               <img src="/icons/play_circle.svg" alt="Play" width="35" title="Play" />
             {/if}
           </button>
-          <button class="btn-icon variant-filled-surface" on:click={reset}>
+          <button class="btn-icon variant-filled-surface" onclick={reset}>
             <img src="/icons/stop_circle.svg" alt="Stop" width="35" title="Stop" />
           </button>
         </div>
@@ -273,7 +281,7 @@
         </div>
       {/if}
 
-      <button on:click={openGifModal} class="btn variant-filled mt-4" type="button">
+      <button onclick={openGifModal} class="btn variant-filled mt-4" type="button">
         Create GIF
       </button>
     </div>

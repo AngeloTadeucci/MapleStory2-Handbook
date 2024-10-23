@@ -6,15 +6,14 @@
     name: string;
   };
 
-  let image = '';
-  export let { icon, name } = {} as MapImageProp;
+  let { icon, name }: MapImageProp = $props();
   const noImage = url('/resource/sprites/disable overlay.png');
 
   const handleMissingImage = () => {
     image = noImage;
   };
 
-  $: image = icon === '' ? noImage : url(`/resource/image/map/icon/${icon}`);
+  let image = $derived(icon === '' ? noImage : url(`/resource/image/map/icon/${icon}`));
 </script>
 
-<img src={image} width={60} height={60} alt={name} on:error={handleMissingImage} />
+<img src={image} width={60} height={60} alt={name} onerror={handleMissingImage} />

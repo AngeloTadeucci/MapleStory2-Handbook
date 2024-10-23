@@ -1,4 +1,4 @@
-<script script lang="ts">
+<script lang="ts">
   import { onMount } from 'svelte';
   import { ProgressRadial } from '@skeletonlabs/skeleton';
   import type Item from '$lib/types/Item';
@@ -8,12 +8,12 @@
   type RendererProps = {
     item: Item;
   };
-  export let { item } = {} as RendererProps;
+  let { item }: RendererProps = $props();
 
   const gltfUrl = getGltfUrl();
   const iconPath = url(`/${item.icon_path.split('/').slice(2).join('/')}`);
 
-  let loadingGltf = true;
+  let loadingGltf = $state(true);
   let orientation = '0deg 0deg 90deg';
   let cameraTarget = '';
   let customOrbit = '';
@@ -55,7 +55,7 @@
     touch-action="pan-y"
     interaction-prompt="none"
     style={`width: 550px; height: 760px; --iconPath: url(${iconPath});`}
-  />
+  ></model-viewer>
 {/if}
 
 <style>

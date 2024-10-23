@@ -1,20 +1,23 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   type Props = {
     gap?: number;
     classname?: string;
+    children: Snippet;
   };
-  export let { gap, classname } = {} as Props;
+  let { gap, classname, children }: Props = $props();
   if (!gap) {
     gap = 1;
   }
 </script>
 
 <div class={classname ? classname : 'lg:mt-7'}>
-  <div class="box__top" />
+  <div class="box__top"></div>
   <div class="box__middle flex flex-col gap-{gap} p-4 px-8">
-    <slot />
+    {@render children()}
   </div>
-  <div class="box__bot" />
+  <div class="box__bot"></div>
 </div>
 
 <style lang="scss">

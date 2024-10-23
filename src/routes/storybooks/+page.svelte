@@ -6,7 +6,7 @@
   <title>MS2 Handbook - Story Books</title>
 </svelte:head>
 
-<div class="mt-8 h-[1px]" />
+<div class="mt-8 h-[1px]"></div>
 <div class="main-container mx-4 rounded-xl px-5 pb-40 pt-2 lg:m-auto lg:w-3/4">
   <h1 class="mb-4 text-4xl font-bold">Story Books</h1>
   <div class="flex flex-wrap gap-4">

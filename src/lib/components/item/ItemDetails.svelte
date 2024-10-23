@@ -9,8 +9,12 @@
   import ItemBasicAttributes from './ItemBasicAttributes.svelte';
   import ItemRandomAttributes from './ItemRandomAttributes.svelte';
 
-  export let item: Item;
-  export let descriptions: AdditionalEffectDescription[];
+  interface Props {
+    item: Item;
+    descriptions: AdditionalEffectDescription[];
+  }
+
+  let { item, descriptions }: Props = $props();
 
   const mainStat = () => {
     if (item.represent_option === 27) {
@@ -223,7 +227,7 @@
       <p class="text-gold">Glamour Forges Possible: {item.glamour_count}</p>
     {/if}
   </div>
-  <div class="item-bot" />
+  <div class="item-bot"></div>
 </div>
 
 <style lang="scss">

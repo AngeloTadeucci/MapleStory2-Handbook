@@ -1,9 +1,13 @@
 <script lang="ts">
   import type { StatRangeList } from '../../types/Item';
 
-  export let randomStats: StatRangeList[];
-  export let randomStatCount: number;
-  let toggleBonus: boolean = false;
+  interface Props {
+    randomStats: StatRangeList[];
+    randomStatCount: number;
+  }
+
+  let { randomStats, randomStatCount }: Props = $props();
+  let toggleBonus: boolean = $state(false);
 </script>
 
 <div class="text-lightBlue mt-3">
@@ -11,7 +15,7 @@
     <p>Bonus Attributes (up to {randomStatCount} rolls)</p>
     <button
       class="text-ascendant cursor-pointer"
-      on:click={() => {
+      onclick={() => {
         toggleBonus = !toggleBonus;
       }}
     >

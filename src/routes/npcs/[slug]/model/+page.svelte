@@ -4,7 +4,11 @@
   import { ProgressRadial } from '@skeletonlabs/skeleton';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
-  export let data: PageData;
+  interface Props {
+    data: PageData;
+  }
+
+  let { data }: Props = $props();
 
   const npc = data.props.npc as unknown as Npc;
 

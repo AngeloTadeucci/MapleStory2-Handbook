@@ -5,9 +5,13 @@
   import TrophyImage from './trophies/TrophyImage.svelte';
   import { url } from '../helpers/addBasePath';
 
-  export let title: string;
-  export let items: any[];
-  export let type: string;
+  interface Props {
+    title: string;
+    items: any[];
+    type: string;
+  }
+
+  let { title, items, type }: Props = $props();
 </script>
 
 <div

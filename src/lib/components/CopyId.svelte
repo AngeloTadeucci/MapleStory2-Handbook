@@ -6,7 +6,7 @@
     extraClass?: string;
   };
 
-  export let { id, extraClass } = {} as Props;
+  let { id, extraClass }: Props = $props();
 
   import { getToastStore } from '@skeletonlabs/skeleton';
   import type { ToastSettings } from '@skeletonlabs/skeleton';
@@ -21,7 +21,9 @@
 </script>
 
 <button
-  on:click|stopPropagation|preventDefault={(e) => {
+  onclick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
     navigator.clipboard.writeText(id.toString());
     toastStore.trigger(t);
   }}

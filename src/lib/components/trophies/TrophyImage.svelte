@@ -2,18 +2,18 @@
   import { url } from '../../helpers/addBasePath';
 
   type TrophyImageProp = {
-    portrait: string;
+    icon: string;
     name: string;
   };
 
-  let image = '';
-  export let { portrait: icon, name } = {} as TrophyImageProp;
+  let { icon, name }: TrophyImageProp = $props();
   const noImage = url('/resource/sprites/disable overlay.png');
 
   const handleMissingImage = () => {
     image = noImage;
   };
-  $: image = icon === '' ? noImage : url(`/resource/image/trophy/${icon}`);
+
+  let image = $derived(icon === '' ? noImage : url(`/resource/image/trophy/${icon}`));
 </script>
 
 <img
@@ -21,6 +21,6 @@
   width={60}
   height={60}
   alt={name}
-  on:error={handleMissingImage}
+  onerror={handleMissingImage}
   class="h-[60px] w-[60px] hidden sm:block"
 />

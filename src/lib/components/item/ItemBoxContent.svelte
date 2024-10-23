@@ -5,9 +5,13 @@
   import ItemImage from './ItemImage.svelte';
   import ItemListContainer from './ItemListContainer.svelte';
 
-  export let boxContent: ItemBox[];
+  interface Props {
+    boxContent: ItemBox[];
+  }
 
-  let filterJob: Job = 0;
+  let { boxContent }: Props = $props();
+
+  let filterJob: Job = $state(0);
 
   const filterList = () => {
     filtered = boxContent.filter((x) => {
@@ -25,7 +29,7 @@
   };
 
   const hasSmartDropRate = boxContent.some((x) => x.smart_drop_rate > 0);
-  let filtered: ItemBox[] = [];
+  let filtered: ItemBox[] = $state([]);
   if (hasSmartDropRate) {
     filterList();
   }
@@ -40,7 +44,7 @@
           {#if index > 1}
             <button
               class="cursor-pointer {filterJob === job ? '' : 'brightness-50'}"
-              on:click={() => {
+              onclick={() => {
                 if (filterJob === job) {
                   filterJob = 0;
                 } else {

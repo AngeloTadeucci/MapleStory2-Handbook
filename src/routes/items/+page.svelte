@@ -13,45 +13,50 @@
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
-  let searchTerm = $page.url.searchParams.get('search') || '';
-  let lastSearchTerm = searchTerm;
+  let searchTerm = $state($page.url.searchParams.get('search') || '');
 
-  let data: SearchItem[][] = [];
-  let loading = false;
+  let data: SearchItem[][] = $state([]);
+  let loading = $state(false);
 
-  let paginator: PaginationSettings = {
+  let paginator: PaginationSettings = $state({
     page: 0,
     limit: 10,
     size: 0,
     amounts: [10, 25, 50, 100, 200]
-  };
+  });
 
-  let rarityList: string[] = (() => {
-    let rarity = $page.url.searchParams.get('rarity');
-    if (!rarity) {
-      return [];
-    }
+  let rarityList: string[] = $state(
+    (() => {
+      let rarity = $page.url.searchParams.get('rarity');
+      if (!rarity) {
+        return [];
+      }
 
-    return rarity.split(',').map((x) => Rarity[x as keyof typeof Rarity].toString());
-  })();
+      return rarity.split(',').map((x) => Rarity[x as keyof typeof Rarity].toString());
+    })()
+  );
 
-  let slotList: string[] = (() => {
-    let slot = $page.url.searchParams.get('slot');
-    if (!slot) {
-      return [];
-    }
+  let slotList: string[] = $state(
+    (() => {
+      let slot = $page.url.searchParams.get('slot');
+      if (!slot) {
+        return [];
+      }
 
-    return slot.split(',').map((x) => SlotName[x as keyof typeof SlotName].toString());
-  })();
+      return slot.split(',').map((x) => SlotName[x as keyof typeof SlotName].toString());
+    })()
+  );
 
-  let jobList: string[] = (() => {
-    let job = $page.url.searchParams.get('job');
-    if (!job) {
-      return [];
-    }
+  let jobList: string[] = $state(
+    (() => {
+      let job = $page.url.searchParams.get('job');
+      if (!job) {
+        return [];
+      }
 
-    return job.split(',').map((x) => Job[x as keyof typeof Job].toString());
-  })();
+      return job.split(',').map((x) => Job[x as keyof typeof Job].toString());
+    })()
+  );
 
   function buildParams(
     search: string,
@@ -90,6 +95,8 @@
   }
 
   async function fetchData(clearCache: boolean) {
+    let lastSearchTerm = searchTerm;
+
     // check if we have the data cached
     if (data[paginator.page] && !clearCache) {
       return;
@@ -152,7 +159,7 @@
     loading = false;
   }
 
-  $: paginatedSource = data[paginator.page] || [];
+  let paginatedSource = $derived(data[paginator.page] || []);
 
   onMount(() => {
     paginator = {
@@ -214,7 +221,7 @@
   <title>MS2 Handbook - Items</title>
 </svelte:head>
 
-<div class="mt-8 h-[1px]" />
+<div class="mt-8 h-[1px]"></div>
 <div class="main-container mx-4 rounded-xl px-5 pb-10 pt-2 lg:m-auto lg:w-3/4">
   <h1 class="mb-4 text-4xl font-bold">Items</h1>
   <div class="mb-4 flex items-center justify-between">
@@ -223,7 +230,7 @@
       placeholder="Search 🔎"
       class="input w-1/2 px-4 py-2 border-token lg:w-1/3"
       bind:value={searchTerm}
-      on:keyup={debouncedSearch}
+      onkeyup={debouncedSearch}
     />
     <div>
       <label class="label flex flex-col items-center justify-center">
@@ -231,7 +238,7 @@
         <button
           type="button"
           class="btn-icon btn-icon-sm variant-filled flex items-center justify-center"
-          on:click={async () => {
+          onclick={async () => {
             $page.url.searchParams.delete('rarity');
             $page.url.searchParams.delete('slot');
             $page.url.searchParams.delete('job');
@@ -257,7 +264,6 @@
     </div>
   </div>
   <div class="flex flex-col gap-3 lg:flex-row">
-    <!-- svelte-ignore a11y-label-has-associated-control -->
     <label class="label lg:w-1/3">
       <span>Filter by rarity</span>
       <SelectChips
@@ -275,7 +281,6 @@
         }}
       />
     </label>
-    <!-- svelte-ignore a11y-label-has-associated-control -->
     <label class="label lg:w-1/3">
       <span>Filter by item type</span>
       <SelectChips
@@ -293,7 +298,7 @@
         }}
       />
     </label>
-    <!-- svelte-ignore a11y-label-has-associated-control -->
+    <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="label lg:w-1/3">
       <span>Filter by class</span>
       <SelectChips

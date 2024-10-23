@@ -4,8 +4,12 @@
   import type { Rewards } from '$lib/types/Quest';
   import { ExpType } from '$lib/Enums';
 
-  export let reward: Rewards;
-  export let text: string;
+  interface Props {
+    reward: Rewards;
+    text: string;
+  }
+
+  let { reward, text }: Props = $props();
 </script>
 
 {#if reward.Exp > 0 || reward.Meso > 0 || reward.EssentialItem.length > 0}

@@ -10,7 +10,11 @@
   import ItemImage from '$lib/components/item/ItemImage.svelte';
   import Rewards from '$lib/components/quest/Rewards.svelte';
 
-  export let data: PageData;
+  interface Props {
+    data: PageData;
+  }
+
+  let { data }: Props = $props();
 
   const quest = data.props.quest as unknown as Quest;
 

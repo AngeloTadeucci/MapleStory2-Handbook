@@ -5,8 +5,12 @@
   import TrophyImage from '$lib/components/trophies/TrophyImage.svelte';
   import { ConditionType, RewardType, type Trophy, type TrophyGrade } from '$lib/types/Trophy';
 
-  export let trophy: Trophy;
-  export let grade: TrophyGrade;
+  interface Props {
+    trophy: Trophy;
+    grade: TrophyGrade;
+  }
+
+  let { trophy, grade }: Props = $props();
 
   const rewardColors: ColorPalette[] = [];
   if (grade.rewardType == RewardType.itemcoloring) {

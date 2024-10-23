@@ -1,7 +1,11 @@
 <script lang="ts">
   import type { ColorPalette } from '$lib/colorPalette';
 
-  export let color: ColorPalette;
+  interface Props {
+    color: ColorPalette;
+  }
+
+  let { color }: Props = $props();
 
   function convertToHexColor(value: number | undefined) {
     if (!value) {
@@ -19,14 +23,14 @@
       style="background-color: {convertToHexColor(
         color.ch0
       )}; clip-path: polygon(0 0, 100% 0, 0 100%)"
-    />
+></div>
     <div
       class="absolute top-0 right-0 w-full h-full"
       style="background-color: {convertToHexColor(
         color.ch2
       )}; clip-path: polygon(100% 0, 100% 100%, 0 100%)"
-    />
+></div>
   </div>
 {:else}
-  <div class="rounded-md w-6 h-6" style="background-color: {convertToHexColor(color.palette)}" />
+  <div class="rounded-md w-6 h-6" style="background-color: {convertToHexColor(color.palette)}"></div>
 {/if}

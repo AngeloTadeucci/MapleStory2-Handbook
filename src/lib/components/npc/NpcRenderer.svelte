@@ -1,4 +1,4 @@
-<script script lang="ts">
+<script lang="ts">
   import getGltfUrl from '$lib/getGltfUrl';
   import { url } from '$lib/helpers/addBasePath';
   import type { Npc } from '$lib/types/Npc';
@@ -10,15 +10,15 @@
     customStyle?: string;
     advancedControls?: boolean;
   };
-  export let { npc, customStyle, advancedControls = false } = {} as RendererProps;
+  let { npc, customStyle, advancedControls = false }: RendererProps = $props();
 
   const gltfUrl = getGltfUrl();
   const iconPath = url(`/${npc.portrait.split('/').slice(2).join('/')}`);
 
   let validAnimations: string[] = [];
-  let selectedAnimation = '';
-  let loadingGltf = true;
-  let orientation = '';
+  let selectedAnimation = $state('');
+  let loadingGltf = $state(true);
+  let orientation = $state('');
   let cameraTarget = '';
   let customOrbit = '';
 
@@ -75,7 +75,7 @@
     </div>
     <button
       class="button absolute right-5 top-5 z-10"
-      on:click={() => window.open(`/npcs/${npc.id}/model`)}
+      onclick={() => window.open(`/npcs/${npc.id}/model`)}
     >
       <img src={url('/icons/open_in_new.svg')} alt="Open in new tab" title="Open in new tab" />
     </button>
@@ -90,7 +90,7 @@
     touch-action="pan-y"
     interaction-prompt="none"
     style={customStyle ?? `width: 550px; height: 760px; --iconPath: url(${iconPath});`}
-  />
+  ></model-viewer>
 {/if}
 
 <style>

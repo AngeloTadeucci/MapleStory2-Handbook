@@ -6,11 +6,21 @@
     StatRangeList
   } from '../../types/Item';
 
-  export let constantsStats: StatList[];
-  export let staticStats: StatRangeList[];
-  export let representOption: number;
-  export let additionalEffects: string;
-  export let additionalEffectsDescriptions: AdditionalEffectDescription[];
+  interface Props {
+    constantsStats: StatList[];
+    staticStats: StatRangeList[];
+    representOption: number;
+    additionalEffects: string;
+    additionalEffectsDescriptions: AdditionalEffectDescription[];
+  }
+
+  let {
+    constantsStats,
+    staticStats,
+    representOption,
+    additionalEffects,
+    additionalEffectsDescriptions
+  }: Props = $props();
 
   const descriptions: string[] = [];
   if (additionalEffects) {

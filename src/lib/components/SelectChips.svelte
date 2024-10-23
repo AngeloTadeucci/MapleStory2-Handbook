@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte/internal';
   import { fly, scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
+  import { createEventDispatcher } from 'svelte';
 
   // Event Dispatcher
   const dispatch = createEventDispatcher();
