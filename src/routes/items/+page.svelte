@@ -1,13 +1,14 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { Job, Rarity, SlotName, enumToWhitelist } from '$lib/Enums';
   import CopyId from '$lib/components/CopyId.svelte';
   import ItemImage from '$lib/components/item/ItemImage.svelte';
   import SelectChips from '$lib/components/SelectChips.svelte';
+  import { Job, Rarity, enumToWhitelist } from '$lib/Enums';
   import { url } from '$lib/helpers/addBasePath';
   import itemHelper from '$lib/helpers/itemHelper';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
+  import { getItemTypeDisplayNames, getItemTypeKeyByDisplayName } from '$lib/itemTypes';
   import type { SearchItem } from '$lib/types/Item';
   import { Paginator, ProgressRadial, type PaginationSettings } from '@skeletonlabs/skeleton';
   import debounce from 'lodash.debounce';
@@ -36,17 +37,6 @@
     })()
   );
 
-  let slotList: string[] = $state(
-    (() => {
-      let slot = $page.url.searchParams.get('slot');
-      if (!slot) {
-        return [];
-      }
-
-      return slot.split(',').map((x) => SlotName[x as keyof typeof SlotName].toString());
-    })()
-  );
-
   let jobList: string[] = $state(
     (() => {
       let job = $page.url.searchParams.get('job');
@@ -58,13 +48,27 @@
     })()
   );
 
+  let itemTypeList: string[] = $state(
+    (() => {
+      let type = $page.url.searchParams.get('type');
+      if (!type) {
+        return [];
+      }
+
+      return type
+        .split(',')
+        .map((x) => getItemTypeKeyByDisplayName(x))
+        .filter((x): x is string => x !== undefined);
+    })()
+  );
+
   function buildParams(
     search: string,
     page: number,
     limit: number,
     rarity: string,
-    slot: string,
-    job: string
+    job: string,
+    type: string
   ) {
     return paramsBuilder([
       {
@@ -84,12 +88,12 @@
         value: rarity
       },
       {
-        name: 'slot',
-        value: slot
-      },
-      {
         name: 'job',
         value: job
+      },
+      {
+        name: 'type',
+        value: type
       }
     ]);
   }
@@ -107,8 +111,11 @@
       paginator.page,
       paginator.limit,
       rarityList.map((x) => Rarity[x as keyof typeof Rarity]).join(','),
-      slotList.map((x) => SlotName[x as keyof typeof SlotName]).join(','),
-      jobList.map((x) => Job[x as keyof typeof Job]).join(',')
+      jobList.map((x) => Job[x as keyof typeof Job]).join(','),
+      itemTypeList
+        .map((x) => getItemTypeKeyByDisplayName(x))
+        .filter((x) => x)
+        .join(',')
     );
 
     loading = true;
@@ -240,15 +247,15 @@
           class="btn-icon btn-icon-sm variant-filled flex items-center justify-center"
           onclick={async () => {
             $page.url.searchParams.delete('rarity');
-            $page.url.searchParams.delete('slot');
             $page.url.searchParams.delete('job');
             $page.url.searchParams.delete('search');
             $page.url.searchParams.delete('page');
             $page.url.searchParams.delete('limit');
+            $page.url.searchParams.delete('type');
 
             rarityList = [];
-            slotList = [];
             jobList = [];
+            itemTypeList = [];
 
             paginator.page = 0;
             paginator.limit = 10;
@@ -282,15 +289,25 @@
       />
     </label>
     <label class="label lg:w-1/3">
-      <span>Filter by item type</span>
+      <span>Filter by category</span>
       <SelectChips
-        name="slot"
-        bind:value={slotList}
-        whitelist={enumToWhitelist(SlotName)}
+        name="itemType"
+        bind:value={itemTypeList}
+        whitelist={getItemTypeDisplayNames()}
         allowDuplicates={false}
         allowUpperCase
         onValueChange={async () => {
-          updateParams('slot', slotList, SlotName);
+          if (itemTypeList.length === 0) {
+            $page.url.searchParams.delete('type');
+          } else {
+            $page.url.searchParams.set(
+              'type',
+              itemTypeList
+                .map((x) => getItemTypeKeyByDisplayName(x))
+                .filter((x) => x)
+                .join(',')
+            );
+          }
           paginator.page = 0;
           $page.url.searchParams.set('page', '0');
           goto($page.url.href, { keepFocus: true, replaceState: true });

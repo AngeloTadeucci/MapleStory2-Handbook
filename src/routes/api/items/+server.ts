@@ -2,6 +2,7 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import DBClient from '$lib/prismaClient';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import type { SearchItem } from '$lib/types/Item';
+import { ItemTypes } from '$lib/itemTypes';
 const prisma = DBClient.getInstance().prisma;
 
 const rateLimiter = new RateLimiterMemory({
@@ -15,7 +16,7 @@ export const GET = (async ({ url }) => {
   const offset = Number(url.searchParams.get('page') ?? 0) * limit;
   const rarityString = url.searchParams.get('rarity');
   const jobString = url.searchParams.get('job');
-  const slotString = url.searchParams.get('slot');
+  const itemType = url.searchParams.get('type');
 
   if (search.includes('"')) {
     return json({ items: [], total: 0 });
@@ -33,9 +34,11 @@ export const GET = (async ({ url }) => {
     itemsStatement += ` AND JSON_CONTAINS(job_limit, '[${jobString}]')`;
   }
 
-  if (slotString) {
-    // type in db is one single value, but we want to allow multiple types to be searched
-    itemsStatement += ` AND item_preset IN (${slotString})`;
+  if (itemType) {
+    // Extract group and type from item IDs based on the formula:
+    // Group = id / 10000000
+    // Type = (id % 10000000) / 100000
+    itemsStatement += buildItemTypeCondition(itemType);
   }
 
   itemsStatement += ` LIMIT ${limit} OFFSET ${offset}`;
@@ -50,8 +53,8 @@ export const GET = (async ({ url }) => {
     countStatement += ` AND JSON_CONTAINS(job_limit, '[${jobString}]')`;
   }
 
-  if (slotString) {
-    countStatement += ` AND item_preset IN (${slotString})`;
+  if (itemType) {
+    countStatement += buildItemTypeCondition(itemType);
   }
 
   const itemCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(countStatement);
@@ -60,10 +63,74 @@ export const GET = (async ({ url }) => {
   return json({ items, total });
 }) satisfies RequestHandler;
 
+// Helper function to build the SQL condition for item types
+function buildItemTypeCondition(itemType: string): string {
+  // Parse the item type parameter
+  const types = itemType.split(',');
+
+  // Build conditions for each type
+  const conditions = types.map((type) => {
+    const typeKey = type.trim().toLowerCase();
+    const itemTypeConfig = ItemTypes[typeKey];
+
+    if (!itemTypeConfig) {
+      return '(1 = 0)'; // Invalid type - condition that will never be true
+    }
+
+    // Special case for 'mount' which combines air and ground mounts
+    if (typeKey === 'mount') {
+      return `((FLOOR(id / 10000000) = 4 AND FLOOR((id % 10000000) / 100000) = 4) OR
+              (FLOOR(id / 10000000) = 5 AND FLOOR((id % 10000000) / 100000) = 6))`;
+    }
+
+    // Handle group and type based on configuration
+    const { group, type: typeValue } = itemTypeConfig;
+
+    // Handle single group with single type
+    if (!Array.isArray(typeValue) && typeof typeValue === 'number') {
+      if (typeValue === -1) {
+        // For types like badge where we only care about the group
+        return `(FLOOR(id / 10000000) = ${group})`;
+      }
+      return `(FLOOR(id / 10000000) = ${group} AND FLOOR((id % 10000000) / 100000) = ${typeValue})`;
+    }
+
+    // Handle single group with multiple specific types
+    if (Array.isArray(typeValue) && !Array.isArray(typeValue[0])) {
+      const typeConditions = typeValue
+        .map((t) => `FLOOR((id % 10000000) / 100000) = ${t}`)
+        .join(' OR ');
+      return `(FLOOR(id / 10000000) = ${group} AND (${typeConditions}))`;
+    }
+
+    // Handle single group with type ranges
+    if (Array.isArray(typeValue) && Array.isArray(typeValue[0])) {
+      const rangeConditions = typeValue
+        .map((range) => {
+          if (Array.isArray(range) && range.length === 2) {
+            return `(FLOOR((id % 10000000) / 100000) >= ${range[0]} AND FLOOR((id % 10000000) / 100000) <= ${range[1]})`;
+          }
+          return null;
+        })
+        .filter(Boolean)
+        .join(' OR ');
+
+      return `(FLOOR(id / 10000000) = ${group} AND (${rangeConditions}))`;
+    }
+
+    return '(1 = 0)'; // Fallback
+  });
+
+  // Join all conditions with OR
+  return ` AND (${conditions.join(' OR ')})`;
+}
+
 export const POST = (async (req) => {
   const itemId = req.url.searchParams.get('id');
+  const isProduction = import.meta.env.PUBLIC_NODE_ENV === 'prod';
+
   if (itemId == null) {
-    return new Response(JSON.stringify({ message: 'No item id provided' }), {
+    return new Response(isProduction ? '' : JSON.stringify({ message: 'No item id provided' }), {
       status: 400
     });
   }
@@ -80,7 +147,7 @@ export const POST = (async (req) => {
     });
 
     if (npc == null) {
-      return new Response(JSON.stringify({ message: 'Item not found' }), {
+      return new Response(isProduction ? '' : JSON.stringify({ message: 'Item not found' }), {
         status: 404
       });
     }
@@ -98,7 +165,7 @@ export const POST = (async (req) => {
 
     return new Response();
   } catch (err) {
-    return new Response(JSON.stringify({ message: 'Too many requests' }), {
+    return new Response(isProduction ? '' : JSON.stringify({ message: 'Too many requests' }), {
       status: 429
     });
   }
