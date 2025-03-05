@@ -104,6 +104,20 @@ export const ItemTypes: Record<string, ItemTypeDefinition> = {
   //   type: [12, 18, 19, 20, 21],
   //   category: 'Equipment'
   // },
+  face: {
+    key: 'face',
+    displayName: 'Face Accessory',
+    group: 1,
+    type: 10,
+    category: 'Accessory'
+  },
+  eyewear: {
+    key: 'eyewear',
+    displayName: 'Eyewear',
+    group: 1,
+    type: 11,
+    category: 'Accessory'
+  },
   earring: {
     key: 'earring',
     displayName: 'Earring',
