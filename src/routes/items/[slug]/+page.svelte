@@ -26,7 +26,7 @@
   const boxContent = resultBoxContent as unknown as ItemBox[];
   const descriptions = additionalEffectDescriptions as unknown as AdditionalEffectDescription[];
 
-  let gltfExists: boolean = $state();
+  let gltfExists: boolean = $state(false);
 
   const gltfUrl = getGltfUrl();
 

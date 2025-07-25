@@ -17,6 +17,9 @@ export const GET = (async ({ url }) => {
   const rarityString = url.searchParams.get('rarity');
   const jobString = url.searchParams.get('job');
   const itemType = url.searchParams.get('type');
+  const outfitOnly = url.searchParams.get('outfit') === 'true';
+  const genderString = url.searchParams.get('gender');
+  const setItemsOnly = url.searchParams.get('setItems') === 'true';
 
   if (search.includes('"')) {
     return json({ items: [], total: 0 });
@@ -41,6 +44,18 @@ export const GET = (async ({ url }) => {
     itemsStatement += buildItemTypeCondition(itemType);
   }
 
+  if (outfitOnly) {
+    itemsStatement += ` AND is_outfit = 1`;
+  }
+
+  if (genderString) {
+    itemsStatement += ` AND gender IN (${genderString})`;
+  }
+
+  if (setItemsOnly) {
+    itemsStatement += ` AND set_name != ''`;
+  }
+
   itemsStatement += ` LIMIT ${limit} OFFSET ${offset}`;
   const items = await prisma.$queryRawUnsafe<SearchItem[]>(itemsStatement);
 
@@ -55,6 +70,18 @@ export const GET = (async ({ url }) => {
 
   if (itemType) {
     countStatement += buildItemTypeCondition(itemType);
+  }
+
+  if (outfitOnly) {
+    countStatement += ` AND is_outfit = 1`;
+  }
+
+  if (genderString) {
+    countStatement += ` AND gender IN (${genderString})`;
+  }
+
+  if (setItemsOnly) {
+    countStatement += ` AND set_name != ''`;
   }
 
   const itemCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(countStatement);

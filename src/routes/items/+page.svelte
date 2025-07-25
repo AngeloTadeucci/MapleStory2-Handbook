@@ -4,7 +4,7 @@
   import CopyId from '$lib/components/CopyId.svelte';
   import ItemImage from '$lib/components/item/ItemImage.svelte';
   import SelectChips from '$lib/components/SelectChips.svelte';
-  import { Job, Rarity, enumToWhitelist } from '$lib/Enums';
+  import { Job, Rarity, Gender, enumToWhitelist } from '$lib/Enums';
   import { url } from '$lib/helpers/addBasePath';
   import itemHelper from '$lib/helpers/itemHelper';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
@@ -62,13 +62,31 @@
     })()
   );
 
+  let outfitOnly = $state($page.url.searchParams.get('outfit') === 'true');
+
+  let genderList: string[] = $state(
+    (() => {
+      let gender = $page.url.searchParams.get('gender');
+      if (!gender) {
+        return [];
+      }
+
+      return gender.split(',').map((x) => Gender[x as keyof typeof Gender].toString());
+    })()
+  );
+
+  let setItemsOnly = $state($page.url.searchParams.get('setItems') === 'true');
+
   function buildParams(
     search: string,
     page: number,
     limit: number,
     rarity: string,
     job: string,
-    type: string
+    type: string,
+    outfit: boolean,
+    gender: string,
+    setItems: boolean
   ) {
     return paramsBuilder([
       {
@@ -94,6 +112,18 @@
       {
         name: 'type',
         value: type
+      },
+      {
+        name: 'outfit',
+        value: outfit ? 'true' : null
+      },
+      {
+        name: 'gender',
+        value: gender
+      },
+      {
+        name: 'setItems',
+        value: setItems ? 'true' : null
       }
     ]);
   }
@@ -115,7 +145,10 @@
       itemTypeList
         .map((x) => getItemTypeKeyByDisplayName(x))
         .filter((x) => x)
-        .join(',')
+        .join(','),
+      outfitOnly,
+      genderList.map((x) => Gender[x as keyof typeof Gender]).join(','),
+      setItemsOnly
     );
 
     loading = true;
@@ -240,7 +273,7 @@
       onkeyup={debouncedSearch}
     />
     <div>
-      <label class="label flex flex-col items-center justify-center">
+      <label class="label flex items-center justify-center gap-4 cursor-pointer">
         <span>Clear filters</span>
         <button
           type="button"
@@ -252,10 +285,16 @@
             $page.url.searchParams.delete('page');
             $page.url.searchParams.delete('limit');
             $page.url.searchParams.delete('type');
+            $page.url.searchParams.delete('outfit');
+            $page.url.searchParams.delete('gender');
+            $page.url.searchParams.delete('setItems');
 
             rarityList = [];
             jobList = [];
             itemTypeList = [];
+            outfitOnly = false;
+            genderList = [];
+            setItemsOnly = false;
 
             paginator.page = 0;
             paginator.limit = 10;
@@ -271,7 +310,7 @@
     </div>
   </div>
   <div class="flex flex-col gap-3 lg:flex-row">
-    <label class="label lg:w-1/3">
+    <label class="label w-full">
       <span>Filter by rarity</span>
       <SelectChips
         name="rarity"
@@ -288,7 +327,7 @@
         }}
       />
     </label>
-    <label class="label lg:w-1/3">
+    <label class="label w-full">
       <span>Filter by category</span>
       <SelectChips
         name="itemType"
@@ -316,7 +355,7 @@
       />
     </label>
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="label lg:w-1/3">
+    <label class="label w-full">
       <span>Filter by class</span>
       <SelectChips
         name="class"
@@ -332,6 +371,63 @@
           await fetchData(true);
         }}
       />
+    </label>
+    <label class="label w-full">
+      <span>Filter by gender</span>
+      <SelectChips
+        name="gender"
+        bind:value={genderList}
+        whitelist={enumToWhitelist(Gender)}
+        allowDuplicates={false}
+        allowUpperCase
+        onValueChange={async () => {
+          updateParams('gender', genderList, Gender);
+          paginator.page = 0;
+          $page.url.searchParams.set('page', '0');
+          goto($page.url.href, { keepFocus: true, replaceState: true });
+          await fetchData(true);
+        }}
+      />
+    </label>
+  </div>
+  <div class="flex flex-col gap-3 lg:flex-row mt-3">
+    <label class="flex items-center space-x-2">
+      <input
+        class="checkbox"
+        type="checkbox"
+        bind:checked={outfitOnly}
+        onchange={async () => {
+          if (outfitOnly) {
+            $page.url.searchParams.set('outfit', 'true');
+          } else {
+            $page.url.searchParams.delete('outfit');
+          }
+          paginator.page = 0;
+          $page.url.searchParams.set('page', '0');
+          goto($page.url.href, { keepFocus: true, replaceState: true });
+          await fetchData(true);
+        }}
+      />
+      <span>Show outfits only</span>
+    </label>
+    <label class="flex items-center space-x-2">
+      <input
+        class="checkbox"
+        type="checkbox"
+        bind:checked={setItemsOnly}
+        onchange={async () => {
+          if (setItemsOnly) {
+            $page.url.searchParams.set('setItems', 'true');
+          } else {
+            $page.url.searchParams.delete('setItems');
+          }
+          paginator.page = 0;
+          $page.url.searchParams.set('page', '0');
+          goto($page.url.href, { keepFocus: true, replaceState: true });
+          await fetchData(true);
+        }}
+      />
+      <span>Show set items only</span>
     </label>
   </div>
   <Paginator
