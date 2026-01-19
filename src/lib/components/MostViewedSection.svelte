@@ -12,6 +12,36 @@
   }
 
   let { title, items, type }: Props = $props();
+
+  // April Fools: Only active on April 1st
+  const isAprilFools = () => {
+    const now = new Date();
+    return now.getMonth() === 3 && now.getDate() === 1; // Month is 0-indexed
+  };
+
+  const FROG_CHANCE = 0.15; // 15% chance per item
+
+  const youngFrog = {
+    id: 30000071,
+    name: 'Young Frog',
+    icon_path: './data/resource/image/item/icon/30000071.png',
+    rarity: 1,
+    is_outfit: 0
+  };
+
+  // Determine which items get "frog'd" on mount (so it doesn't change on re-render)
+  const froggedIndices = isAprilFools() ? new Set(
+    items.map((_, i) => i).filter(() => Math.random() < FROG_CHANCE)
+  ) : new Set<number>();
+
+  const shouldShowFrog = (index: number) => froggedIndices.has(index);
+
+  // Random chance to swap name vs image (50/50) - NOT BOTH
+  const frogModes = new Map<number, 'image' | 'name'>();
+  froggedIndices.forEach(i => {
+    frogModes.set(i, Math.random() < 0.5 ? 'image' : 'name');
+  });
+  const frogMode = (index: number) => frogModes.get(index) ?? 'image';
 </script>
 
 <div
@@ -19,10 +49,20 @@
 >
   <h1 class="mb-5 mt-3">{title}</h1>
   <div class="flex w-full flex-col">
-    {#each items as item}
+    {#each items as item, index}
+      {@const isFrogged = shouldShowFrog(index)}
+      {@const mode = frogMode(index)}
+      {@const displayName = isFrogged && mode === 'name' ? 'Young Frog' : item.name}
       <div class="w-full border-b border-gray2 py-3 last:border-none hover:bg-surface-hover-token">
         <a class="unstyled flex flex-row items-center" href={url(`/${type}/${item.id}`)}>
-          {#if type === 'items'}
+          {#if isFrogged && mode === 'image'}
+            <ItemImage
+              iconPath={youngFrog.icon_path}
+              name={youngFrog.name}
+              rarity={youngFrog.rarity}
+              isOutfit={false}
+            />
+          {:else if type === 'items'}
             <ItemImage
               iconPath={item.icon_path}
               name={item.name}
@@ -36,7 +76,7 @@
           {:else if type === 'trophies'}
             <TrophyImage icon={item.icon} name={item.name} />
           {/if}
-          <p class="ml-8 line-clamp-1 w-3/4">{item.name}</p>
+          <p class="ml-8 line-clamp-1 w-3/4">{displayName}</p>
         </a>
       </div>
     {/each}

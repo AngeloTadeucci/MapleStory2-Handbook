@@ -136,3 +136,8 @@ model quests {
   completeRewards     Json
   visit_count         Int    @default(0)
 }
+
+model site_stats {
+  id                       Int @id @default(1)
+  frog_appreciation_count  Int @default(0)
+}
