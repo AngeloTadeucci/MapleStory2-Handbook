@@ -5,6 +5,7 @@
   import type { PageData } from './$types';
   import type { Map } from '$lib/types/Map';
   import ItemListContainer from '$lib/components/item/ItemListContainer.svelte';
+  import SupportNotice from '$lib/components/SupportNotice.svelte';
 
   interface Props {
     data: PageData;
@@ -70,6 +71,7 @@
           </div>
         {/if}
       </div>
+      <SupportNotice />
     </div>
   </div>
 </div>

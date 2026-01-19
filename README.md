@@ -25,6 +25,10 @@ Note: Web server might take a while to start because of svelte copying images to
 
 [handbook.tadeucci.dev](https://handbook.tadeucci.dev)
 
+## Support
+
+This project is maintained without ads or sponsorships. If you find it useful and want to support continued development, consider [buying me a coffee](https://ko-fi.com/angelotadeucci).
+
 ## Contributing
 
 This project is open to contributions, feel free to fork and submit pull requests.

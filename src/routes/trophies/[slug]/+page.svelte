@@ -4,6 +4,7 @@
   import { url } from '$lib/helpers/addBasePath';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
+  import SupportNotice from '$lib/components/SupportNotice.svelte';
 
   interface Props {
     data: PageData;
@@ -54,5 +55,6 @@
         <TrophyGrade {trophy} {grade} />
       {/each}
     </div>
+    <SupportNotice />
   </div>
 </div>

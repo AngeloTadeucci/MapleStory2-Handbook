@@ -10,6 +10,7 @@
   import type { AdditionalEffectDescription } from '$lib/types/Item';
   import ItemRenderer from '$lib/components/item/ItemRenderer.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
+  import SupportNotice from '$lib/components/SupportNotice.svelte';
 
   interface Props {
     data: PageData;
@@ -102,6 +103,7 @@
         <ItemBoxContent {boxContent} />
       {/if}
     </div>
+    <SupportNotice />
   </div>
 </div>
 

@@ -9,6 +9,7 @@
   import { closeMissingTags, unescapeHtml } from '$lib/helpers/htmlParser';
   import ItemImage from '$lib/components/item/ItemImage.svelte';
   import Rewards from '$lib/components/quest/Rewards.svelte';
+  import SupportNotice from '$lib/components/SupportNotice.svelte';
 
   interface Props {
     data: PageData;
@@ -114,6 +115,7 @@
         {/if}
       </ItemListContainer>
     </div>
+    <SupportNotice />
   </div>
 </div>
 

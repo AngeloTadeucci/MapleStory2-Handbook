@@ -8,14 +8,17 @@
   <span>
     Made by
     <a class="underline" href="https://github.com/AngeloTadeucci">Tadeucci</a>
-    - 2024
+    - {new Date().getFullYear()}
   </span>
   <span> // </span>
   <span>
-    Source code on <a
-      class="underline"
-      href="https://github.com/AngeloTadeucci/MapleStory2-Handbook">GitHub</a
+    <a class="underline" href="https://ko-fi.com/angelotadeucci" target="_blank" rel="noreferrer"
+      >Support this project</a
     >
+  </span>
+  <span> // </span>
+  <span>
+    <a class="underline" href={url('/about')}>About</a>
   </span>
 </footer>
 

@@ -7,6 +7,7 @@
   import type { PageData } from './$types';
   import NpcRenderer from '$lib/components/npc/NpcRenderer.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
+  import SupportNotice from '$lib/components/SupportNotice.svelte';
 
   interface Props {
     data: PageData;
@@ -84,6 +85,7 @@
         </div>
       {/if}
     </div>
+    <SupportNotice />
   </div>
 </div>
 
