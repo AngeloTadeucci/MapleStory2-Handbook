@@ -1,5 +1,6 @@
 <script lang="ts">
   import MostViewedSection from '../lib/components/MostViewedSection.svelte';
+  import PatchNotesSection from '../lib/components/PatchNotesSection.svelte';
   import type { PageData } from './$types';
 
   interface Props {
@@ -29,5 +30,11 @@
       items={data.props.mostViewedTrophies}
       type="trophies"
     />
+  </div>
+
+  <div
+    class="mt-4 flex h-full flex-col items-center justify-center rounded-xl bg-surface-500 py-8 lg:m-auto min-[1500px]:w-3/4"
+  >
+    <PatchNotesSection />
   </div>
 </div>

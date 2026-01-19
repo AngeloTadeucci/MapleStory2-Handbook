@@ -20,6 +20,10 @@
   <span>
     <a class="underline" href={url('/about')}>About</a>
   </span>
+  <span> // </span>
+  <span>
+    <a class="underline" href={url('/patchnotes')}>Patch Notes</a>
+  </span>
 </footer>
 
 <style>
