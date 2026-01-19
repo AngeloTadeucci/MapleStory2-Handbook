@@ -52,9 +52,9 @@
         {#each reward.EssentialItem as item}
           <a href={`/items/${item.Id}`} target="_blank">
             <ItemImage
-              iconPath={item.IconPath}
-              rarity={item.Rarity}
-              name={item.Name}
+              iconPath={item.IconPath ?? ''}
+              rarity={item.Rarity ?? ''}
+              name={item.Name ?? ''}
               minCount={item.Amount}
               isOutfit={item.IsOutfit}
             />
@@ -67,9 +67,9 @@
         {#each reward.EssentialJobItem as item}
           <a href={`/items/${item.Id}`} target="_blank">
             <ItemImage
-              iconPath={item.IconPath}
-              rarity={item.Rarity}
-              name={item.Name}
+              iconPath={item.IconPath ?? ''}
+              rarity={item.Rarity ?? ''}
+              name={item.Name ?? ''}
               minCount={item.Amount}
               isOutfit={item.IsOutfit}
             />

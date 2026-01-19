@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { exec } from 'child_process';
+import type { ExecException } from 'child_process';
 import fs from 'fs';
 import { z } from 'zod';
 import { join } from 'path';
@@ -128,7 +129,7 @@ async function convertToGif(
 
     const gifski = exec(
       `gifski --fps ${framerate} -H ${height} -W ${width} --quality ${quality} ${inputFile} -o ${outputFile} `, // -H 320 -W 320 --quality 70 --motion-quality 40 --lossy-quality 40
-      function (error) {
+      function (error: ExecException | null) {
         if (error) {
           console.log(error.stack);
           console.log('[gifski] Error code: ' + error.code);
@@ -137,7 +138,7 @@ async function convertToGif(
       }
     );
 
-    gifski.on('exit', function (code) {
+    gifski.on('exit', function (code: number | null) {
       if (code != 0) {
         reject(code);
       } else {

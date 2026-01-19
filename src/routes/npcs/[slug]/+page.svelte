@@ -17,7 +17,7 @@
 
   const npc = data.props.npc as unknown as Npc;
 
-  let gltfExists: boolean = $state();
+  let gltfExists: boolean = $state(false);
 
   const gltfUrl = getGltfUrl();
 
