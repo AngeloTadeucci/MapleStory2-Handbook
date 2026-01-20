@@ -10,6 +10,6 @@
   let { href, target = '_blank', children }: Props = $props();
 </script>
 
-<a {href} {target} class="underline hover:text-primary-100-800-token">
+<a {href} {target} class="underline hover:text-primary-100-900">
   {@render children()}
 </a>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { ProgressRadial } from '@skeletonlabs/skeleton';
+  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import type Item from '$lib/types/Item';
   import { url } from '$lib/helpers/addBasePath';
   import getGltfUrl from '$lib/getGltfUrl';
@@ -11,7 +11,7 @@
   let { item }: RendererProps = $props();
 
   const gltfUrl = getGltfUrl();
-  const iconPath = url(`/${item.icon_path.split('/').slice(2).join('/')}`);
+  const iconPath = $derived(url(`/${item.icon_path.split('/').slice(2).join('/')}`));
 
   let loadingGltf = $state(true);
   let orientation = '0deg 0deg 90deg';
@@ -42,7 +42,7 @@
 
 {#if loadingGltf}
   <div class="flex items-center justify-center">
-    <ProgressRadial width="w-32" />
+    <LoadingSpinner />
   </div>
 {:else}
   <model-viewer

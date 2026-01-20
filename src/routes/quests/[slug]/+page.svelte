@@ -17,7 +17,7 @@
 
   let { data }: Props = $props();
 
-  const quest = data.props.quest as unknown as Quest;
+  const quest = $derived(data.props.quest as unknown as Quest);
 
   async function incrementViewCount() {
     await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
@@ -119,7 +119,7 @@
   </div>
 </div>
 
-<style lang="scss">
+<style>
   ul {
     list-style-type: disc;
     list-style-position: inside;
@@ -137,7 +137,7 @@
     margin-top: 1rem;
     margin-bottom: 1rem;
 
-    // invert image colors
+    /* invert image colors */
     /* filter: invert(1); */
   }
 </style>

@@ -53,7 +53,7 @@
       {@const isFrogged = shouldShowFrog(index)}
       {@const mode = frogMode(index)}
       {@const displayName = isFrogged && mode === 'name' ? 'Young Frog' : item.name}
-      <div class="w-full border-b border-gray2 py-3 last:border-none hover:bg-surface-hover-token">
+      <div class="w-full border-b border-gray2 py-3 last:border-none hover:preset-tonal transition-colors">
         <a class="unstyled flex flex-row items-center" href={url(`/${type}/${item.id}`)}>
           {#if isFrogged && mode === 'image'}
             <ItemImage

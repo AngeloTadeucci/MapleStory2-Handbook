@@ -48,19 +48,19 @@
 
   // Props (styles)
   /** Provide classes or a variant to style the chips. */
-  export let chips = 'variant-filled';
+  export let chips = 'preset-filled';
   /** Provide classes used to indicate invalid state. */
   // export let invalid = 'input-error';
   /** Provide classes to set padding styles. */
   export let padding = 'p-2';
   /** Provide classes to set border radius styles. */
-  export let rounded = 'rounded-container-token';
+  export let rounded = 'rounded-container';
 
   // Classes
-  const cBase = 'textarea cursor-pointer';
+  const cBase = 'textarea cursor-pointer bg-surface-700 text-surface-50 border-transparent';
   const cInterface = 'space-y-4';
   const cChipList = 'flex flex-wrap gap-2';
-  const cInputField = 'unstyled bg-transparent border-0 !ring-0 p-0 w-full';
+  const cInputField = 'unstyled bg-transparent border-0 !ring-0 p-0 w-full text-surface-50';
 
   // Local
   let inputValid = true;
@@ -157,7 +157,7 @@
       <select
         bind:value={input}
         placeholder={$$restProps.placeholder ?? 'Enter values...'}
-        class="input-chip-field {classesInputField} select"
+        class="input-chip-field {classesInputField}"
         on:input={onInputHandler}
         on:input
         on:focus

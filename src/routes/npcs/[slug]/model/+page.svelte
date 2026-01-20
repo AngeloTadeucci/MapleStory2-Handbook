@@ -1,8 +1,7 @@
 <script lang="ts">
   import ModelOnlyRenderer from '$lib/components/ModelOnlyRenderer.svelte';
+  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import type { Npc } from '$lib/types/Npc';
-  import { ProgressRadial } from '@skeletonlabs/skeleton';
-  import { onMount } from 'svelte';
   import type { PageData } from './$types';
   interface Props {
     data: PageData;
@@ -10,17 +9,7 @@
 
   let { data }: Props = $props();
 
-  const npc = data.props.npc as unknown as Npc;
-
-  onMount(async () => {
-    if (!npc) {
-      return;
-    }
-
-    if (npc.kfm.length <= 0) {
-      return;
-    }
-  });
+  const npc = $derived(data.props.npc as unknown as Npc);
 </script>
 
 <svelte:head>
@@ -33,6 +22,6 @@
   </div>
 {:else}
   <div class="flex items-center justify-center">
-    <ProgressRadial width="w-32" />
+    <LoadingSpinner />
   </div>
 {/if}

@@ -2,7 +2,8 @@
   import getGltfUrl from '$lib/getGltfUrl';
   import { url } from '$lib/helpers/addBasePath';
   import type { Npc } from '$lib/types/Npc';
-  import { ProgressRadial } from '@skeletonlabs/skeleton';
+  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+  import { Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
   import { onMount } from 'svelte';
 
   type RendererProps = {
@@ -13,14 +14,55 @@
   let { npc, customStyle, advancedControls = false }: RendererProps = $props();
 
   const gltfUrl = getGltfUrl();
-  const iconPath = url(`/${npc.portrait.split('/').slice(2).join('/')}`);
+  const iconPath = $derived(url(`/${npc.portrait.split('/').slice(2).join('/')}`));
 
-  let validAnimations: string[] = [];
+  let validAnimations: string[] = $state([]);
   let selectedAnimation = $state('');
   let loadingGltf = $state(true);
   let orientation = $state('');
   let cameraTarget = '';
   let customOrbit = '';
+
+  // Combobox setup for animation selection
+  let animationItems = $state<{ label: string; value: string }[]>([]);
+
+  const animationCollection = $derived(
+    useListCollection({
+      items: animationItems,
+      itemToString: (item) => item.label,
+      itemToValue: (item) => item.value
+    })
+  );
+
+  // Update animationItems when validAnimations changes
+  $effect(() => {
+    const defaultOption = { label: 'Default', value: npc.kfm };
+    const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
+    animationItems = [defaultOption, ...animOptions];
+  });
+
+  const handleAnimationChange = (details: { value: string[] }) => {
+    if (details.value.length > 0) {
+      selectedAnimation = details.value[0];
+    }
+  };
+
+  const handleAnimationInputChange = (details: { inputValue: string }) => {
+    const defaultOption = { label: 'Default', value: npc.kfm };
+    const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
+    const allOptions = [defaultOption, ...animOptions];
+
+    const filtered = allOptions.filter((item) =>
+      item.label.toLowerCase().includes(details.inputValue.toLowerCase())
+    );
+    animationItems = filtered.length > 0 ? filtered : allOptions;
+  };
+
+  const handleAnimationOpenChange = () => {
+    const defaultOption = { label: 'Default', value: npc.kfm };
+    const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
+    animationItems = [defaultOption, ...animOptions];
+  };
 
   onMount(async () => {
     orientation = '0deg -90deg 0deg';
@@ -35,18 +77,20 @@
         return;
       }
 
+      const tempAnimations: string[] = [];
       await Promise.all(
         npc.animations.map(async (animation: any) => {
           const response = await fetch(`${gltfUrl}${npc.kfm}/${animation}.gltf`);
 
           if (response.ok) {
-            validAnimations.push(animation);
+            tempAnimations.push(animation);
           }
         })
       );
+      // order animations alphabetically and assign to reactive state
+      tempAnimations.sort((a, b) => a.localeCompare(b));
+      validAnimations = tempAnimations;
     } catch {}
-    // order animations alphabetically
-    validAnimations.sort((a, b) => a.localeCompare(b));
     loadingGltf = false;
   });
 
@@ -60,18 +104,37 @@
 
 {#if loadingGltf}
   <div class="flex items-center justify-center">
-    <ProgressRadial width="w-32" />
+    <LoadingSpinner />
   </div>
 {:else}
   <div class="mx-4 mt-2 flex items-center gap-5">
     <div class="flex w-1/2 flex-col">
       <span class="font-bold">Change animation</span>
-      <select class="select mb-2 border border-gray2 p-2" bind:value={selectedAnimation}>
-        <option value={npc.kfm}>Default</option>
-        {#each validAnimations as animation}
-          <option value={animation}>{animation}</option>
-        {/each}
-      </select>
+      <Combobox
+        collection={animationCollection}
+        value={[selectedAnimation]}
+        onValueChange={handleAnimationChange}
+        onInputValueChange={handleAnimationInputChange}
+        onOpenChange={handleAnimationOpenChange}
+        openOnClick
+      >
+        <Combobox.Control class="w-full bg-surface-700 border-transparent rounded-md p-2 flex items-center cursor-pointer">
+          <Combobox.Input class="w-full bg-transparent text-surface-50 placeholder:text-surface-400 border-none focus:ring-0 cursor-pointer" />
+          <Combobox.Trigger class="text-surface-400 hover:text-surface-50" />
+        </Combobox.Control>
+        <Portal>
+          <Combobox.Positioner>
+            <Combobox.Content class="bg-surface-700 border border-surface-600 rounded-md shadow-xl z-50">
+              {#each animationItems as item (item.value)}
+                <Combobox.Item {item} class="flex items-center justify-between text-surface-50 hover:bg-surface-600 data-highlighted:bg-surface-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-surface-950 px-3 py-2 cursor-pointer">
+                  <Combobox.ItemText>{item.label}</Combobox.ItemText>
+                  <Combobox.ItemIndicator />
+                </Combobox.Item>
+              {/each}
+            </Combobox.Content>
+          </Combobox.Positioner>
+        </Portal>
+      </Combobox>
     </div>
     <button
       class="button absolute right-5 top-5 z-10"

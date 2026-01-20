@@ -44,7 +44,7 @@
   </div>
 </div>
 
-<style lang="scss">
+<style>
   .text-lightBlue {
     color: #91a8ff;
   }
@@ -53,13 +53,11 @@
     color: #ff8c37;
   }
 
-  .limit-size {
-    &--active {
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      line-clamp: 4;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
+  .limit-size--active {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 </style>

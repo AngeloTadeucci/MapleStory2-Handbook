@@ -3,79 +3,35 @@
   import { page } from '$app/stores';
   import CopyId from '$lib/components/CopyId.svelte';
   import ItemImage from '$lib/components/item/ItemImage.svelte';
-  import SelectChips from '$lib/components/SelectChips.svelte';
+  import ComboboxChips from '$lib/components/ComboboxChips.svelte';
   import { Job, Rarity, Gender, enumToWhitelist } from '$lib/Enums';
   import { url } from '$lib/helpers/addBasePath';
   import itemHelper from '$lib/helpers/itemHelper';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import { getItemTypeDisplayNames, getItemTypeKeyByDisplayName } from '$lib/itemTypes';
   import type { SearchItem } from '$lib/types/Item';
-  import { Paginator, ProgressRadial, type PaginationSettings } from '@skeletonlabs/skeleton';
+  import PaginationWrapper from '$lib/components/PaginationWrapper.svelte';
+  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
-  let searchTerm = $state($page.url.searchParams.get('search') || '');
+  let searchTerm = $state('');
 
   let data: SearchItem[][] = $state([]);
-  let loading = $state(false);
+  let loading = $state(true);
 
-  let paginator: PaginationSettings = $state({
-    page: 0,
-    limit: 10,
-    size: 0,
-    amounts: [10, 25, 50, 100, 200]
-  });
+  // Pagination state for Skeleton v4
+  let currentPage = $state(1);
+  let pageSize = $state(10);
+  let totalItems = $state(0);
+  const pageSizeOptions = [10, 25, 50, 100, 200];
 
-  let rarityList: string[] = $state(
-    (() => {
-      let rarity = $page.url.searchParams.get('rarity');
-      if (!rarity) {
-        return [];
-      }
-
-      return rarity.split(',').map((x) => Rarity[x as keyof typeof Rarity].toString());
-    })()
-  );
-
-  let jobList: string[] = $state(
-    (() => {
-      let job = $page.url.searchParams.get('job');
-      if (!job) {
-        return [];
-      }
-
-      return job.split(',').map((x) => Job[x as keyof typeof Job].toString());
-    })()
-  );
-
-  let itemTypeList: string[] = $state(
-    (() => {
-      let type = $page.url.searchParams.get('type');
-      if (!type) {
-        return [];
-      }
-
-      return type
-        .split(',')
-        .map((x) => getItemTypeKeyByDisplayName(x))
-        .filter((x): x is string => x !== undefined);
-    })()
-  );
-
-  let outfitOnly = $state($page.url.searchParams.get('outfit') === 'true');
-
-  let genderList: string[] = $state(
-    (() => {
-      let gender = $page.url.searchParams.get('gender');
-      if (!gender) {
-        return [];
-      }
-
-      return gender.split(',').map((x) => Gender[x as keyof typeof Gender].toString());
-    })()
-  );
-
-  let setItemsOnly = $state($page.url.searchParams.get('setItems') === 'true');
+  let rarityList: string[] = $state([]);
+  let jobList: string[] = $state([]);
+  let itemTypeList: string[] = $state([]);
+  let outfitOnly = $state(false);
+  let genderList: string[] = $state([]);
+  let setItemsOnly = $state(false);
 
   function buildParams(
     search: string,
@@ -88,6 +44,7 @@
     gender: string,
     setItems: boolean
   ) {
+    // API expects 0-indexed page, but Skeleton v4 uses 1-indexed
     return paramsBuilder([
       {
         name: 'search',
@@ -95,7 +52,7 @@
       },
       {
         name: 'page',
-        value: page
+        value: page - 1
       },
       {
         name: 'limit',
@@ -131,15 +88,18 @@
   async function fetchData(clearCache: boolean) {
     let lastSearchTerm = searchTerm;
 
+    // Skeleton v4 uses 1-indexed pages, data array is 0-indexed
+    const dataIndex = currentPage - 1;
+
     // check if we have the data cached
-    if (data[paginator.page] && !clearCache) {
+    if (data[dataIndex] && !clearCache) {
       return;
     }
 
     const params = buildParams(
       searchTerm,
-      paginator.page,
-      paginator.limit,
+      currentPage,
+      pageSize,
       rarityList.map((x) => Rarity[x as keyof typeof Rarity]).join(','),
       jobList.map((x) => Job[x as keyof typeof Job]).join(','),
       itemTypeList
@@ -160,12 +120,7 @@
 
     if (items.length === 0) {
       data = [];
-      paginator = {
-        page: 0,
-        limit: paginator.limit,
-        size: total,
-        amounts: [10, 25, 50, 100, 200]
-      } satisfies PaginationSettings;
+      totalItems = total;
       loading = false;
       return;
     }
@@ -174,56 +129,83 @@
       data = [];
     }
 
-    data[paginator.page] = items;
-    lastSearchTerm = searchTerm;
+    // Svelte 5 reactivity: need to reassign the array, not just mutate index
+    const newData = [...data];
+    newData[dataIndex] = items;
+    data = newData;
 
-    const amounts = [10, 25, 50, 100, 200].filter((amount) => amount <= total);
-    if (amounts.length === 0) {
-      amounts.push(total);
-      paginator.limit = total;
+    lastSearchTerm = searchTerm;
+    totalItems = total;
+
+    // Adjust pageSize if needed
+    const amounts = pageSizeOptions.filter((amount) => amount <= total);
+    if (amounts.length === 0 && total > 0) {
+      pageSize = total;
       $page.url.searchParams.set('limit', total.toString());
       goto($page.url.href, { keepFocus: true, replaceState: true });
     }
-    if (paginator.limit < amounts[0]) {
-      paginator.limit = amounts[0];
+    if (pageSize < amounts[0] && amounts.length > 0) {
+      pageSize = amounts[0];
       $page.url.searchParams.set('limit', amounts[0].toString());
       goto($page.url.href, { keepFocus: true, replaceState: true });
     }
 
-    paginator = {
-      ...paginator,
-      page: paginator.page,
-      size: total,
-      amounts: amounts
-    } satisfies PaginationSettings;
     loading = false;
   }
 
-  let paginatedSource = $derived(data[paginator.page] || []);
+  let paginatedSource = $derived(data[currentPage - 1] || []);
 
   onMount(() => {
-    paginator = {
-      page: $page.url.searchParams.get('page') ? parseInt($page.url.searchParams.get('page')!) : 0,
-      limit: $page.url.searchParams.get('limit')
-        ? parseInt($page.url.searchParams.get('limit')!)
-        : 10,
-      size: 0,
-      amounts: [10, 25, 50, 100, 200]
-    } satisfies PaginationSettings;
+    // Initialize all state from URL params
+    searchTerm = $page.url.searchParams.get('search') || '';
+
+    const urlPage = $page.url.searchParams.get('page');
+    currentPage = urlPage ? parseInt(urlPage) + 1 : 1;
+    pageSize = $page.url.searchParams.get('limit')
+      ? parseInt($page.url.searchParams.get('limit')!)
+      : 10;
+
+    const rarity = $page.url.searchParams.get('rarity');
+    if (rarity) {
+      rarityList = rarity.split(',').map((x) => Rarity[x as keyof typeof Rarity].toString());
+    }
+
+    const job = $page.url.searchParams.get('job');
+    if (job) {
+      jobList = job.split(',').map((x) => Job[x as keyof typeof Job].toString());
+    }
+
+    const type = $page.url.searchParams.get('type');
+    if (type) {
+      itemTypeList = type.split(',').map((x) => getItemTypeKeyByDisplayName(x)).filter((x): x is string => x !== undefined);
+    }
+
+    outfitOnly = $page.url.searchParams.get('outfit') === 'true';
+
+    const gender = $page.url.searchParams.get('gender');
+    if (gender) {
+      genderList = gender.split(',').map((x) => Gender[x as keyof typeof Gender].toString());
+    }
+
+    setItemsOnly = $page.url.searchParams.get('setItems') === 'true';
+
     // load first batch onMount
     fetchData(false);
   });
 
-  function onPageChange(e: CustomEvent): void {
-    paginator.page = e.detail;
-    $page.url.searchParams.set('page', e.detail);
+  function onPageChange(newPage: number): void {
+    currentPage = newPage;
+    // Store 0-indexed in URL for API compatibility
+    $page.url.searchParams.set('page', String(newPage - 1));
     goto($page.url.href, { keepFocus: true, replaceState: true });
     fetchData(false);
   }
 
-  function onAmountChange(e: CustomEvent): void {
-    paginator.limit = e.detail;
-    $page.url.searchParams.set('limit', e.detail);
+  function onPageSizeChange(newSize: number): void {
+    pageSize = newSize;
+    currentPage = 1;
+    $page.url.searchParams.set('limit', String(newSize));
+    $page.url.searchParams.set('page', '0');
     goto($page.url.href, { keepFocus: true, replaceState: true });
     data = [];
     fetchData(true);
@@ -241,10 +223,10 @@
     async () => {
       $page.url.searchParams.set('search', searchTerm);
 
-      paginator.page = 0;
+      currentPage = 1;
       $page.url.searchParams.set('page', '0');
 
-      paginator.limit = 10;
+      pageSize = 10;
       $page.url.searchParams.set('limit', '10');
 
       goto($page.url.href, { keepFocus: true, replaceState: true });
@@ -261,14 +243,14 @@
   <title>MS2 Handbook - Items</title>
 </svelte:head>
 
-<div class="mt-8 h-[1px]"></div>
+<div class="mt-8 h-px"></div>
 <div class="main-container mx-4 rounded-xl px-5 pb-10 pt-2 lg:m-auto lg:w-3/4">
   <h1 class="mb-4 text-4xl font-bold">Items</h1>
   <div class="mb-4 flex items-center justify-between">
     <input
       type="text"
       placeholder="Search 🔎"
-      class="input w-1/2 px-4 py-2 border-token lg:w-1/3"
+      class="input w-1/2 px-4 py-2 lg:w-1/3 bg-surface-700 text-surface-50 border-transparent placeholder:text-surface-400"
       bind:value={searchTerm}
       onkeyup={debouncedSearch}
     />
@@ -277,7 +259,7 @@
         <span>Clear filters</span>
         <button
           type="button"
-          class="btn-icon btn-icon-sm variant-filled flex items-center justify-center"
+          class="btn-icon btn-icon-sm preset-filled flex items-center justify-center"
           onclick={async () => {
             $page.url.searchParams.delete('rarity');
             $page.url.searchParams.delete('job');
@@ -296,8 +278,8 @@
             genderList = [];
             setItemsOnly = false;
 
-            paginator.page = 0;
-            paginator.limit = 10;
+            currentPage = 1;
+            pageSize = 10;
             searchTerm = '';
 
             goto($page.url.href, { keepFocus: true, replaceState: true });
@@ -312,15 +294,14 @@
   <div class="flex flex-col gap-3 lg:flex-row">
     <label class="label w-full">
       <span>Filter by rarity</span>
-      <SelectChips
+      <ComboboxChips
         name="rarity"
         bind:value={rarityList}
         whitelist={enumToWhitelist(Rarity)}
-        allowDuplicates={false}
-        allowUpperCase
+        placeholder="Select rarity..."
         onValueChange={async () => {
           updateParams('rarity', rarityList, Rarity);
-          paginator.page = 0;
+          currentPage = 1;
           $page.url.searchParams.set('page', '0');
           goto($page.url.href, { keepFocus: true, replaceState: true });
           await fetchData(true);
@@ -329,12 +310,11 @@
     </label>
     <label class="label w-full">
       <span>Filter by category</span>
-      <SelectChips
+      <ComboboxChips
         name="itemType"
         bind:value={itemTypeList}
         whitelist={getItemTypeDisplayNames()}
-        allowDuplicates={false}
-        allowUpperCase
+        placeholder="Select category..."
         onValueChange={async () => {
           if (itemTypeList.length === 0) {
             $page.url.searchParams.delete('type');
@@ -347,7 +327,7 @@
                 .join(',')
             );
           }
-          paginator.page = 0;
+          currentPage = 1;
           $page.url.searchParams.set('page', '0');
           goto($page.url.href, { keepFocus: true, replaceState: true });
           await fetchData(true);
@@ -357,15 +337,14 @@
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="label w-full">
       <span>Filter by class</span>
-      <SelectChips
+      <ComboboxChips
         name="class"
         bind:value={jobList}
         whitelist={enumToWhitelist(Job)}
-        allowDuplicates={false}
-        allowUpperCase
+        placeholder="Select class..."
         onValueChange={async () => {
           updateParams('job', jobList, Job);
-          paginator.page = 0;
+          currentPage = 1;
           $page.url.searchParams.set('page', '0');
           goto($page.url.href, { keepFocus: true, replaceState: true });
           await fetchData(true);
@@ -374,15 +353,14 @@
     </label>
     <label class="label w-full">
       <span>Filter by gender</span>
-      <SelectChips
+      <ComboboxChips
         name="gender"
         bind:value={genderList}
         whitelist={enumToWhitelist(Gender)}
-        allowDuplicates={false}
-        allowUpperCase
+        placeholder="Select gender..."
         onValueChange={async () => {
           updateParams('gender', genderList, Gender);
-          paginator.page = 0;
+          currentPage = 1;
           $page.url.searchParams.set('page', '0');
           goto($page.url.href, { keepFocus: true, replaceState: true });
           await fetchData(true);
@@ -393,7 +371,7 @@
   <div class="flex flex-col gap-3 lg:flex-row mt-3">
     <label class="flex items-center space-x-2">
       <input
-        class="checkbox"
+        class="checkbox bg-surface-700 border-surface-500 checked:bg-primary-500 checked:border-primary-500"
         type="checkbox"
         bind:checked={outfitOnly}
         onchange={async () => {
@@ -402,7 +380,7 @@
           } else {
             $page.url.searchParams.delete('outfit');
           }
-          paginator.page = 0;
+          currentPage = 1;
           $page.url.searchParams.set('page', '0');
           goto($page.url.href, { keepFocus: true, replaceState: true });
           await fetchData(true);
@@ -412,7 +390,7 @@
     </label>
     <label class="flex items-center space-x-2">
       <input
-        class="checkbox"
+        class="checkbox bg-surface-700 border-surface-500 checked:bg-primary-500 checked:border-primary-500"
         type="checkbox"
         bind:checked={setItemsOnly}
         onchange={async () => {
@@ -421,7 +399,7 @@
           } else {
             $page.url.searchParams.delete('setItems');
           }
-          paginator.page = 0;
+          currentPage = 1;
           $page.url.searchParams.set('page', '0');
           goto($page.url.href, { keepFocus: true, replaceState: true });
           await fetchData(true);
@@ -430,13 +408,17 @@
       <span>Show set items only</span>
     </label>
   </div>
-  <Paginator
-    bind:settings={paginator}
-    showFirstLastButtons
-    on:page={onPageChange}
-    on:amount={onAmountChange}
-    class="mt-5"
-  />
+  {#if totalItems > 0}
+    <PaginationWrapper
+      count={totalItems}
+      {pageSize}
+      page={currentPage}
+      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      {onPageChange}
+      {onPageSizeChange}
+      class="mt-5"
+    />
+  {/if}
   <div class="flex flex-row border-b border-gray2">
     <div class="w-1/2 py-4 pr-6 text-left lg:w-2/12">Icon</div>
     <div class="hidden py-4 pr-6 text-left lg:block lg:w-2/12">Id</div>
@@ -444,8 +426,8 @@
     <div class="hidden py-4 pr-6 text-left lg:block lg:w-1/3">Description</div>
   </div>
   {#if loading}
-    <div class="flex items-center justify-center">
-      <ProgressRadial width="w-32" />
+    <div class="flex items-center justify-center py-8">
+      <LoadingSpinner />
     </div>
   {/if}
   {#if paginatedSource && paginatedSource.length === 0 && !loading}
@@ -456,7 +438,7 @@
   {#each paginatedSource as item}
     <a
       href={url(`/items/${item.id}`)}
-      class="unstyled flex items-center border-b border-gray2 last:border-none hover:bg-surface-hover-token"
+      class="unstyled flex items-center border-b border-gray2 last:border-none hover:preset-tonal transition-colors"
     >
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
         <ItemImage
@@ -476,11 +458,15 @@
       </div>
     </a>
   {/each}
-  <Paginator
-    bind:settings={paginator}
-    showFirstLastButtons
-    on:page={onPageChange}
-    on:amount={onAmountChange}
-    class="mt-5"
-  />
+  {#if totalItems > 0}
+    <PaginationWrapper
+      count={totalItems}
+      {pageSize}
+      page={currentPage}
+      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      {onPageChange}
+      {onPageSizeChange}
+      class="mt-5"
+    />
+  {/if}
 </div>

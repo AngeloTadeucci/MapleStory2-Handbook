@@ -12,47 +12,55 @@
 
   let { trophy, grade }: Props = $props();
 
-  const rewardColors: ColorPalette[] = [];
-  if (grade.rewardType == RewardType.itemcoloring) {
-    for (const palette of colorPalettes) {
-      if (palette.achieveID == trophy.id) {
-        rewardColors.push(palette);
+  const rewardColors = $derived.by(() => {
+    const colors: ColorPalette[] = [];
+    if (grade.rewardType == RewardType.itemcoloring) {
+      for (const palette of colorPalettes) {
+        if (palette.achieveID == trophy.id) {
+          colors.push(palette);
+        }
       }
     }
-  }
+    return colors;
+  });
 
-  const isQuest =
-    grade.conditionType == ConditionType.quest_clear || grade.conditionType == ConditionType.quest;
-  const isItem =
+  const isQuest = $derived(
+    grade.conditionType == ConditionType.quest_clear || grade.conditionType == ConditionType.quest
+  );
+  const isItem = $derived(
     grade.rewardType == RewardType.item ||
     grade.rewardType == RewardType.shop_weapon ||
     grade.rewardType == RewardType.shop_build ||
-    grade.rewardType == RewardType.shop_ride;
-  const isBeauty =
+    grade.rewardType == RewardType.shop_ride
+  );
+  const isBeauty = $derived(
     grade.rewardType == RewardType.beauty_makeup ||
     grade.rewardType == RewardType.beauty_skin ||
-    grade.rewardType == RewardType.beauty_hair;
+    grade.rewardType == RewardType.beauty_hair
+  );
 
-  const beautyRewards: {
-    gender: string;
-    rewardId: number;
-    readableReward: string;
-  }[] = [];
-  if (isBeauty) {
-    const genderRewards = grade.readableReward.split(',');
-    //  male:10400077:Crescent Moon Tattoo,female:10400085:Crescent Moon Tattoo
-    for (const genderReward of genderRewards) {
-      const genderRewardSplit = genderReward.split(':');
-      const gender = genderRewardSplit[0];
-      const rewardId = parseInt(genderRewardSplit[1]);
-      const readableReward = genderRewardSplit[2];
-      beautyRewards.push({ gender, rewardId, readableReward });
+  const beautyRewards = $derived.by(() => {
+    const rewards: {
+      gender: string;
+      rewardId: number;
+      readableReward: string;
+    }[] = [];
+    if (isBeauty) {
+      const genderRewards = grade.readableReward.split(',');
+      //  male:10400077:Crescent Moon Tattoo,female:10400085:Crescent Moon Tattoo
+      for (const genderReward of genderRewards) {
+        const genderRewardSplit = genderReward.split(':');
+        const gender = genderRewardSplit[0];
+        const rewardId = parseInt(genderRewardSplit[1]);
+        const readableReward = genderRewardSplit[2];
+        rewards.push({ gender, rewardId, readableReward });
+      }
     }
-  }
+    return rewards;
+  });
 
-  const fixedDescription = trophy.description.replace(
-    '{0}',
-    Intl.NumberFormat().format(grade.conditionValue)
+  const fixedDescription = $derived(
+    trophy.description.replace('{0}', Intl.NumberFormat().format(grade.conditionValue))
   );
 </script>
 
@@ -102,7 +110,7 @@
   </div>
 </div>
 
-<style lang="scss">
+<style>
   .text-gold {
     color: #ffd533;
   }

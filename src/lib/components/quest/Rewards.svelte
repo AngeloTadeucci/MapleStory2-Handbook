@@ -80,36 +80,45 @@
   </div>
 {/if}
 
-<style lang="scss">
-  @mixin stroke($color: #000, $size: 1px) {
-    text-shadow:
-      -#{$size} -#{$size} 0 $color,
-      0 -#{$size} 0 $color,
-      #{$size} -#{$size} 0 $color,
-      #{$size} 0 0 $color,
-      #{$size} #{$size} 0 $color,
-      0 #{$size} 0 $color,
-      -#{$size} #{$size} 0 $color,
-      -#{$size} 0 0 $color;
-  }
-
+<style>
   .experience {
-    @include stroke(#000);
-
+    text-shadow:
+      -1px -1px 0 #000,
+      0 -1px 0 #000,
+      1px -1px 0 #000,
+      1px 0 0 #000,
+      1px 1px 0 #000,
+      0 1px 0 #000,
+      -1px 1px 0 #000,
+      -1px 0 0 #000;
     color: #7cc422;
     font-size: 1.3rem;
   }
 
   .meso {
-    @include stroke(#000);
-
+    text-shadow:
+      -1px -1px 0 #000,
+      0 -1px 0 #000,
+      1px -1px 0 #000,
+      1px 0 0 #000,
+      1px 1px 0 #000,
+      0 1px 0 #000,
+      -1px 1px 0 #000,
+      -1px 0 0 #000;
     color: #e5a200;
     font-size: 1.3rem;
   }
 
   .rue {
-    @include stroke(#000);
-
+    text-shadow:
+      -1px -1px 0 #000,
+      0 -1px 0 #000,
+      1px -1px 0 #000,
+      1px 0 0 #000,
+      1px 1px 0 #000,
+      0 1px 0 #000,
+      -1px 1px 0 #000,
+      -1px 0 0 #000;
     color: white;
     font-size: 1.3rem;
   }

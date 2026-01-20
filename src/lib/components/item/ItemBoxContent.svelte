@@ -12,9 +12,12 @@
   let { boxContent }: Props = $props();
 
   let filterJob: Job = $state(0);
+  let filtered: ItemBox[] = $state([]);
 
-  const filterList = () => {
-    filtered = boxContent.filter((x) => {
+  const hasSmartDropRate = $derived(boxContent.some((x) => x.smart_drop_rate > 0));
+
+  function filterList() {
+    let result = boxContent.filter((x) => {
       if (filterJob === 0) {
         return x.item1.job_limit.includes(filterJob) && x.item1.job_recommend.includes(filterJob);
       }
@@ -22,17 +25,19 @@
     });
 
     if (filterJob !== 0) {
-      filtered = filtered.concat(
+      result = result.concat(
         boxContent.filter((x) => x.item1.job_limit.includes(0) && x.item1.job_recommend.includes(0))
       );
     }
-  };
-
-  const hasSmartDropRate = boxContent.some((x) => x.smart_drop_rate > 0);
-  let filtered: ItemBox[] = $state([]);
-  if (hasSmartDropRate) {
-    filterList();
+    filtered = result;
   }
+
+  // Initialize filtered list reactively
+  $effect(() => {
+    if (hasSmartDropRate) {
+      filterList();
+    }
+  });
 </script>
 
 {#if hasSmartDropRate}

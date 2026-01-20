@@ -8,7 +8,7 @@
 
   let { data }: Props = $props();
 
-  const images = data.props.images;
+  const images = $derived(data.props.images);
 </script>
 
 <svelte:head>
