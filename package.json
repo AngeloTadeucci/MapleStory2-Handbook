@@ -28,7 +28,7 @@
     "prettier": "^3.8.0",
     "prettier-plugin-svelte": "^3.4.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "prisma": "^5.16.2",
+    "prisma": "^7.2.0",
     "svelte": "^5.47.1",
     "svelte-check": "^4.3.5",
     "tailwindcss": "^4.1.18",
@@ -40,7 +40,8 @@
   "type": "module",
   "dependencies": {
     "@floating-ui/dom": "^1.7.4",
-    "@prisma/client": "^5.16.2",
+    "@prisma/adapter-mariadb": "^7.2.0",
+    "@prisma/client": "^7.2.0",
     "highlight.run": "^9.25.0",
     "lodash.debounce": "^4.0.8",
     "lucide-svelte": "^0.562.0",
