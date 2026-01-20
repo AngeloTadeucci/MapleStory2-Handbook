@@ -41,7 +41,7 @@
     return (description += ' ' + IconCode[item.icon_code]);
   };
 
-  const fixedMainDescription = closeMissingTags(unescapeHtml(item.main_description), true);
+  const fixedMainDescription = $derived(closeMissingTags(unescapeHtml(item.main_description), true));
 </script>
 
 <div class="relative mt-2 flex flex-col">
@@ -205,7 +205,7 @@
     {#if item.repackage_limit > 0}
       <p class="text-gold">
         Possible repackages: {item.repackage_limit} (Requires [
-        <a href={url(`/items/20302422`)} data-sveltekit-reload>Trader&apos;s Ribbon</a>
+        <a href={url(`/items/20302422`)} data-sveltekit-reload>Trader's Ribbon</a>
         ] x{item.repackage_count})
       </p>
     {/if}
@@ -230,24 +230,24 @@
   <div class="item-bot"></div>
 </div>
 
-<style lang="scss">
+<style>
   .item-top {
     position: relative;
     background-image: url('/item/item_top.png');
     background-repeat: no-repeat;
     width: 430px;
     height: 136px;
+  }
 
-    &__iconcode {
-      position: absolute;
-      top: 20px;
-      right: 17px;
-    }
+  .item-top__iconcode {
+    position: absolute;
+    top: 20px;
+    right: 17px;
+  }
 
-    &__image {
-      margin-top: 40px;
-      margin-left: 15px;
-    }
+  .item-top__image {
+    margin-top: 40px;
+    margin-left: 15px;
   }
 
   .item-middle {
@@ -258,15 +258,15 @@
     display: flex;
     flex-direction: column;
     width: 430px;
+  }
 
-    &__descriptions {
-      margin-top: 15px;
-      margin-right: 12px;
+  .item-middle__descriptions {
+    margin-top: 15px;
+    margin-right: 12px;
+  }
 
-      &__guide {
-        margin-bottom: 15px;
-      }
-    }
+  .item-middle__descriptions__guide {
+    margin-bottom: 15px;
   }
 
   .item-bot {
@@ -287,32 +287,28 @@
 
   .value__container {
     position: relative;
-
-    &__blur {
-      position: absolute;
-      z-index: 1;
-    }
-
-    &__value {
-      position: absolute;
-      z-index: 2;
-    }
   }
 
-  @mixin stroke($color: #000, $size: 1px) {
-    text-shadow:
-      -#{$size} -#{$size} 0 $color,
-      0 -#{$size} 0 $color,
-      #{$size} -#{$size} 0 $color,
-      #{$size} 0 0 $color,
-      #{$size} #{$size} 0 $color,
-      0 #{$size} 0 $color,
-      -#{$size} #{$size} 0 $color,
-      -#{$size} 0 0 $color;
+  .value__container__blur {
+    position: absolute;
+    z-index: 1;
+  }
+
+  .value__container__value {
+    position: absolute;
+    z-index: 2;
   }
 
   .rarity-1 {
-    @include stroke(#ffffff, 3px);
+    text-shadow:
+      -3px -3px 0 #ffffff,
+      0 -3px 0 #ffffff,
+      3px -3px 0 #ffffff,
+      3px 0 0 #ffffff,
+      3px 3px 0 #ffffff,
+      0 3px 0 #ffffff,
+      -3px 3px 0 #ffffff,
+      -3px 0 0 #ffffff;
     filter: blur(2px);
   }
 
@@ -321,7 +317,15 @@
   }
 
   .rarity-2 {
-    @include stroke(#b0f350, 3px);
+    text-shadow:
+      -3px -3px 0 #b0f350,
+      0 -3px 0 #b0f350,
+      3px -3px 0 #b0f350,
+      3px 0 0 #b0f350,
+      3px 3px 0 #b0f350,
+      0 3px 0 #b0f350,
+      -3px 3px 0 #b0f350,
+      -3px 0 0 #b0f350;
     filter: blur(2px);
   }
 
@@ -330,7 +334,15 @@
   }
 
   .rarity-3 {
-    @include stroke(#45d1ff, 3px);
+    text-shadow:
+      -3px -3px 0 #45d1ff,
+      0 -3px 0 #45d1ff,
+      3px -3px 0 #45d1ff,
+      3px 0 0 #45d1ff,
+      3px 3px 0 #45d1ff,
+      0 3px 0 #45d1ff,
+      -3px 3px 0 #45d1ff,
+      -3px 0 0 #45d1ff;
     filter: blur(2px);
   }
 
@@ -339,7 +351,15 @@
   }
 
   .rarity-4 {
-    @include stroke(#c888ff, 3px);
+    text-shadow:
+      -3px -3px 0 #c888ff,
+      0 -3px 0 #c888ff,
+      3px -3px 0 #c888ff,
+      3px 0 0 #c888ff,
+      3px 3px 0 #c888ff,
+      0 3px 0 #c888ff,
+      -3px 3px 0 #c888ff,
+      -3px 0 0 #c888ff;
     filter: blur(2px);
   }
 
@@ -348,7 +368,15 @@
   }
 
   .rarity-5 {
-    @include stroke(#ffd533, 3px);
+    text-shadow:
+      -3px -3px 0 #ffd533,
+      0 -3px 0 #ffd533,
+      3px -3px 0 #ffd533,
+      3px 0 0 #ffd533,
+      3px 3px 0 #ffd533,
+      0 3px 0 #ffd533,
+      -3px 3px 0 #ffd533,
+      -3px 0 0 #ffd533;
     filter: blur(2px);
   }
 
@@ -357,7 +385,15 @@
   }
 
   .rarity-6 {
-    @include stroke(#ff8c37, 3px);
+    text-shadow:
+      -3px -3px 0 #ff8c37,
+      0 -3px 0 #ff8c37,
+      3px -3px 0 #ff8c37,
+      3px 0 0 #ff8c37,
+      3px 3px 0 #ff8c37,
+      0 3px 0 #ff8c37,
+      -3px 3px 0 #ff8c37,
+      -3px 0 0 #ff8c37;
     filter: blur(2px);
   }
 
@@ -366,6 +402,14 @@
   }
 
   .rarity-black {
-    @include stroke(#000000, 1.5px);
+    text-shadow:
+      -1.5px -1.5px 0 #000000,
+      0 -1.5px 0 #000000,
+      1.5px -1.5px 0 #000000,
+      1.5px 0 0 #000000,
+      1.5px 1.5px 0 #000000,
+      0 1.5px 0 #000000,
+      -1.5px 1.5px 0 #000000,
+      -1.5px 0 0 #000000;
   }
 </style>

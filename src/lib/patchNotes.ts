@@ -15,7 +15,8 @@ export const patchNotes: PatchNote[] = [
     title: '2026 Site Rework',
     changes: [
       { type: 'added', description: 'About page with project information and support links' },
-      { type: 'added', description: 'Patch notes system on homepage and dedicated page' }
+      { type: 'added', description: 'Patch notes system on homepage and dedicated page' },
+      { type: 'changed', description: 'Updated site dependencies and performance improvements' }
     ]
   },
   {

@@ -15,7 +15,7 @@
 
   let { data }: Props = $props();
 
-  const npc = data.props.npc as unknown as Npc;
+  const npc = $derived(data.props.npc as unknown as Npc);
 
   let gltfExists: boolean = $state(false);
 
@@ -89,7 +89,7 @@
   </div>
 </div>
 
-<style lang="scss">
+<style>
   .model {
     position: relative;
     background-image: url('/item/render_box.png');

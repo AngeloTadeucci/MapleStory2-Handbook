@@ -17,15 +17,10 @@
   }
 
   let { data }: Props = $props();
-  const {
-    item: resultItem,
-    boxContent: resultBoxContent,
-    additionalEffectDescriptions
-  } = data.props;
 
-  const item = resultItem as unknown as Item;
-  const boxContent = resultBoxContent as unknown as ItemBox[];
-  const descriptions = additionalEffectDescriptions as unknown as AdditionalEffectDescription[];
+  const item = $derived(data.props.item as unknown as Item);
+  const boxContent = $derived(data.props.boxContent as unknown as ItemBox[]);
+  const descriptions = $derived(data.props.additionalEffectDescriptions as unknown as AdditionalEffectDescription[]);
 
   let gltfExists: boolean = $state(false);
 
@@ -89,7 +84,7 @@
       <ItemDetails {item} {descriptions} />
       {#if item.kfms.length > 0 && gltfExists}
         <div
-          class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-[799px] lg:w-[575px]"
+          class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-199.75 lg:w-143.75"
         >
           <ItemRenderer {item} />
           <img
@@ -107,7 +102,7 @@
   </div>
 </div>
 
-<style lang="scss">
+<style>
   .model {
     position: relative;
     background-image: url('/item/render_box.png');

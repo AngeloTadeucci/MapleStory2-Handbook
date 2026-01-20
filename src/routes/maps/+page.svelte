@@ -2,31 +2,34 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import CopyId from '$lib/components/CopyId.svelte';
+  import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import MapImage from '$lib/components/MapImage.svelte';
+  import PaginationWrapper from '$lib/components/PaginationWrapper.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchMap } from '$lib/types/Map';
-  import { Paginator, ProgressRadial, type PaginationSettings } from '@skeletonlabs/skeleton';
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
-  let searchTerm = $state($page.url.searchParams.get('search') || '');
+  let searchTerm = $state('');
 
   let data: SearchMap[][] = $state([]);
-  let loading = $state(false);
+  let loading = $state(true);
 
-  let paginator: PaginationSettings = $state({
-    page: 0,
-    limit: 10,
-    size: 0,
-    amounts: [10, 25, 50, 100, 200]
-  });
+  // Pagination state for Skeleton v4 (1-indexed)
+  let currentPage = $state(1);
+  let pageSize = $state(10);
+  let totalItems = $state(0);
+  const pageSizeOptions = [10, 25, 50, 100, 200];
 
   async function fetchData(clearCache: boolean) {
     let lastSearchTerm = searchTerm;
 
+    // Skeleton v4 uses 1-indexed pages, data array is 0-indexed
+    const dataIndex = currentPage - 1;
+
     // check if we have the data cached
-    if (data[paginator.page] && !clearCache) {
+    if (data[dataIndex] && !clearCache) {
       return;
     }
 
@@ -37,11 +40,11 @@
       },
       {
         name: 'page',
-        value: paginator.page
+        value: currentPage - 1  // API expects 0-indexed
       },
       {
         name: 'limit',
-        value: paginator.limit
+        value: pageSize
       }
     ]);
 
@@ -54,12 +57,7 @@
 
     if (maps.length === 0) {
       data = [];
-      paginator = {
-        page: 0,
-        limit: paginator.limit,
-        size: total,
-        amounts: [10, 25, 50, 100, 200]
-      } satisfies PaginationSettings;
+      totalItems = total;
       loading = false;
       return;
     }
@@ -68,57 +66,61 @@
       data = [];
     }
 
-    data[paginator.page] = maps;
-    lastSearchTerm = searchTerm;
+    // Svelte 5 reactivity: need to reassign the array, not just mutate index
+    const newData = [...data];
+    newData[dataIndex] = maps;
+    data = newData;
 
-    const amounts = [10, 25, 50, 100, 200].filter((amount) => amount <= total);
-    if (amounts.length === 0) {
-      amounts.push(total);
-      paginator.limit = total;
+    lastSearchTerm = searchTerm;
+    totalItems = total;
+
+    // Adjust pageSize if needed
+    const amounts = pageSizeOptions.filter((amount) => amount <= total);
+    if (amounts.length === 0 && total > 0) {
+      pageSize = total;
       $page.url.searchParams.set('limit', total.toString());
       goto($page.url.href, { keepFocus: true, replaceState: true });
     }
-    if (paginator.limit < amounts[0]) {
-      paginator.limit = amounts[0];
+    if (pageSize < amounts[0] && amounts.length > 0) {
+      pageSize = amounts[0];
       $page.url.searchParams.set('limit', amounts[0].toString());
       goto($page.url.href, { keepFocus: true, replaceState: true });
     }
 
-    paginator = {
-      ...paginator,
-      page: paginator.page,
-      size: total,
-      amounts: amounts
-    } satisfies PaginationSettings;
     loading = false;
   }
 
   onMount(() => {
-    paginator = {
-      page: $page.url.searchParams.get('page') ? parseInt($page.url.searchParams.get('page')!) : 0,
-      limit: $page.url.searchParams.get('limit')
-        ? parseInt($page.url.searchParams.get('limit')!)
-        : 10,
-      size: 0,
-      amounts: [10, 25, 50, 100, 200]
-    } satisfies PaginationSettings;
+    // Initialize all state from URL params
+    searchTerm = $page.url.searchParams.get('search') || '';
+
+    const urlPage = $page.url.searchParams.get('page');
+    currentPage = urlPage ? parseInt(urlPage) + 1 : 1;
+    pageSize = $page.url.searchParams.get('limit')
+      ? parseInt($page.url.searchParams.get('limit')!)
+      : 10;
+
     // load first batch onMount
     fetchData(false);
   });
 
-  let paginatedSource = $derived(data[paginator.page] || []);
+  let paginatedSource = $derived(data[currentPage - 1] || []);
 
-  function onPageChange(e: CustomEvent): void {
-    paginator.page = e.detail;
-    $page.url.searchParams.set('page', e.detail);
+  function onPageChange(newPage: number): void {
+    currentPage = newPage;
+    // Store 0-indexed in URL for API compatibility
+    $page.url.searchParams.set('page', String(newPage - 1));
     goto($page.url.href, { keepFocus: true, replaceState: true });
     fetchData(false);
   }
 
-  function onAmountChange(e: CustomEvent): void {
-    paginator.limit = e.detail;
-    $page.url.searchParams.set('limit', e.detail);
+  function onPageSizeChange(newSize: number): void {
+    pageSize = newSize;
+    currentPage = 1;
+    $page.url.searchParams.set('limit', String(newSize));
+    $page.url.searchParams.set('page', '0');
     goto($page.url.href, { keepFocus: true, replaceState: true });
+    data = [];
     fetchData(true);
   }
 
@@ -126,10 +128,10 @@
     async () => {
       $page.url.searchParams.set('search', searchTerm);
 
-      paginator.page = 0;
+      currentPage = 1;
       $page.url.searchParams.set('page', '0');
 
-      paginator.limit = 10;
+      pageSize = 10;
       $page.url.searchParams.set('limit', '10');
 
       goto($page.url.href, { keepFocus: true, replaceState: true });
@@ -146,23 +148,28 @@
   <title>MS2 Handbook - Maps</title>
 </svelte:head>
 
-<div class="mt-8 h-[1px]"></div>
-<div class="main-container mx-4 rounded-xl px-5 pb-40 pt-2 lg:m-auto lg:w-3/4">
+<div class="mt-8 h-px"></div>
+<div class="main-container mx-4 rounded-xl px-5 pb-10 pt-2 lg:m-auto lg:w-3/4">
   <h1 class="mb-4 text-4xl font-bold">Maps</h1>
   <input
     type="text"
     placeholder="Search 🔎"
-    class="input w-1/2 px-4 py-2 border-token lg:w-1/3"
+    class="input w-1/2 px-4 py-2 lg:w-1/3 bg-surface-700 text-surface-50 border-transparent placeholder:text-surface-400"
     bind:value={searchTerm}
     onkeyup={debouncedSearch}
   />
-  <Paginator
-    bind:settings={paginator}
-    showFirstLastButtons
-    on:page={onPageChange}
-    on:amount={onAmountChange}
-    class="mt-5"
-  />
+
+  {#if totalItems > 0}
+    <PaginationWrapper
+      count={totalItems}
+      {pageSize}
+      page={currentPage}
+      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      {onPageChange}
+      {onPageSizeChange}
+      class="mt-5"
+    />
+  {/if}
 
   <div class="flex flex-row border-b border-gray2">
     <div class="w-1/2 py-4 pr-6 text-left lg:w-2/12">Icon</div>
@@ -170,8 +177,8 @@
     <div class="py-4 pr-6 text-left lg:w-1/4">Name</div>
   </div>
   {#if loading}
-    <div class="flex items-center justify-center">
-      <ProgressRadial width="w-32" />
+    <div class="flex items-center justify-center py-8">
+      <LoadingSpinner />
     </div>
   {/if}
   {#if paginatedSource && paginatedSource.length === 0 && !loading}
@@ -181,7 +188,7 @@
   {/if}
   {#each paginatedSource as map}
     <a
-      class="unstyled flex cursor-pointer items-center border-b border-gray2 last:border-none hover:bg-surface-hover-token"
+      class="unstyled flex items-center border-b border-gray2 last:border-none hover:preset-tonal transition-colors"
       href={url(`/maps/${map.id}`)}
     >
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
@@ -196,11 +203,15 @@
       </div>
     </a>
   {/each}
-  <Paginator
-    bind:settings={paginator}
-    showFirstLastButtons
-    on:page={onPageChange}
-    on:amount={onAmountChange}
-    class="mt-5"
-  />
+  {#if totalItems > 0}
+    <PaginationWrapper
+      count={totalItems}
+      {pageSize}
+      page={currentPage}
+      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      {onPageChange}
+      {onPageSizeChange}
+      class="mt-5"
+    />
+  {/if}
 </div>

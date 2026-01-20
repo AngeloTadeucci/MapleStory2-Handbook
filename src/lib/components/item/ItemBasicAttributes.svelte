@@ -22,20 +22,23 @@
     additionalEffectsDescriptions
   }: Props = $props();
 
-  const descriptions: string[] = [];
-  if (additionalEffects) {
-    const effects = JSON.parse(additionalEffects) as AdditionalEffects[];
+  const descriptions = $derived.by(() => {
+    const result: string[] = [];
+    if (additionalEffects) {
+      const effects = JSON.parse(additionalEffects) as AdditionalEffects[];
 
-    for (const effect of effects) {
-      const description = additionalEffectsDescriptions.find((x) => x.id === effect.Item1)?.name;
-      if (description) {
-        descriptions.push(description);
+      for (const effect of effects) {
+        const description = additionalEffectsDescriptions.find((x) => x.id === effect.Item1)?.name;
+        if (description) {
+          result.push(description);
+        }
       }
     }
-  }
+    return result;
+  });
 
-  let constantWithoutDefaultStat: StatList[] = constantsStats.filter(
-    (x) => x.Item1.ItemAttribute !== representOption
+  const constantWithoutDefaultStat = $derived(
+    constantsStats.filter((x) => x.Item1.ItemAttribute !== representOption)
   );
 </script>
 

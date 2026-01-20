@@ -13,7 +13,7 @@
 
   let { data }: Props = $props();
 
-  const map = data.props.map as unknown as Map;
+  const map = $derived(data.props.map as unknown as Map);
 
   async function incrementViewCount() {
     await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
@@ -33,7 +33,6 @@
     incrementViewCount();
   });
 
-  const mapUrl = url(`/resource/images/map/${map.minimap}`);
 </script>
 
 <svelte:head>
@@ -55,7 +54,7 @@
   {/if}
   <div class="grid justify-center">
     <div class="mt-5 ml-4 flex items-center gap-1">
-      <a href="/npcs" class="unstyled underline">Map</a>
+      <a href="/maps" class="unstyled underline">Map</a>
       &gt;
       <CopyId id={map.id} />
     </div>

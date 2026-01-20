@@ -87,7 +87,7 @@
   </div>
 </ItemListContainer>
 
-<style lang="scss">
+<style>
   ul {
     list-style-type: disc;
     list-style-position: inside;
@@ -97,13 +97,11 @@
     color: #ff8c37;
   }
 
-  .limit-size {
-    &--active {
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      line-clamp: 4;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
+  .limit-size--active {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 </style>

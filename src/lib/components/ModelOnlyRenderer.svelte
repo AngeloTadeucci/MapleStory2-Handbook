@@ -1,15 +1,10 @@
 <script lang="ts">
   import type { Npc } from '$lib/types/Npc';
-  import {
-    ProgressRadial,
-    RangeSlider,
-    getModalStore,
-    type ModalComponent,
-    type ModalSettings
-  } from '@skeletonlabs/skeleton';
+  import { Combobox, Dialog, Portal, Slider, useListCollection } from '@skeletonlabs/skeleton-svelte';
   import { onMount } from 'svelte';
   import { url } from '../helpers/addBasePath';
   import CreateGifModal from './CreateGifModal.svelte';
+  import LoadingSpinner from './LoadingSpinner.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
 
   type RendererProps = {
@@ -18,14 +13,56 @@
   };
   let { npc, customStyle }: RendererProps = $props();
 
-  const modalStore = getModalStore();
+  let confirmDialogOpen = $state(false);
+  let gifModalOpen = $state(false);
 
   const gltfUrl = getGltfUrl();
-  const iconPath = url(`/${npc.portrait.split('/').slice(2).join('/')}`);
+  const iconPath = $derived(url(`/${npc.portrait.split('/').slice(2).join('/')}`));
 
-  let validAnimations: string[] = [];
+  let validAnimations: string[] = $state([]);
   let selectedAnimation = $state('');
   let animationSpeed: number = $state(1);
+
+  // Combobox setup for animation selection
+  let animationItems = $state<{ label: string; value: string }[]>([]);
+
+  const animationCollection = $derived(
+    useListCollection({
+      items: animationItems,
+      itemToString: (item) => item.label,
+      itemToValue: (item) => item.value
+    })
+  );
+
+  // Update animationItems when validAnimations changes
+  $effect(() => {
+    const defaultOption = { label: 'Default', value: npc.kfm };
+    const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
+    animationItems = [defaultOption, ...animOptions];
+  });
+
+  const handleAnimationChange = (details: { value: string[] }) => {
+    if (details.value.length > 0) {
+      selectedAnimation = details.value[0];
+    }
+  };
+
+  const handleAnimationInputChange = (details: { inputValue: string }) => {
+    const defaultOption = { label: 'Default', value: npc.kfm };
+    const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
+    const allOptions = [defaultOption, ...animOptions];
+
+    const filtered = allOptions.filter((item) =>
+      item.label.toLowerCase().includes(details.inputValue.toLowerCase())
+    );
+    animationItems = filtered.length > 0 ? filtered : allOptions;
+  };
+
+  const handleAnimationOpenChange = () => {
+    const defaultOption = { label: 'Default', value: npc.kfm };
+    const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
+    animationItems = [defaultOption, ...animOptions];
+  };
   let loadingGltf = $state(true);
   let orientation = $state('');
   let cameraTarget = '';
@@ -45,18 +82,20 @@
         return;
       }
 
+      const tempAnimations: string[] = [];
       await Promise.all(
         npc.animations.map(async (animation: any) => {
           const response = await fetch(`${gltfUrl}${npc.kfm}/${animation}.gltf`);
 
           if (response.ok) {
-            validAnimations.push(animation);
+            tempAnimations.push(animation);
           }
         })
       );
+      // order animations alphabetically and assign to reactive state
+      tempAnimations.sort((a, b) => a.localeCompare(b));
+      validAnimations = tempAnimations;
     } catch {}
-    // order animations alphabetically
-    validAnimations.sort((a, b) => a.localeCompare(b));
     loadingGltf = false;
   });
 
@@ -89,10 +128,54 @@
     }
   };
   let frameStep = $state(0);
+  let animationDuration = $state(0);
+
+  // Update animationDuration when modelViewer is ready or animation changes
   $effect(() => {
-    if (modelViewer && frameStep > 0 && !playing) {
+    // Track selectedAnimation to re-run when it changes
+    void selectedAnimation;
+    if (!modelViewer) return;
+
+    // Reset and start polling for new duration
+    let currentDuration = 0;
+
+    const checkDuration = () => {
+      if (modelViewer && modelViewer.duration > 0) {
+        currentDuration = modelViewer.duration;
+        animationDuration = currentDuration;
+      }
+    };
+
+    // Check immediately and also on interval until we get a duration
+    checkDuration();
+    const intervalId = setInterval(() => {
+      checkDuration();
+      if (currentDuration > 0) {
+        clearInterval(intervalId);
+      }
+    }, 100);
+
+    return () => clearInterval(intervalId);
+  });
+
+  // Update animation from frameStep when paused (user drags slider)
+  $effect(() => {
+    if (modelViewer && !playing && frameStep > 0) {
       modelViewer.currentTime = frameStep / animationSpeed;
     }
+  });
+
+  // Update frameStep from animation when playing using interval
+  $effect(() => {
+    if (!playing || !modelViewer) return;
+
+    const intervalId = setInterval(() => {
+      if (modelViewer && modelViewer.currentTime !== undefined) {
+        frameStep = modelViewer.currentTime * animationSpeed;
+      }
+    }, 50);
+
+    return () => clearInterval(intervalId);
   });
 
   let lastAnimation: string | undefined = '';
@@ -101,47 +184,26 @@
       modelViewer.animationName = selectedAnimation;
       lastAnimation = selectedAnimation;
       playing = true;
+      animationDuration = 0; // Reset so it gets recalculated for new animation
+      frameStep = 0;
     }
   });
 
   const openGifModal = async () => {
     if (selectedAnimation == npc.kfm) {
-      const modal: ModalSettings = {
-        type: 'confirm',
-        title: 'No animation selected!?',
-        body: 'Want to take a screenshot instead?',
-        response: (r: boolean) => {
-          if (!r) {
-            return;
-          }
-
-          const blob = modelViewer.toDataURL();
-          const a = document.createElement('a');
-          a.href = blob;
-          a.download = `${npc.name}.png`;
-          a.click();
-        }
-      };
-      modalStore.trigger(modal);
+      confirmDialogOpen = true;
       return;
     }
-    const modalComponent: ModalComponent = {
-      ref: CreateGifModal,
-      props: {
-        npc,
-        selectedAnimation,
-        modelViewer
-      },
-      slot: '<p>Skeleton</p>'
-    };
+    gifModalOpen = true;
+  };
 
-    const modal: ModalSettings = {
-      type: 'component',
-      component: modalComponent
-    };
-
-    modalStore.trigger(modal);
-    return;
+  const handleScreenshot = () => {
+    const blob = modelViewer.toDataURL();
+    const a = document.createElement('a');
+    a.href = blob;
+    a.download = `${npc.name}.png`;
+    a.click();
+    confirmDialogOpen = false;
   };
 
   let rgb: string = $state('#35171f');
@@ -166,7 +228,7 @@
 
 {#if loadingGltf}
   <div class="flex items-center justify-center">
-    <ProgressRadial width="w-32" />
+    <LoadingSpinner />
   </div>
 {:else}
   <div class="block min-h-screen flex-row md:flex">
@@ -189,77 +251,100 @@
       <div class="flex flex-col items-center gap-5">
         <div class="flex w-full flex-col">
           <span class="font-bold">Change animation</span>
-          <select class="select mb-2 border border-gray2 p-2" bind:value={selectedAnimation}>
-            <option value={npc.kfm}>Default</option>
-            {#each validAnimations as animation}
-              <option value={animation}>{animation}</option>
-            {/each}
-          </select>
+          <Combobox
+            collection={animationCollection}
+            value={[selectedAnimation]}
+            onValueChange={handleAnimationChange}
+            onInputValueChange={handleAnimationInputChange}
+            onOpenChange={handleAnimationOpenChange}
+            openOnClick
+          >
+            <Combobox.Control class="w-full bg-surface-700 border-transparent rounded-md p-2 flex items-center cursor-pointer">
+              <Combobox.Input class="w-full bg-transparent text-surface-50 placeholder:text-surface-400 border-none focus:ring-0 cursor-pointer" />
+              <Combobox.Trigger class="text-surface-400 hover:text-surface-50" />
+            </Combobox.Control>
+            <Portal>
+              <Combobox.Positioner>
+                <Combobox.Content class="bg-surface-700 border border-surface-600 rounded-md shadow-xl z-50">
+                  {#each animationItems as item (item.value)}
+                    <Combobox.Item {item} class="flex items-center justify-between text-surface-50 hover:bg-surface-600 data-highlighted:bg-surface-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-surface-950 px-3 py-2 cursor-pointer">
+                      <Combobox.ItemText>{item.label}</Combobox.ItemText>
+                      <Combobox.ItemIndicator />
+                    </Combobox.Item>
+                  {/each}
+                </Combobox.Content>
+              </Combobox.Positioner>
+            </Portal>
+          </Combobox>
         </div>
         {#if validAnimations.length > 0}
           <div class="flex w-full flex-col">
-            <RangeSlider
-              name="range-slider"
-              bind:value={animationSpeed}
+            <Slider
+              value={[animationSpeed]}
+              onValueChange={(details) => { animationSpeed = details.value[0]; }}
               max={5}
               step={0.1}
               min={0.1}
             >
               <div class="flex items-center justify-between">
-                <div class="font-bold">Change animation speed</div>
+                <Slider.Label class="font-bold">Change animation speed</Slider.Label>
                 <div class="text-xs">{animationSpeed} / {5}</div>
               </div>
-            </RangeSlider>
+              <Slider.Control class="mt-2 relative flex items-center">
+                <Slider.Track class="h-2 w-full rounded-full bg-surface-400">
+                  <Slider.Range class="h-2 rounded-full bg-primary-500" />
+                </Slider.Track>
+                <Slider.Thumb index={0} class="size-5 rounded-full bg-primary-500 border-2 border-white shadow-md cursor-pointer">
+                  <Slider.HiddenInput />
+                </Slider.Thumb>
+              </Slider.Control>
+            </Slider>
           </div>
         {/if}
         <div class="flex w-full flex-col">
           <span class="font-bold">Change background color</span>
-          <input type="color" bind:value={rgb} class="w-[100%]" />
+          <input type="color" bind:value={rgb} class="w-full" />
         </div>
       </div>
       <div class="flex w-full justify-between gap-4 py-4">
         <div>
-          <button class="btn-icon variant-filled-surface" onclick={playPause}>
+          <button class="btn-icon bg-surface-800 hover:preset-filled-surface-600" onclick={playPause}>
             {#if playing}
               <img src="/icons/pause_circle.svg" alt="Pause" width="35" title="Pause" />
             {:else}
               <img src="/icons/play_circle.svg" alt="Play" width="35" title="Play" />
             {/if}
           </button>
-          <button class="btn-icon variant-filled-surface" onclick={reset}>
+          <button class="btn-icon bg-surface-800 hover:preset-filled-surface-600" onclick={reset}>
             <img src="/icons/stop_circle.svg" alt="Stop" width="35" title="Stop" />
           </button>
         </div>
       </div>
-      {#if modelViewer && modelViewer.duration > 0}
-        <RangeSlider
-          name="frame"
-          min={0.0}
-          max={Number((modelViewer.duration / animationSpeed).toFixed(2))}
-          step={0.01}
-          bind:value={frameStep}
-          disabled={playing}
-        >
-          <div class="flex items-center justify-between">
-            <div class="font-bold">Frame:</div>
-            <div class="text-xs">
-              {(frameStep / animationSpeed).toFixed(2)} / {(
-                modelViewer.duration / animationSpeed
-              ).toFixed(2)}
-            </div>
+      <Slider
+        min={0}
+        max={animationDuration ? animationDuration * animationSpeed : 1}
+        step={0.01}
+        value={[frameStep]}
+        onValueChange={(details) => { frameStep = details.value[0]; }}
+        disabled={playing || !animationDuration}
+      >
+        <div class="flex items-center justify-between">
+          <Slider.Label class="font-bold">Frame:</Slider.Label>
+          <div class="text-xs">
+            {(frameStep / animationSpeed).toFixed(2)} / {(
+              (animationDuration || 1) / animationSpeed
+            ).toFixed(2)}
           </div>
-        </RangeSlider>
-      {:else}
-        <!-- fake range slider so layout doesnt jump. RangeSlide above only updates when we pause the animation, idk why -->
-        <RangeSlider name="frame" min={0.0} max={1} step={0.01} disabled={true}>
-          <div class="flex items-center justify-between">
-            <div class="font-bold">Frame:</div>
-            <div class="text-xs">
-              {0} / {1}
-            </div>
-          </div>
-        </RangeSlider>
-      {/if}
+        </div>
+        <Slider.Control class="mt-2 relative flex items-center">
+          <Slider.Track class="h-2 w-full rounded-full bg-surface-400">
+            <Slider.Range class="h-2 rounded-full bg-primary-500" />
+          </Slider.Track>
+          <Slider.Thumb index={0} class="size-5 rounded-full bg-primary-500 border-2 border-white shadow-md cursor-pointer disabled:bg-surface-400 disabled:opacity-50">
+            <Slider.HiddenInput />
+          </Slider.Thumb>
+        </Slider.Control>
+      </Slider>
 
       <div class="mt-4">
         <label class="flex items-center space-x-2">
@@ -281,14 +366,48 @@
         </div>
       {/if}
 
-      <button onclick={openGifModal} class="btn variant-filled mt-4" type="button">
+      <button onclick={openGifModal} class="btn preset-filled mt-4" type="button">
         Create GIF
       </button>
     </div>
   </div>
 {/if}
 
+<!-- Confirm Dialog for Screenshot -->
+<Dialog open={confirmDialogOpen} onOpenChange={(details) => { confirmDialogOpen = details.open; }}>
+  <Portal>
+    <Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-950/50" />
+    <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <Dialog.Content class="card bg-surface-800 w-full max-w-md p-6 space-y-4">
+        <Dialog.Title class="text-xl font-bold">No animation selected!?</Dialog.Title>
+        <Dialog.Description>Want to take a screenshot instead?</Dialog.Description>
+        <footer class="flex justify-end gap-2 pt-4">
+          <Dialog.CloseTrigger class="btn preset-tonal">Cancel</Dialog.CloseTrigger>
+          <button class="btn preset-filled-primary" onclick={handleScreenshot}>
+            Take Screenshot
+          </button>
+        </footer>
+      </Dialog.Content>
+    </Dialog.Positioner>
+  </Portal>
+</Dialog>
+
+<!-- GIF Modal -->
+<CreateGifModal
+  {npc}
+  {modelViewer}
+  {selectedAnimation}
+  open={gifModalOpen}
+  onClose={() => gifModalOpen = false}
+/>
+
 <style>
+  /* Fix Skeleton Slider thumb vertical alignment */
+  :global([data-scope="slider"][data-part="thumb"]) {
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%) !important;
+  }
+
   #lazy-load-poster {
     position: absolute;
     left: 0;

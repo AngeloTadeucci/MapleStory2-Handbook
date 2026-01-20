@@ -12,7 +12,7 @@
 
   let { data }: Props = $props();
 
-  const trophy = data.props.trophy;
+  const trophy = $derived(data.props.trophy);
 
   async function incrementViewCount() {
     await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds

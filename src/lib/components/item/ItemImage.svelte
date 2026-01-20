@@ -76,25 +76,21 @@
   {/if}
 </div>
 
-<style lang="scss">
+<style>
   .frame {
     height: 60px;
     width: 60px;
   }
 
-  @mixin stroke($color: #000, $size: 1px) {
-    text-shadow:
-      -#{$size} -#{$size} 0 $color,
-      0 -#{$size} 0 $color,
-      #{$size} -#{$size} 0 $color,
-      #{$size} 0 0 $color,
-      #{$size} #{$size} 0 $color,
-      0 #{$size} 0 $color,
-      -#{$size} #{$size} 0 $color,
-      -#{$size} 0 0 $color;
-  }
-
   .shadow {
-    @include stroke(#000000, 2px);
+    text-shadow:
+      -2px -2px 0 #000000,
+      0 -2px 0 #000000,
+      2px -2px 0 #000000,
+      2px 0 0 #000000,
+      2px 2px 0 #000000,
+      0 2px 0 #000000,
+      -2px 2px 0 #000000,
+      -2px 0 0 #000000;
   }
 </style>

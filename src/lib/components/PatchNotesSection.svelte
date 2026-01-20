@@ -22,7 +22,6 @@
         <div class="flex items-center justify-between mb-2">
           <span class="font-semibold">{note.title}</span>
           <div class="flex items-center gap-3 text-sm opacity-70">
-            <span class="bg-surface-500 px-2 py-0.5 rounded">v{note.version}</span>
             <span>{new Date(note.date).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',

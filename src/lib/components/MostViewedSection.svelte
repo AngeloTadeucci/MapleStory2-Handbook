@@ -20,7 +20,7 @@
   <h1 class="mb-5 mt-3">{title}</h1>
   <div class="flex w-full flex-col">
     {#each items as item}
-      <div class="w-full border-b border-gray2 py-3 last:border-none hover:bg-surface-hover-token">
+      <div class="w-full border-b border-gray2 py-3 last:border-none hover:preset-tonal transition-colors">
         <a class="unstyled flex flex-row items-center" href={url(`/${type}/${item.id}`)}>
           {#if type === 'items'}
             <ItemImage
