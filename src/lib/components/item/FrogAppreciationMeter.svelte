@@ -2,10 +2,10 @@
   import { onMount, onDestroy } from 'svelte';
   import { url } from '$lib/helpers/addBasePath';
 
-  // April Fools: Only active on April 1st
+  // April Fools: Only active on April 1st (UTC)
   const isAprilFools = () => {
     const now = new Date();
-    return now.getMonth() === 3 && now.getDate() === 1; // Month is 0-indexed
+    return now.getUTCMonth() === 3 && now.getUTCDate() === 1; // Month is 0-indexed
   };
 
   // Local state

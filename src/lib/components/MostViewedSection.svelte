@@ -13,10 +13,10 @@
 
   let { title, items, type }: Props = $props();
 
-  // April Fools: Only active on April 1st
+  // April Fools: Only active on April 1st (UTC)
   const isAprilFools = () => {
     const now = new Date();
-    return now.getMonth() === 3 && now.getDate() === 1; // Month is 0-indexed
+    return now.getUTCMonth() === 3 && now.getUTCDate() === 1; // Month is 0-indexed
   };
 
   const FROG_CHANCE = 0.15; // 15% chance per item
@@ -29,17 +29,20 @@
     is_outfit: 0
   };
 
-  // Determine which items get "frog'd" on mount (so it doesn't change on re-render)
-  const froggedIndices = isAprilFools() ? new Set(
+  // Determine which items get "frog'd" (so it doesn't change on re-render)
+  const froggedIndices = $derived(isAprilFools() ? new Set(
     items.map((_, i) => i).filter(() => Math.random() < FROG_CHANCE)
-  ) : new Set<number>();
+  ) : new Set<number>());
 
   const shouldShowFrog = (index: number) => froggedIndices.has(index);
 
   // Random chance to swap name vs image (50/50) - NOT BOTH
-  const frogModes = new Map<number, 'image' | 'name'>();
-  froggedIndices.forEach(i => {
-    frogModes.set(i, Math.random() < 0.5 ? 'image' : 'name');
+  const frogModes = $derived.by(() => {
+    const modes = new Map<number, 'image' | 'name'>();
+    froggedIndices.forEach(i => {
+      modes.set(i, Math.random() < 0.5 ? 'image' : 'name');
+    });
+    return modes;
   });
   const frogMode = (index: number) => frogModes.get(index) ?? 'image';
 </script>
