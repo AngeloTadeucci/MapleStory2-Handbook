@@ -1,5 +1,8 @@
 # MapleStory 2 Handbook - Frontend
 
+**Project Path:** `d:\Projetos\Maple2_Codex\MapleStory2-Handbook`
+**Related Backend:** `d:\Projetos\Maple2_Codex\MapleStory2-Handbook-BackEnd`
+
 ## Project Overview
 
 A full-stack SvelteKit web application that provides a searchable database of MapleStory 2 game content (items, NPCs, maps, quests, achievements, etc.). The frontend displays data parsed and populated by the backend GameParser.
