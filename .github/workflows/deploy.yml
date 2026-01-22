@@ -14,14 +14,14 @@ jobs:
         run: git pull origin master
         working-directory: ${{ secrets.PROJECT_FOLDER }}
 
-      - name: Install Dependencies
-        run: pnpm install
-        working-directory: ${{ secrets.PROJECT_FOLDER }}
+      # - name: Install Dependencies
+      #   run: pnpm install
+      #   working-directory: ${{ secrets.PROJECT_FOLDER }}
 
-      - name: Build
-        run: pnpm run build
-        working-directory: ${{ secrets.PROJECT_FOLDER }}
+      # - name: Build
+      #   run: pnpm run build
+      #   working-directory: ${{ secrets.PROJECT_FOLDER }}
 
-      - name: Restart Application
-        run: pm2 restart ecosystem.config.cjs
-        working-directory: ${{ secrets.PROJECT_FOLDER }}
+      # - name: Restart Application
+      #   run: pm2 restart ecosystem.config.cjs
+      #   working-directory: ${{ secrets.PROJECT_FOLDER }}
