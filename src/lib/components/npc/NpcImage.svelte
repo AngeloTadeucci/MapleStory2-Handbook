@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { url } from '../../helpers/addBasePath';
 
   type NpcImageProp = {
     portrait: string;
@@ -7,8 +6,8 @@
   };
 
   let { portrait, name }: NpcImageProp = $props();
-  const noImage = url('/resource/sprites/disable overlay.png');
-  const fixIconPath = () => url(`/${portrait.split('/').slice(2).join('/')}`);
+  const noImage = '/resource/sprites/disable overlay.png';
+  const fixIconPath = () => `/${portrait.split('/').slice(2).join('/')}`;
 
   const handleMissingImage = () => {
     image = noImage;

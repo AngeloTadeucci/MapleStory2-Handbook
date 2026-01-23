@@ -1,5 +1,4 @@
 <script>
-  import { url } from '../helpers/addBasePath';
 
   let menus = [
     { name: 'Items', path: '/items', extraClass: 'hidden md:flex' },
@@ -16,9 +15,9 @@
 </script>
 
 <nav class="flex h-32 items-center bg-surface-700 px-12 py-6 drop-shadow-lg">
-  <a href={url('/')}>
+  <a href="/">
     <img
-      src={url('/logo.png')}
+      src="/logo.png"
       width={112}
       height={68}
       alt="Logo MapleStory2 Handbook"
@@ -32,7 +31,7 @@
 
     {#each menus as menu, index}
       <div class={`items-center ${menu.extraClass} xl:`}>
-        <a href={url(menu.path)} class="unstyled px-2 py-2 font-sans font-bold">{menu.name}</a>
+        <a href={menu.path} class="unstyled px-2 py-2 font-sans font-bold">{menu.name}</a>
         {#if index !== menus.length - 1}
           <div class="mx-6 h-14 w-px border-l border-gray2"></div>
         {/if}
@@ -44,7 +43,7 @@
     <div class="ml-12 mr-12 h-20 w-px border-l border-gray2"></div>
 
     <a href="https://ko-fi.com/angelotadeucci" target="_blank" rel="noreferrer" title="Ko-fi">
-      <img src={url('/kofi.png')} width={109} height={45} alt="Ko-fi" class="cursor-pointer" />
+      <img src="/kofi.png" width={109} height={45} alt="Ko-fi" class="cursor-pointer" />
     </a>
   </div>
 
@@ -64,9 +63,9 @@
 {#if open}
   <div class="fixed inset-0 z-20 bg-surface-700 px-12 pb-6">
     <div class="flex h-32 items-center">
-      <a href={url('/')} onclick={() => (open = false)}>
+      <a href="/" onclick={() => (open = false)}>
         <img
-          src={url('/logo.png')}
+          src="/logo.png"
           width={112}
           height={68}
           alt="Logo MapleStory2 Handbook"
@@ -91,7 +90,7 @@
     <div class="mt-5 flex h-4/5 flex-col items-center">
       {#each menus as menu, index}
         <a
-          href={url(menu.path)}
+          href={menu.path}
           class="unstyled px-2 font-sans font-bold"
           onclick={() => (open = false)}>{menu.name}</a
         >
@@ -106,7 +105,7 @@
         title="Ko-fi"
         class="mt-auto"
       >
-        <img src={url('/kofi.png')} width={109} height={45} alt="Ko-fi" class="cursor-pointer" />
+        <img src="/kofi.png" width={109} height={45} alt="Ko-fi" class="cursor-pointer" />
       </a>
     </div>
   </div>

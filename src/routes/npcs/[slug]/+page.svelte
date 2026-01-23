@@ -1,7 +1,6 @@
 <script lang="ts">
   import CopyId from '$lib/components/CopyId.svelte';
   import NpcDetails from '$lib/components/npc/NpcDetails.svelte';
-  import { url } from '$lib/helpers/addBasePath';
   import type { Npc } from '$lib/types/Npc';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
@@ -59,8 +58,12 @@
   <!-- Open graph -->
   <meta property="og:title" content={npc.name} />
   <meta property="og:description" content={npc.name} />
-  <meta property="og:image" content={url(`/${npc.portrait.split('/').slice(2).join('/')}`)} />
-  <meta property="og:url" content={url(`/npcs/${npc.id}`)} />
+  <meta
+    property="og:image"
+    content={`https://handbook.tadeucci.dev/${npc.portrait.split('/').slice(2).join('/')}`}
+  />
+  <meta property="og:url" content={`https://handbook.tadeucci.dev/npcs/${npc.id}`} />
+  <meta name="twitter:card" content="summary" />
 </svelte:head>
 
 <div class="mt-5 grid justify-center">
@@ -78,7 +81,7 @@
           <div class="model px-3 pt-2">
             <NpcRenderer {npc} />
             <img
-              src={url('/item/mouse_controls.png')}
+              src="/item/mouse_controls.png"
               class="absolute bottom-5 left-5 hidden md:block"
               alt="Mouse Controls"
             />

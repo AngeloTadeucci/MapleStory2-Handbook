@@ -6,7 +6,6 @@
   import PaginationWrapper from '$lib/components/PaginationWrapper.svelte';
   import ComboboxChips from '$lib/components/ComboboxChips.svelte';
   import RangeSlider from '$lib/components/RangeSlider.svelte';
-  import { url } from '$lib/helpers/addBasePath';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchQuest } from '$lib/types/Quest';
   import { questTypeToWhitelist, getQuestTypeByDisplayName } from '$lib/types/Quest';
@@ -81,7 +80,7 @@
     ]);
 
     loading = true;
-    const response = await fetch(url(`/api/quests${params}`));
+    const response = await fetch(`/api/quests${params}`);
 
     const responseJson = await response.json();
     const quests = responseJson.quests as SearchQuest[];
@@ -324,7 +323,7 @@
             await fetchData(true);
           }}
         >
-          <img src={url('/icons/filter_alt_off.svg')} width="24" alt="Clear filters" />
+          <img src={`/icons/filter_alt_off.svg`} width="24" alt="Clear filters" />
         </button>
       </label>
     </div>
@@ -416,7 +415,7 @@
   {#each paginatedSource as quest}
     <a
       class="unstyled flex py-4 items-center border-b border-gray2 last:border-none hover:preset-tonal transition-colors"
-      href={url(`/quests/${quest.id}`)}
+      href={`/quests/${quest.id}`}
     >
       <div class="w-1/3">
         <CopyId id={quest.id} />

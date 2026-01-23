@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { url } from '../../helpers/addBasePath';
 
   type TrophyImageProp = {
     icon: string;
@@ -7,13 +6,13 @@
   };
 
   let { icon, name }: TrophyImageProp = $props();
-  const noImage = url('/resource/sprites/disable overlay.png');
+  const noImage = '/resource/sprites/disable overlay.png';
 
   const handleMissingImage = () => {
     image = noImage;
   };
 
-  let image = $derived(icon === '' ? noImage : url(`/resource/image/trophy/${icon}`));
+  let image = $derived(icon === '' ? noImage : `/resource/image/trophy/${icon}`);
 </script>
 
 <img
@@ -22,5 +21,5 @@
   height={60}
   alt={name}
   onerror={handleMissingImage}
-  class="h-[60px] w-[60px] hidden sm:block"
+  class="h-15 w-15 hidden sm:block"
 />

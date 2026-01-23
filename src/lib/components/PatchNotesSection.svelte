@@ -1,6 +1,5 @@
 <script lang="ts">
   import { getRecentPatchNotes, getChangeTypeColor, getChangeTypeLabel } from '$lib/patchNotes';
-  import { url } from '$lib/helpers/addBasePath';
 
   const recentNotes = getRecentPatchNotes(3);
 </script>
@@ -9,7 +8,7 @@
   <div class="flex items-center justify-between mb-4">
     <h2 class="text-xl font-bold">Recent Updates</h2>
     <a
-      href={url('/patchnotes')}
+      href={'/patchnotes'}
       class="text-sm text-primary-400 hover:text-primary-300 underline"
     >
       View all →

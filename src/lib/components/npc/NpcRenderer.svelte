@@ -1,6 +1,5 @@
 <script lang="ts">
   import getGltfUrl from '$lib/getGltfUrl';
-  import { url } from '$lib/helpers/addBasePath';
   import type { Npc } from '$lib/types/Npc';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import { Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
@@ -14,14 +13,14 @@
   let { npc, customStyle, advancedControls = false }: RendererProps = $props();
 
   const gltfUrl = getGltfUrl();
-  const iconPath = $derived(url(`/${npc.portrait.split('/').slice(2).join('/')}`));
+  const iconPath = $derived(`/${npc.portrait.split('/').slice(2).join('/')}`);
 
   let validAnimations: string[] = $state([]);
   let selectedAnimation = $state('');
   let loadingGltf = $state(true);
   let orientation = $state('');
-  let cameraTarget = '';
-  let customOrbit = '';
+  let cameraTarget = $state('');
+  let customOrbit = $state('');
 
   // Combobox setup for animation selection
   let animationItems = $state<{ label: string; value: string }[]>([]);
@@ -79,7 +78,7 @@
 
       const tempAnimations: string[] = [];
       await Promise.all(
-        npc.animations.map(async (animation: any) => {
+        npc.animations.map(async (animation: string) => {
           const response = await fetch(`${gltfUrl}${npc.kfm}/${animation}.gltf`);
 
           if (response.ok) {
@@ -140,7 +139,7 @@
       class="button absolute right-5 top-5 z-10"
       onclick={() => window.open(`/npcs/${npc.id}/model`)}
     >
-      <img src={url('/icons/open_in_new.svg')} alt="Open in new tab" title="Open in new tab" />
+      <img src={'/icons/open_in_new.svg'} alt="Open in new tab" title="Open in new tab" />
     </button>
   </div>
   <model-viewer

@@ -1,7 +1,6 @@
 <script lang="ts">
   import ItemDetails from '$lib/components/item/ItemDetails.svelte';
   import ItemBoxContent from '$lib/components/item/ItemBoxContent.svelte';
-  import { url } from '$lib/helpers/addBasePath';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import CopyId from '$lib/components/CopyId.svelte';
@@ -11,6 +10,7 @@
   import ItemRenderer from '$lib/components/item/ItemRenderer.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
+  import { IconCode, Rarity, SlotName } from '$lib/Enums';
 
   interface Props {
     data: PageData;
@@ -20,7 +20,9 @@
 
   const item = $derived(data.props.item as unknown as Item);
   const boxContent = $derived(data.props.boxContent as unknown as ItemBox[]);
-  const descriptions = $derived(data.props.additionalEffectDescriptions as unknown as AdditionalEffectDescription[]);
+  const descriptions = $derived(
+    data.props.additionalEffectDescriptions as unknown as AdditionalEffectDescription[]
+  );
 
   let gltfExists: boolean = $state(false);
 
@@ -61,15 +63,35 @@
       }
     } catch {}
   });
+
+  const generateItemDescription = () => {
+    let description: string = Rarity[item.rarity];
+
+    if (item.is_outfit) {
+      description += ' Outfit';
+    }
+
+    if (item.icon_code === 1 || item.icon_code === 2 || item.icon_code === 3) {
+      return (description += ' ' + SlotName[Number(item.item_preset)]);
+    }
+    return (description += ' ' + IconCode[item.icon_code]);
+  };
 </script>
 
 <svelte:head>
   <title>MS2 Handbook - {item.name}</title>
   <!-- Open graph -->
   <meta property="og:title" content={item.name} />
-  <meta property="og:description" content={item.name} />
-  <meta property="og:image" content={url(`/${item.icon_path.split('/').slice(2).join('/')}`)} />
-  <meta property="og:url" content={url(`/items/${item.id}`)} />
+  <meta
+    property="og:description"
+    content={`${generateItemDescription()} • Level ${item.level_min}`}
+  />
+  <meta
+    property="og:image"
+    content={`https://handbook.tadeucci.dev/${item.icon_path.split('/').slice(2).join('/')}`}
+  />
+  <meta property="og:url" content={`https://handbook.tadeucci.dev/items/${item.id}`} />
+  <meta name="twitter:card" content="summary" />
 </svelte:head>
 
 <div class="mt-5 grid justify-center">
@@ -83,12 +105,10 @@
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
       <ItemDetails {item} {descriptions} />
       {#if item.kfms.length > 0 && gltfExists}
-        <div
-          class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-199.75 lg:w-143.75"
-        >
+        <div class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-199.75 lg:w-143.75">
           <ItemRenderer {item} />
           <img
-            src={url('/item/mouse_controls.png')}
+            src={`/item/mouse_controls.png`}
             class="absolute bottom-5 left-5 hidden md:block"
             alt="Mouse Controls"
           />

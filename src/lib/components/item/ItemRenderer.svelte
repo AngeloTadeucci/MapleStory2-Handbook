@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import type Item from '$lib/types/Item';
-  import { url } from '$lib/helpers/addBasePath';
   import getGltfUrl from '$lib/getGltfUrl';
 
   type RendererProps = {
@@ -11,7 +10,7 @@
   let { item }: RendererProps = $props();
 
   const gltfUrl = getGltfUrl();
-  const iconPath = $derived(url(`/${item.icon_path.split('/').slice(2).join('/')}`));
+  const iconPath = $derived(`/${item.icon_path.split('/').slice(2).join('/')}`);
 
   let loadingGltf = $state(true);
   let orientation = '0deg 0deg 90deg';

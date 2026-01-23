@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { url } from '$lib/helpers/addBasePath';
 
   type Props = {
     id: number;
@@ -30,6 +29,6 @@
     <span class="text-green-400">Copied!</span>
   {:else}
     {id}
-    <img src={url('/icons/copy-content.svg')} width={20} height={20} alt="Copy" />
+    <img src={'/icons/copy-content.svg'} width={20} height={20} alt="Copy" />
   {/if}
 </button>

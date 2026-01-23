@@ -1,6 +1,5 @@
 <script lang="ts">
   import CopyId from '$lib/components/CopyId.svelte';
-  import { url } from '$lib/helpers/addBasePath';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import type { Map, MapNpc, MapMob, MapPortal, QuestMap } from '$lib/types/Map';
@@ -87,15 +86,19 @@
   <title>MS2 Handbook - {map.name}</title>
   <!-- Open graph -->
   <meta property="og:title" content={map.name} />
-  <meta property="og:description" content={map.name} />
-  <meta property="og:image" content={url(`/resource/image/map/minimap/${map.minimap}`)} />
-  <meta property="og:url" content={url(`/maps/${map.id}`)} />
+  <meta property="og:description" content={map.description || 'Map in MapleStory 2'} />
+  <meta
+    property="og:image"
+    content={`https://handbook.tadeucci.dev/resource/image/map/minimap/${map.minimap}`}
+  />
+  <meta property="og:url" content={`https://handbook.tadeucci.dev/maps/${map.id}`} />
+  <meta name="twitter:card" content="summary" />
 </svelte:head>
 
 <div class="bg-surface-500 bg-opacity-60 relative">
   {#if map.bg}
     <img
-      src={url(`/resource/image/map/bg/${map.bg}`)}
+      src={`/resource/image/map/bg/${map.bg}`}
       alt={map.name}
       class="absolute -z-10 w-full h-full"
     />
@@ -142,7 +145,7 @@
             <p class="mb-2">
               <span class="font-semibold">Return Map:</span>
               <a
-                href="/maps/{revivalReturnMap.id}"
+                href={`/maps/${revivalReturnMap.id}`}
                 class="unstyled underline hover:text-primary-400"
               >
                 {revivalReturnMap.name}
@@ -153,7 +156,7 @@
               <p class="mb-2">
                 <span class="font-semibold">Revival Return Map:</span>
                 <a
-                  href="/maps/{revivalReturnMap.id}"
+                  href={`/maps/${revivalReturnMap.id}`}
                   class="unstyled underline hover:text-primary-400"
                 >
                   {revivalReturnMap.name}
@@ -203,7 +206,7 @@
         {#if map.minimap}
           <ItemListContainer>
             <img
-              src={url(`/resource/image/map/minimap/${map.minimap.toLocaleLowerCase()}`)}
+              src={`/resource/image/map/minimap/${map.minimap.toLocaleLowerCase()}`}
               alt={map.name}
               class="max-w-full max-h-120 object-contain"
             />
@@ -215,202 +218,200 @@
       <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- NPCs on this map -->
         <div class="flex flex-col min-w-0">
-              <div class="column-wrapper">
-                <ItemListContainer classname="scrollable-container">
-                  <div class="flex flex-col gap-3 mb-4">
-                    <div class="flex items-center gap-3">
-                      <h2 class="text-xl font-bold w-1/3 min-w-[30%]">
-                        NPCs
-                        {#if npcSearch}
-                          ({filteredNpcs.length}/{mapNpcs.length})
-                        {/if}
-                      </h2>
-                      <input
-                        type="text"
-                        bind:value={npcSearch}
-                        placeholder="Search..."
-                        class="input flex-1 px-3 py-1 text-sm rounded bg-surface-600 border border-surface-500 focus:border-primary-500 outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex flex-col gap-2 column-content">
-                    {#each filteredNpcs as mapNpc}
-                      <a
-                        href="/npcs/{mapNpc.npc_id}"
-                        class="flex items-center gap-3 p-2 rounded hover:bg-surface-600 transition-colors"
-                      >
-                        <NpcImage
-                          portrait={mapNpc.portrait ?? ''}
-                          name={mapNpc.npc_name ?? 'Unknown'}
-                        />
-                        <div class="flex-1 min-w-0">
-                          <p class="font-semibold truncate">{mapNpc.npc_name ?? 'Unknown NPC'}</p>
-                          {#if mapNpc.is_boss === 1}
-                            <span class="badge variant-filled-error text-xs">Boss</span>
-                          {/if}
-                          {#if mapNpc.is_day_die === 1 || mapNpc.is_night_die === 1}
-                            <p class="text-xs text-gray-400">
-                              {#if mapNpc.is_day_die === 1}Day only{/if}
-                              {#if mapNpc.is_night_die === 1}Night only{/if}
-                            </p>
-                          {/if}
-                        </div>
-                      </a>
-                    {:else}
-                      <p class="text-gray-400 text-center py-4">No NPCs found</p>
-                    {/each}
-                  </div>
-                </ItemListContainer>
+          <div class="column-wrapper">
+            <ItemListContainer classname="scrollable-container">
+              <div class="flex flex-col gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                  <h2 class="text-xl font-bold w-1/3 min-w-[30%]">
+                    NPCs
+                    {#if npcSearch}
+                      ({filteredNpcs.length}/{mapNpcs.length})
+                    {/if}
+                  </h2>
+                  <input
+                    type="text"
+                    bind:value={npcSearch}
+                    placeholder="Search..."
+                    class="input flex-1 px-3 py-1 text-sm rounded bg-surface-600 border border-surface-500 focus:border-primary-500 outline-none"
+                  />
+                </div>
               </div>
-            </div>
-
-          <!-- Mobs on this map -->
-          <div class="flex flex-col min-w-0">
-            <div class="column-wrapper">
-              <ItemListContainer classname="scrollable-container">
-                <div class="flex flex-col gap-3 mb-4">
-                  <div class="flex items-center gap-3">
-                    <h2 class="text-xl font-bold w-1/3 min-w-[30%]">
-                      Mobs
-                      {#if mobSearch}
-                        ({filteredMobs.length}/{uniqueMobs.length})
+              <div class="flex flex-col gap-2 column-content">
+                {#each filteredNpcs as mapNpc}
+                  <a
+                    href="/npcs/{mapNpc.npc_id}"
+                    class="flex items-center gap-3 p-2 rounded hover:bg-surface-600 transition-colors"
+                  >
+                    <NpcImage
+                      portrait={mapNpc.portrait ?? ''}
+                      name={mapNpc.npc_name ?? 'Unknown'}
+                    />
+                    <div class="flex-1 min-w-0">
+                      <p class="font-semibold truncate">{mapNpc.npc_name ?? 'Unknown NPC'}</p>
+                      {#if mapNpc.is_boss === 1}
+                        <span class="badge variant-filled-error text-xs">Boss</span>
                       {/if}
-                    </h2>
-                      <input
-                        type="text"
-                        bind:value={mobSearch}
-                        placeholder="Search..."
-                        class="input flex-1 px-3 py-1 text-sm rounded bg-surface-600 border border-surface-500 focus:border-primary-500 outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex flex-col gap-2 column-content">
-                    {#each filteredMobs as mapMob}
-                      <a
-                        href="/npcs/{mapMob.npc_id}"
-                        class="flex items-center gap-3 p-2 rounded hover:bg-surface-600 transition-colors"
-                      >
-                        <NpcImage
-                          portrait={mapMob.portrait ?? ''}
-                          name={mapMob.npc_name ?? 'Unknown'}
-                        />
-                        <div class="flex-1 min-w-0">
-                          <p class="font-semibold truncate">{mapMob.npc_name ?? 'Unknown Mob'}</p>
-                          <div class="flex flex-wrap gap-2 items-center">
-                            {#if mapMob.level}
-                              <span class="text-xs text-gray-400">Lv. {mapMob.level}</span>
-                            {/if}
-                            {#if mapMob.is_boss === 1}
-                              <span class="badge variant-filled-error text-xs">Boss</span>
-                            {/if}
-                          </div>
-                        </div>
-                      </a>
-                    {:else}
-                      <p class="text-gray-400 text-center py-4">No mobs found</p>
-                    {/each}
-                  </div>
-                </ItemListContainer>
-              </div>
-            </div>
-
-          <!-- Portals on this map -->
-          <div class="flex flex-col min-w-0">
-              <div class="column-wrapper">
-                <ItemListContainer classname="scrollable-container">
-                  <div class="flex flex-col gap-3 mb-4">
-                    <div class="flex items-center gap-3">
-                      <h2 class="text-xl font-bold w-1/3 min-w-[30%]">
-                        Portals
-                        {#if portalSearch}
-                          ({filteredPortals.length}/{mapPortals.length})
-                        {/if}
-                      </h2>
-                      <input
-                        type="text"
-                        bind:value={portalSearch}
-                        placeholder="Search..."
-                        class="input flex-1 px-3 py-1 text-sm rounded bg-surface-600 border border-surface-500 focus:border-primary-500 outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex flex-col gap-3 column-content">
-                    {#each filteredPortals as portal}
-                      <div class="p-3 rounded bg-surface-600">
-                        <a
-                          href="/maps/{portal.destination_map_id}"
-                          class="font-semibold unstyled underline hover:text-primary-400 wrap-break-word"
-                        >
-                          {portal.destination_name ?? `Map #${portal.destination_map_id}`}
-                        </a>
-                        {#if portal.name}
-                          <p class="text-sm text-gray-400 truncate">Portal: {portal.name}</p>
-                        {/if}
-                        <div class="flex flex-wrap gap-2 mt-2">
-                          {#if portal.is_visible === 0}
-                            <span class="badge variant-filled-warning text-xs">Hidden</span>
-                          {/if}
-                          {#if portal.minimap_visible === 0}
-                            <span class="badge variant-filled-secondary text-xs"
-                              >Not on Minimap</span
-                            >
-                          {/if}
-                        </div>
-                      </div>
-                    {:else}
-                      <p class="text-gray-400 text-center py-4">No portals found</p>
-                    {/each}
-                  </div>
-                </ItemListContainer>
-              </div>
-            </div>
-
-          <!-- Quests on this map -->
-            <div class="flex flex-col min-w-0">
-              <div class="column-wrapper">
-                <ItemListContainer classname="scrollable-container">
-                  <div class="flex flex-col gap-3 mb-4">
-                    <div class="flex items-center gap-3">
-                      <h2 class="text-xl font-bold w-1/3 min-w-[30%]">
-                        Quests
-                        {#if questSearch}
-                          ({filteredQuests.length}/{mapQuests.length})
-                        {/if}
-                      </h2>
-                      <input
-                        type="text"
-                        bind:value={questSearch}
-                        placeholder="Search..."
-                        class="input flex-1 px-3 py-1 text-sm rounded bg-surface-600 border border-surface-500 focus:border-primary-500 outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex flex-col gap-3 column-content">
-                    {#each filteredQuests as questMap}
-                      <a
-                        href="/quests/{questMap.quest_id}"
-                        class="p-3 rounded bg-surface-600 hover:bg-surface-500 transition-colors"
-                      >
-                        <p class="font-semibold wrap-break-word">
-                          {questMap.quest_name ?? 'Unknown Quest'}
+                      {#if mapNpc.is_day_die === 1 || mapNpc.is_night_die === 1}
+                        <p class="text-xs text-gray-400">
+                          {#if mapNpc.is_day_die === 1}Day only{/if}
+                          {#if mapNpc.is_night_die === 1}Night only{/if}
                         </p>
-                        {#if questMap.quest_level}
-                          <p class="text-sm text-gray-400">Level {questMap.quest_level}</p>
-                        {/if}
-                        {#if questMap.required_level}
-                          <p class="text-xs text-gray-500">
-                            Required: Lv. {questMap.required_level}
-                          </p>
-                        {/if}
-                      </a>
-                    {:else}
-                      <p class="text-gray-400 text-center py-4">No quests found</p>
-                    {/each}
-                  </div>
-                </ItemListContainer>
+                      {/if}
+                    </div>
+                  </a>
+                {:else}
+                  <p class="text-gray-400 text-center py-4">No NPCs found</p>
+                {/each}
               </div>
-            </div>
+            </ItemListContainer>
+          </div>
         </div>
+
+        <!-- Mobs on this map -->
+        <div class="flex flex-col min-w-0">
+          <div class="column-wrapper">
+            <ItemListContainer classname="scrollable-container">
+              <div class="flex flex-col gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                  <h2 class="text-xl font-bold w-1/3 min-w-[30%]">
+                    Mobs
+                    {#if mobSearch}
+                      ({filteredMobs.length}/{uniqueMobs.length})
+                    {/if}
+                  </h2>
+                  <input
+                    type="text"
+                    bind:value={mobSearch}
+                    placeholder="Search..."
+                    class="input flex-1 px-3 py-1 text-sm rounded bg-surface-600 border border-surface-500 focus:border-primary-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div class="flex flex-col gap-2 column-content">
+                {#each filteredMobs as mapMob}
+                  <a
+                    href="/npcs/{mapMob.npc_id}"
+                    class="flex items-center gap-3 p-2 rounded hover:bg-surface-600 transition-colors"
+                  >
+                    <NpcImage
+                      portrait={mapMob.portrait ?? ''}
+                      name={mapMob.npc_name ?? 'Unknown'}
+                    />
+                    <div class="flex-1 min-w-0">
+                      <p class="font-semibold truncate">{mapMob.npc_name ?? 'Unknown Mob'}</p>
+                      <div class="flex flex-wrap gap-2 items-center">
+                        {#if mapMob.level}
+                          <span class="text-xs text-gray-400">Lv. {mapMob.level}</span>
+                        {/if}
+                        {#if mapMob.is_boss === 1}
+                          <span class="badge variant-filled-error text-xs">Boss</span>
+                        {/if}
+                      </div>
+                    </div>
+                  </a>
+                {:else}
+                  <p class="text-gray-400 text-center py-4">No mobs found</p>
+                {/each}
+              </div>
+            </ItemListContainer>
+          </div>
+        </div>
+
+        <!-- Portals on this map -->
+        <div class="flex flex-col min-w-0">
+          <div class="column-wrapper">
+            <ItemListContainer classname="scrollable-container">
+              <div class="flex flex-col gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                  <h2 class="text-xl font-bold w-1/3 min-w-[30%]">
+                    Portals
+                    {#if portalSearch}
+                      ({filteredPortals.length}/{mapPortals.length})
+                    {/if}
+                  </h2>
+                  <input
+                    type="text"
+                    bind:value={portalSearch}
+                    placeholder="Search..."
+                    class="input flex-1 px-3 py-1 text-sm rounded bg-surface-600 border border-surface-500 focus:border-primary-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div class="flex flex-col gap-3 column-content">
+                {#each filteredPortals as portal}
+                  <div class="p-3 rounded bg-surface-600">
+                    <a
+                      href="/maps/{portal.destination_map_id}"
+                      class="font-semibold unstyled underline hover:text-primary-400 wrap-break-word"
+                    >
+                      {portal.destination_name ?? `Map #${portal.destination_map_id}`}
+                    </a>
+                    {#if portal.name}
+                      <p class="text-sm text-gray-400 truncate">Portal: {portal.name}</p>
+                    {/if}
+                    <div class="flex flex-wrap gap-2 mt-2">
+                      {#if portal.is_visible === 0}
+                        <span class="badge variant-filled-warning text-xs">Hidden</span>
+                      {/if}
+                      {#if portal.minimap_visible === 0}
+                        <span class="badge variant-filled-secondary text-xs">Not on Minimap</span>
+                      {/if}
+                    </div>
+                  </div>
+                {:else}
+                  <p class="text-gray-400 text-center py-4">No portals found</p>
+                {/each}
+              </div>
+            </ItemListContainer>
+          </div>
+        </div>
+
+        <!-- Quests on this map -->
+        <div class="flex flex-col min-w-0">
+          <div class="column-wrapper">
+            <ItemListContainer classname="scrollable-container">
+              <div class="flex flex-col gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                  <h2 class="text-xl font-bold w-1/3 min-w-[30%]">
+                    Quests
+                    {#if questSearch}
+                      ({filteredQuests.length}/{mapQuests.length})
+                    {/if}
+                  </h2>
+                  <input
+                    type="text"
+                    bind:value={questSearch}
+                    placeholder="Search..."
+                    class="input flex-1 px-3 py-1 text-sm rounded bg-surface-600 border border-surface-500 focus:border-primary-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div class="flex flex-col gap-3 column-content">
+                {#each filteredQuests as questMap}
+                  <a
+                    href="/quests/{questMap.quest_id}"
+                    class="p-3 rounded bg-surface-600 hover:bg-surface-500 transition-colors"
+                  >
+                    <p class="font-semibold wrap-break-word">
+                      {questMap.quest_name ?? 'Unknown Quest'}
+                    </p>
+                    {#if questMap.quest_level}
+                      <p class="text-sm text-gray-400">Level {questMap.quest_level}</p>
+                    {/if}
+                    {#if questMap.required_level}
+                      <p class="text-xs text-gray-500">
+                        Required: Lv. {questMap.required_level}
+                      </p>
+                    {/if}
+                  </a>
+                {:else}
+                  <p class="text-gray-400 text-center py-4">No quests found</p>
+                {/each}
+              </div>
+            </ItemListContainer>
+          </div>
+        </div>
+      </div>
 
       <SupportNotice />
     </div>

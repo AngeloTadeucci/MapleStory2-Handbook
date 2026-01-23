@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { url } from '$lib/helpers/addBasePath';
   import ItemImage from '$lib/components/item/ItemImage.svelte';
   import type { Rewards } from '$lib/types/Quest';
   import { ExpType } from '$lib/Enums';
@@ -15,7 +14,7 @@
 {#if reward.Exp > 0 || reward.Meso > 0 || reward.EssentialItem.length > 0}
   <div class="mb-4">
     <div class="flex gap-2 items-center mb-2">
-      <img src={url('/quest/box.png')} alt="Meso" class="h-[16px] w-[16px]" />
+      <img src="/quest/box.png" alt="Meso" class="h-4 w-4" />
       <p>{text}</p>
     </div>
     {#if reward.Exp > 0 && reward.RelativeExp > 0}
@@ -31,9 +30,9 @@
       <p class="meso mt-2 flex gap-1 items-center">
         {reward.Meso.toLocaleString()}
         <img
-          src={url('/resource/image/item/icon/90000001.png')}
+          src="/resource/image/item/icon/90000001.png"
           alt="Meso"
-          class="h-[27px] w-[27px]"
+          class="h-6.75 w-6.75"
         />
       </p>
     {/if}
@@ -41,9 +40,9 @@
       <p class="rue mt-2 flex gap-1 items-center">
         {reward.Rue.toLocaleString()}
         <img
-          src={url('/resource/image/item/icon/90000013.png')}
+          src="/resource/image/item/icon/90000013.png"
           alt="Rue"
-          class="h-[27px] w-[27px]"
+          class="h-6.75 w-6.75"
         />
       </p>
     {/if}

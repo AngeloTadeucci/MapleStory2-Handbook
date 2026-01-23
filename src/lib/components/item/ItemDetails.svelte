@@ -1,6 +1,5 @@
 <script lang="ts">
   import { IconCode, Job, Rarity, SlotName, Stat, TransferType } from '../../Enums';
-  import { url } from '../../helpers/addBasePath';
   import { closeMissingTags, unescapeHtml } from '../../helpers/htmlParser';
   import itemHelper from '../../helpers/itemHelper';
   import type { AdditionalEffectDescription } from '../../types/Item';
@@ -48,7 +47,7 @@
   <div class="item-top">
     <div class="item-top__iconcode">
       <img
-        src={url(`/resource/icons/icon_code/${item.icon_code}.png`)}
+        src={`/resource/icons/icon_code/${item.icon_code}.png`}
         width={57}
         height={63}
         alt="Icon Code"
@@ -57,7 +56,7 @@
     </div>
     <div class="item-top__image">
       <img
-        src={url(`/resource/sprites/rarity star ${item.rarity}.png`)}
+        src={`/resource/sprites/rarity star ${item.rarity}.png`}
         width={93}
         height={16}
         alt="Rarity"
@@ -137,7 +136,7 @@
     {#if item.gender !== 2}
       <div class="absolute right-4">
         <img
-          src={url(`/item/genderLimit ${item.gender}.png`)}
+          src={`/item/genderLimit ${item.gender}.png`}
           width={22}
           height={22}
           alt="Gender"
@@ -183,7 +182,7 @@
       <p class="text-green">{item.set_name}</p>
       <ul>
         {#each item.set_data as set}
-          <a href={url(`/items/${set.Item1}`)} data-sveltekit-reload>
+          <a href={`/items/${set.Item1}`} data-sveltekit-reload>
             <li class="mt-1">{set.Item2}</li>
           </a>
         {/each}
@@ -205,7 +204,7 @@
     {#if item.repackage_limit > 0}
       <p class="text-gold">
         Possible repackages: {item.repackage_limit} (Requires [
-        <a href={url(`/items/20302422`)} data-sveltekit-reload>Trader's Ribbon</a>
+        <a href={`/items/20302422`} data-sveltekit-reload>Trader's Ribbon</a>
         ] x{item.repackage_count})
       </p>
     {/if}

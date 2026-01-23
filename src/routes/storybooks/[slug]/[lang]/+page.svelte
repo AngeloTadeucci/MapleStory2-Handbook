@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { url } from '$lib/helpers/addBasePath';
   import type { PageData } from './$types';
-
   interface Props {
     data: PageData;
   }
@@ -13,6 +11,17 @@
 
 <svelte:head>
   <title>MS2 Handbook - Story Books</title>
+
+  <!-- Open graph -->
+  <meta
+    property="og:title"
+    content={`Story Book ${data.props.bookId} - ${data.props.lang.toUpperCase()}`}
+  />
+  <meta
+    property="og:url"
+    content={`https://handbook.tadeucci.dev/storybooks/${data.props.bookId}/${data.props.lang}`}
+  />
+  <meta name="twitter:card" content="summary" />
 </svelte:head>
 
 <div class="mt-5 grid justify-center">
@@ -22,7 +31,7 @@
     <div class="svelte-mz1063 lg:mt-7">
       {#each images as image}
         <img
-          src={url(`/resource/image/storybooks/${data.props.bookId}/${data.props.lang}/${image}`)}
+          src={`/resource/image/storybooks/${data.props.bookId}/${data.props.lang}/${image}`}
           alt=""
           class="mb-1"
         />

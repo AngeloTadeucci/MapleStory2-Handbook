@@ -1,9 +1,8 @@
 <script>
-  import { url } from '../helpers/addBasePath';
 </script>
 
 <footer class="py-2 text-center">
-  <a href={url('/')}>MapleStory2 Handbook</a>
+  <a href="/">MapleStory2 Handbook</a>
   <br />
   <span>
     Made by
@@ -18,11 +17,11 @@
   </span>
   <span> // </span>
   <span>
-    <a class="underline" href={url('/about')}>About</a>
+    <a class="underline" href="/about">About</a>
   </span>
   <span> // </span>
   <span>
-    <a class="underline" href={url('/patchnotes')}>Patch Notes</a>
+    <a class="underline" href="/patchnotes">Patch Notes</a>
   </span>
 </footer>
 

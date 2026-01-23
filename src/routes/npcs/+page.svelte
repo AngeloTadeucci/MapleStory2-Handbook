@@ -5,7 +5,6 @@
   import NpcImage from '$lib/components/npc/NpcImage.svelte';
   import PaginationWrapper from '$lib/components/PaginationWrapper.svelte';
   import RangeSlider from '$lib/components/RangeSlider.svelte';
-  import { url } from '$lib/helpers/addBasePath';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchNpc } from '$lib/types/Npc';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
@@ -78,7 +77,7 @@
     ]);
 
     loading = true;
-    const response = await fetch(url(`/api/npcs${params}`));
+    const response = await fetch(`/api/npcs${params}`);
 
     const responseJson = await response.json();
     const npcs = responseJson.npcs as SearchNpc[];
@@ -275,7 +274,7 @@
             await fetchData(true);
           }}
         >
-          <img src={url('/icons/filter_alt_off.svg')} width="24" alt="Clear filters" />
+          <img src={`/icons/filter_alt_off.svg`} width="24" alt="Clear filters" />
         </button>
       </label>
     </div>
@@ -378,7 +377,7 @@
   {#each paginatedSource as npc}
     <a
       class="unstyled flex items-center border-b border-gray2 last:border-none hover:preset-tonal transition-colors"
-      href={url(`/npcs/${npc.id}`)}
+      href={`/npcs/${npc.id}`}
     >
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-1/4 lg:flex-row">
         <NpcImage portrait={npc.portrait} name={npc.name} />

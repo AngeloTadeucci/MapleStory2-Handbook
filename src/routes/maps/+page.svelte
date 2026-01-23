@@ -5,7 +5,6 @@
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import MapImage from '$lib/components/MapImage.svelte';
   import PaginationWrapper from '$lib/components/PaginationWrapper.svelte';
-  import { url } from '$lib/helpers/addBasePath';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchMap } from '$lib/types/Map';
   import debounce from 'lodash.debounce';
@@ -49,7 +48,7 @@
     ]);
 
     loading = true;
-    const response = await fetch(url(`/api/maps${params}`));
+    const response = await fetch(`/api/maps${params}`);
 
     const responseJson = await response.json();
     const maps = responseJson.maps as SearchMap[];
@@ -189,7 +188,7 @@
   {#each paginatedSource as map}
     <a
       class="unstyled flex items-center border-b border-gray2 last:border-none hover:preset-tonal transition-colors"
-      href={url(`/maps/${map.id}`)}
+      href={`/maps/${map.id}`}
     >
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
         <MapImage icon={map.icon} name={map.name} />

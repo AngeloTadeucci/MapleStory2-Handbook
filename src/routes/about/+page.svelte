@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { url } from '$lib/helpers/addBasePath';
 </script>
 
 <svelte:head>

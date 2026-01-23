@@ -5,7 +5,6 @@
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import PaginationWrapper from '$lib/components/PaginationWrapper.svelte';
   import TrophyImage from '$lib/components/trophies/TrophyImage.svelte';
-  import { url } from '$lib/helpers/addBasePath';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchTrophy } from '$lib/types/Trophy';
   import debounce from 'lodash.debounce';
@@ -49,7 +48,7 @@
     ]);
 
     loading = true;
-    const response = await fetch(url(`/api/trophies${params}`));
+    const response = await fetch(`/api/trophies${params}`);
 
     const responseJson = await response.json();
     const trophies = responseJson.trophies as SearchTrophy[];
@@ -189,7 +188,7 @@
   {#each paginatedSource as trophy}
     <a
       class="unstyled flex items-center border-b border-gray2 last:border-none hover:preset-tonal transition-colors"
-      href={url(`/trophies/${trophy.id}`)}
+      href={`/trophies/${trophy.id}`}
     >
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
         <TrophyImage icon={trophy.icon} name={trophy.name} />

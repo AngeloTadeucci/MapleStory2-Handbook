@@ -12,6 +12,12 @@
 
 <svelte:head>
   <title>MapleStory 2 Handbook</title>
+
+  <!-- Open graph -->
+  <meta property="og:title" content="MapleStory 2 Handbook" />
+  <meta property="og:description" content="The ultimate MapleStory 2 database and handbook." />
+  <meta property="og:url" content="https://handbook.tadeucci.dev/" />
+  <meta name="twitter:card" content="summary" />
 </svelte:head>
 
 <div class="px-4">

@@ -1,6 +1,5 @@
 <script lang="ts">
   import CopyId from '$lib/components/CopyId.svelte';
-  import { url } from '$lib/helpers/addBasePath';
   import type { PageData } from './$types';
   import { onMount } from 'svelte';
   import type { Quest } from '$lib/types/Quest';
@@ -43,8 +42,12 @@
   <title>MS2 Handbook - {quest.name}</title>
   <!-- Open graph -->
   <meta property="og:title" content={quest.name} />
-  <meta property="og:description" content={quest.name} />
-  <meta property="og:url" content={url(`/quests/${quest.id}`)} />
+  <meta
+    property="og:description"
+    content={`Type: ${getQuestTypeName(quest.questType)} • Required Level: ${quest.requiredLevel}`}
+  />
+  <meta property="og:url" content={`https://handbook.tadeucci.dev/quests/${quest.id}`} />
+  <meta name="twitter:card" content="summary" />
 </svelte:head>
 
 <div class="mt-5 grid justify-center">
@@ -57,7 +60,7 @@
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
       <ItemListContainer classname="relative">
         <img
-          src={url('/quest/quest_epic.png')}
+          src="/quest/quest_epic.png"
           class="absolute w-15.75 h-22 -top-2.5"
           alt="Epic quest"
         />

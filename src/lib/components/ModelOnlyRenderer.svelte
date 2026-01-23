@@ -2,7 +2,6 @@
   import type { Npc } from '$lib/types/Npc';
   import { Combobox, Dialog, Portal, Slider, useListCollection } from '@skeletonlabs/skeleton-svelte';
   import { onMount } from 'svelte';
-  import { url } from '../helpers/addBasePath';
   import CreateGifModal from './CreateGifModal.svelte';
   import LoadingSpinner from './LoadingSpinner.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
@@ -17,7 +16,7 @@
   let gifModalOpen = $state(false);
 
   const gltfUrl = getGltfUrl();
-  const iconPath = $derived(url(`/${npc.portrait.split('/').slice(2).join('/')}`));
+  const iconPath = $derived(`/${npc.portrait.split('/').slice(2).join('/')}`);
 
   let validAnimations: string[] = $state([]);
   let selectedAnimation = $state('');

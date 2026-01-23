@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Job, Jobs } from '../../Enums';
-  import { url } from '../../helpers/addBasePath';
   import type { ItemBox } from '../../types/ItemBox';
   import ItemImage from './ItemImage.svelte';
   import ItemListContainer from './ItemListContainer.svelte';
@@ -60,7 +59,7 @@
               title={Job[job]}
             >
               <img
-                src={url(`/resource/icons/job/${job}.png`)}
+                src={`/resource/icons/job/${job}.png`}
                 alt={Job[job]}
                 width={24}
                 height={25}
@@ -77,7 +76,7 @@
       <div class="flex flex-col gap-3">
         {#each filtered as content}
           <a
-            href={url(`/items/${content.item_id}`)}
+            href={`/items/${content.item_id}`}
             data-sveltekit-reload
             class="unstyled flex items-center gap-4"
           >
@@ -100,7 +99,7 @@
   <ItemListContainer gap={4}>
     {#each boxContent as content}
       <a
-        href={url(`/items/${content.item_id}`)}
+        href={`/items/${content.item_id}`}
         data-sveltekit-reload
         class="flex items-center gap-4"
         id={String(content.item_id)}

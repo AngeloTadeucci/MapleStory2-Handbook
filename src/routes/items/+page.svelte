@@ -5,7 +5,6 @@
   import ItemImage from '$lib/components/item/ItemImage.svelte';
   import ComboboxChips from '$lib/components/ComboboxChips.svelte';
   import { Job, Rarity, Gender, enumToWhitelist } from '$lib/Enums';
-  import { url } from '$lib/helpers/addBasePath';
   import itemHelper from '$lib/helpers/itemHelper';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import { getItemTypeDisplayNames, getItemTypeKeyByDisplayName } from '$lib/itemTypes';
@@ -112,7 +111,7 @@
     );
 
     loading = true;
-    const response = await fetch(url(`/api/items${params}`));
+    const response = await fetch(`/api/items${params}`);
 
     const responseJson = await response.json();
     const items = responseJson.items as SearchItem[];
@@ -286,7 +285,7 @@
             await fetchData(true);
           }}
         >
-          <img src={url('/icons/filter_alt_off.svg')} width="24" alt="Clear filters" />
+          <img src="/icons/filter_alt_off.svg" width="24" alt="Clear filters" />
         </button>
       </label>
     </div>
@@ -437,7 +436,7 @@
   {/if}
   {#each paginatedSource as item}
     <a
-      href={url(`/items/${item.id}`)}
+      href={`/items/${item.id}`}
       class="unstyled flex items-center border-b border-gray2 last:border-none hover:preset-tonal transition-colors"
     >
       <div class="flex w-1/2 flex-col items-center py-4 lg:w-2/12 lg:flex-row">
