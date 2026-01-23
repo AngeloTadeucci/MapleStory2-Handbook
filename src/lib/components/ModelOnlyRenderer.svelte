@@ -1,6 +1,12 @@
 <script lang="ts">
   import type { Npc } from '$lib/types/Npc';
-  import { Combobox, Dialog, Portal, Slider, useListCollection } from '@skeletonlabs/skeleton-svelte';
+  import {
+    Combobox,
+    Dialog,
+    Portal,
+    Slider,
+    useListCollection
+  } from '@skeletonlabs/skeleton-svelte';
   import { onMount } from 'svelte';
   import CreateGifModal from './CreateGifModal.svelte';
   import LoadingSpinner from './LoadingSpinner.svelte';
@@ -82,15 +88,33 @@
       }
 
       const tempAnimations: string[] = [];
-      await Promise.all(
-        npc.animations.map(async (animation: any) => {
-          const response = await fetch(`${gltfUrl}${npc.kfm}/${animation}.gltf`);
+      const fetchWithTimeout = (url: string, timeout = 5000) => {
+        return Promise.race([
+          fetch(url, { method: 'HEAD' }),
+          new Promise<Response>((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), timeout)
+          )
+        ]);
+      };
 
-          if (response.ok) {
-            tempAnimations.push(animation);
+      // Create a plain array copy to avoid proxy issues
+      const animationsToCheck = [...npc.animations];
+
+      const promises = animationsToCheck.map((animation: string) => {
+        return (async () => {
+          try {
+            const response = await fetchWithTimeout(`${gltfUrl}${npc.kfm}/${animation}.gltf`);
+            if (response.ok) {
+              tempAnimations.push(animation);
+            }
+          } catch {
+            // Timeout or network error - skip this animation
           }
-        })
-      );
+        })();
+      });
+
+      await Promise.all(promises);
+
       // order animations alphabetically and assign to reactive state
       tempAnimations.sort((a, b) => a.localeCompare(b));
       validAnimations = tempAnimations;
@@ -258,15 +282,24 @@
             onOpenChange={handleAnimationOpenChange}
             openOnClick
           >
-            <Combobox.Control class="w-full bg-surface-700 border-transparent rounded-md p-2 flex items-center cursor-pointer">
-              <Combobox.Input class="w-full bg-transparent text-surface-50 placeholder:text-surface-400 border-none focus:ring-0 cursor-pointer" />
+            <Combobox.Control
+              class="w-full bg-surface-700 border-transparent rounded-md p-2 flex items-center cursor-pointer"
+            >
+              <Combobox.Input
+                class="w-full bg-transparent text-surface-50 placeholder:text-surface-400 border-none focus:ring-0 cursor-pointer"
+              />
               <Combobox.Trigger class="text-surface-400 hover:text-surface-50" />
             </Combobox.Control>
             <Portal>
               <Combobox.Positioner>
-                <Combobox.Content class="bg-surface-700 border border-surface-600 rounded-md shadow-xl z-50">
+                <Combobox.Content
+                  class="bg-surface-700 border border-surface-600 rounded-md shadow-xl z-50"
+                >
                   {#each animationItems as item (item.value)}
-                    <Combobox.Item {item} class="flex items-center justify-between text-surface-50 hover:bg-surface-600 data-highlighted:bg-surface-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-surface-950 px-3 py-2 cursor-pointer">
+                    <Combobox.Item
+                      {item}
+                      class="flex items-center justify-between text-surface-50 hover:bg-surface-600 data-highlighted:bg-surface-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-surface-950 px-3 py-2 cursor-pointer"
+                    >
                       <Combobox.ItemText>{item.label}</Combobox.ItemText>
                       <Combobox.ItemIndicator />
                     </Combobox.Item>
@@ -280,7 +313,9 @@
           <div class="flex w-full flex-col">
             <Slider
               value={[animationSpeed]}
-              onValueChange={(details) => { animationSpeed = details.value[0]; }}
+              onValueChange={(details) => {
+                animationSpeed = details.value[0];
+              }}
               max={5}
               step={0.1}
               min={0.1}
@@ -293,7 +328,10 @@
                 <Slider.Track class="h-2 w-full rounded-full bg-surface-400">
                   <Slider.Range class="h-2 rounded-full bg-primary-500" />
                 </Slider.Track>
-                <Slider.Thumb index={0} class="size-5 rounded-full bg-primary-500 border-2 border-white shadow-md cursor-pointer">
+                <Slider.Thumb
+                  index={0}
+                  class="size-5 rounded-full bg-primary-500 border-2 border-white shadow-md cursor-pointer"
+                >
                   <Slider.HiddenInput />
                 </Slider.Thumb>
               </Slider.Control>
@@ -307,7 +345,10 @@
       </div>
       <div class="flex w-full justify-between gap-4 py-4">
         <div>
-          <button class="btn-icon bg-surface-800 hover:preset-filled-surface-600" onclick={playPause}>
+          <button
+            class="btn-icon bg-surface-800 hover:preset-filled-surface-600"
+            onclick={playPause}
+          >
             {#if playing}
               <img src="/icons/pause_circle.svg" alt="Pause" width="35" title="Pause" />
             {:else}
@@ -324,7 +365,9 @@
         max={animationDuration ? animationDuration * animationSpeed : 1}
         step={0.01}
         value={[frameStep]}
-        onValueChange={(details) => { frameStep = details.value[0]; }}
+        onValueChange={(details) => {
+          frameStep = details.value[0];
+        }}
         disabled={playing || !animationDuration}
       >
         <div class="flex items-center justify-between">
@@ -339,7 +382,10 @@
           <Slider.Track class="h-2 w-full rounded-full bg-surface-400">
             <Slider.Range class="h-2 rounded-full bg-primary-500" />
           </Slider.Track>
-          <Slider.Thumb index={0} class="size-5 rounded-full bg-primary-500 border-2 border-white shadow-md cursor-pointer disabled:bg-surface-400 disabled:opacity-50">
+          <Slider.Thumb
+            index={0}
+            class="size-5 rounded-full bg-primary-500 border-2 border-white shadow-md cursor-pointer disabled:bg-surface-400 disabled:opacity-50"
+          >
             <Slider.HiddenInput />
           </Slider.Thumb>
         </Slider.Control>
@@ -373,7 +419,12 @@
 {/if}
 
 <!-- Confirm Dialog for Screenshot -->
-<Dialog open={confirmDialogOpen} onOpenChange={(details) => { confirmDialogOpen = details.open; }}>
+<Dialog
+  open={confirmDialogOpen}
+  onOpenChange={(details) => {
+    confirmDialogOpen = details.open;
+  }}
+>
   <Portal>
     <Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-950/50" />
     <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -397,12 +448,12 @@
   {modelViewer}
   {selectedAnimation}
   open={gifModalOpen}
-  onClose={() => gifModalOpen = false}
+  onClose={() => (gifModalOpen = false)}
 />
 
 <style>
   /* Fix Skeleton Slider thumb vertical alignment */
-  :global([data-scope="slider"][data-part="thumb"]) {
+  :global([data-scope='slider'][data-part='thumb']) {
     top: 50%;
     transform: translateX(-50%) translateY(-50%) !important;
   }

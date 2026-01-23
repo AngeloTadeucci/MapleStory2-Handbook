@@ -77,15 +77,32 @@
       }
 
       const tempAnimations: string[] = [];
-      await Promise.all(
-        npc.animations.map(async (animation: string) => {
-          const response = await fetch(`${gltfUrl}${npc.kfm}/${animation}.gltf`);
+      const fetchWithTimeout = (url: string, timeout = 5000) => {
+        return Promise.race([
+          fetch(url),
+          new Promise<Response>((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), timeout)
+          )
+        ]);
+      };
 
-          if (response.ok) {
-            tempAnimations.push(animation);
+      // Create a plain array copy to avoid proxy issues
+      const animationsToCheck = [...npc.animations];
+
+      const promises = animationsToCheck.map((animation: string) => {
+        return (async () => {
+          try {
+            const response = await fetchWithTimeout(`${gltfUrl}${npc.kfm}/${animation}.gltf`);
+            if (response.ok) {
+              tempAnimations.push(animation);
+            }
+          } catch (e) {
           }
-        })
-      );
+        })();
+      });
+
+      await Promise.all(promises);
+
       // order animations alphabetically and assign to reactive state
       tempAnimations.sort((a, b) => a.localeCompare(b));
       validAnimations = tempAnimations;
