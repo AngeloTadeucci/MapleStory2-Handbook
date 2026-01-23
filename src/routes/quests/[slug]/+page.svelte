@@ -66,8 +66,8 @@
         />
         <h1 class="text-center z-10">{quest.name}</h1>
         <p class="text-center text-sm text-gray-400">{getQuestTypeName(quest.questType)}</p>
-        <div class="relative flex items-center justify-center">
-          <hr id="splitline" />
+        <div class="relative flex items-center justify-center my-4 sm:m-0">
+          <hr class="splitline hidden sm:block" />
           <p class="absolute">Lv. {quest.requiredLevel}</p>
         </div>
         {#if quest.requiredQuest.length > 0}
@@ -88,7 +88,7 @@
           </ul>
         {/if}
         {#if quest.requiredQuest.length > 0 || quest.selectableQuest.length > 0}
-          <hr id="splitline" />
+          <hr class="splitline" />
         {/if}
         {#if quest.startNpcId > 0}
           <p>
@@ -112,7 +112,7 @@
             {/each}
           </ul>
         {/if}
-        <hr id="splitline" />
+        <hr class="splitline" />
         <p>{@html closeMissingTags(unescapeHtml(quest.description))}</p>
         {#if quest.manualDescription}
           <p>{@html closeMissingTags(unescapeHtml(quest.manualDescription), true)}</p>
@@ -120,7 +120,7 @@
         {#if quest.completeDescription}
           <p>{@html closeMissingTags(unescapeHtml(quest.completeDescription), true)}</p>
         {/if}
-        <hr id="splitline" />
+        <hr class="splitline" />
         {#if quest.startRewards}
           <Rewards reward={quest.startRewards} text="Start Rewards" />
         {/if}
@@ -148,19 +148,23 @@
     list-style-position: inside;
   }
 
-  hr#splitline {
-    background-image: url('/quest/quest_divider.png');
-    background-repeat: no-repeat;
-    margin: 0;
-    width: 421px;
-    height: 11px;
+  /* Mobile: simple border */
+  hr.splitline {
     border: none;
+    border-top: 1px solid rgb(116, 117, 118);
+    width: 100%;
+    margin: 1rem auto;
+  }
 
-    margin: auto;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-
-    /* invert image colors */
-    filter: invert(1);
+  /* Desktop: background image */
+  @media (min-width: 640px) {
+    hr.splitline {
+      background-image: url('/quest/quest_divider.png');
+      background-repeat: no-repeat;
+      width: 421px;
+      height: 11px;
+      border: none;
+      filter: invert(1);
+    }
   }
 </style>

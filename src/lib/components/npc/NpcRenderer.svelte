@@ -106,7 +106,7 @@
     <LoadingSpinner />
   </div>
 {:else}
-  <div class="mx-4 mt-2 flex items-center gap-5">
+  <div class="mx-4 mt-2 flex items-center gap-5 relative">
     <div class="flex w-1/2 flex-col">
       <span class="font-bold">Change animation</span>
       <Combobox
@@ -142,20 +142,34 @@
       <img src={'/icons/open_in_new.svg'} alt="Open in new tab" title="Open in new tab" />
     </button>
   </div>
-  <model-viewer
-    src="{gltfUrl}{npc.kfm}/{selectedAnimation}.gltf"
-    alt={npc.name}
-    camera-controls
-    {...{ cameraTarget, customOrbit, orientation }}
-    autoplay
-    max-field-of-view="70deg"
-    touch-action="pan-y"
-    interaction-prompt="none"
-    style={customStyle ?? `width: 550px; height: 760px; --iconPath: url(${iconPath});`}
-  ></model-viewer>
+  <div class="model-container">
+    <model-viewer
+      src="{gltfUrl}{npc.kfm}/{selectedAnimation}.gltf"
+      alt={npc.name}
+      camera-controls
+      {...{ cameraTarget, customOrbit, orientation }}
+      autoplay
+      max-field-of-view="70deg"
+      touch-action="pan-y"
+      interaction-prompt="none"
+      style={customStyle ?? `width: 100%; height: 100%; --iconPath: url(${iconPath});`}
+    ></model-viewer>
+  </div>
 {/if}
 
 <style>
+  .model-container {
+    width: 100%;
+    height: 400px;
+  }
+
+  @media (min-width: 640px) {
+    .model-container {
+      width: 550px;
+      height: 760px;
+    }
+  }
+
   #lazy-load-poster {
     position: absolute;
     left: 0;

@@ -11,7 +11,8 @@
 </script>
 
 <div class="text-lightBlue mt-3">
-  <div class="flex flex-row gap-1">
+  <!-- Desktop: button inline -->
+  <div class="hidden sm:flex flex-row gap-1">
     <p>Bonus Attributes (up to {randomStatCount} rolls)</p>
     <button
       class="text-ascendant cursor-pointer"
@@ -22,6 +23,20 @@
       [Click here to {toggleBonus ? 'retract' : 'expand'}]
     </button>
   </div>
+
+  <!-- Mobile: button above -->
+  <div class="sm:hidden flex flex-col gap-1">
+    <button
+      class="text-ascendant cursor-pointer text-left"
+      onclick={() => {
+        toggleBonus = !toggleBonus;
+      }}
+    >
+      [Click here to {toggleBonus ? 'retract' : 'expand'}]
+    </button>
+    <p>Bonus Attributes (up to {randomStatCount} rolls)</p>
+  </div>
+
   <div class="limit-size {toggleBonus ? '' : 'limit-size--active'}">
     <ul>
       {#each randomStats as stat, index}

@@ -1,6 +1,7 @@
 <aside class="mt-8 border-t border-surface-600 pt-6 text-sm opacity-70 text-center">
   <p>
     This handbook is maintained without ads.
+    <br class="sm:hidden" />
     <a
       href="https://ko-fi.com/angelotadeucci"
       class="underline"

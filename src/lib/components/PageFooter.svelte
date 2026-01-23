@@ -15,7 +15,8 @@
       >Support this project</a
     >
   </span>
-  <span> // </span>
+  <br class="sm:hidden" />
+  <span class="hidden sm:inline"> // </span>
   <span>
     <a class="underline" href="/about">About</a>
   </span>

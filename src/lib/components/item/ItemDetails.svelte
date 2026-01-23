@@ -44,17 +44,205 @@
 </script>
 
 <div class="relative mt-2 flex flex-col">
-  <div class="item-top">
-    <div class="item-top__iconcode">
-      <img
-        src={`/resource/icons/icon_code/${item.icon_code}.png`}
-        width={57}
-        height={63}
-        alt="Icon Code"
-        title="Icon Code"
-      />
+  <!-- Desktop version with background images -->
+  <div class="hidden sm:block">
+    <div class="item-top">
+      <div class="item-top__iconcode">
+        <img
+          src={`/resource/icons/icon_code/${item.icon_code}.png`}
+          width={57}
+          height={63}
+          alt="Icon Code"
+          title="Icon Code"
+        />
+      </div>
+      <div class="item-top__image">
+        <img
+          src={`/resource/sprites/rarity star ${item.rarity}.png`}
+          width={93}
+          height={16}
+          alt="Rarity"
+          title="Rarity"
+        />
+        <div class="mt-2 flex gap-4">
+          <ItemImage
+            iconPath={item.icon_path}
+            rarity={item.rarity}
+            name={item.name}
+            isOutfit={item.is_outfit}
+          />
+          <div class="flex flex-col gap-1">
+            {#if !item.is_outfit}
+              {#if itemHelper.isArmor(item.slot) || itemHelper.isAccessory(item.slot)}
+                <p class="font-medium">{Stat[item.represent_option]}</p>
+                <div class="value__container">
+                  <div class={`value__container__blur text-3xl rarity-${item.rarity}`}>
+                    {mainStat()}
+                  </div>
+                  <div class={`value__container__value rarity-black text-3xl`}>
+                    {mainStat()}
+                  </div>
+                </div>
+              {/if}
+              {#if itemHelper.isWeapon(item.slot)}
+                <p class="font-medium">Weapon Attack</p>
+                <div class="value__container">
+                  <div class={`value__container__blur text-3xl rarity-${item.rarity}`}>
+                    {mainStat()}
+                  </div>
+                  <div class={`value__container__value rarity-black text-3xl`}>
+                    {mainStat()}
+                  </div>
+                </div>
+              {/if}
+            {/if}
+            {#if itemHelper.isConsumable(item.id)}
+              {#if fixedMainDescription.includes('<br>')}
+                <p class="text-sm">
+                  {@html closeMissingTags(unescapeHtml(item.main_description), true).split('<br>')[0]}
+                </p>
+                <p class="text-2xl">
+                  {@html closeMissingTags(unescapeHtml(item.main_description), true).split('<br>')[1]}
+                </p>
+              {:else}
+                <p class="text-2xl">{fixedMainDescription}</p>
+              {/if}
+            {/if}
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="item-top__image">
+    <div class="item-middle">
+      <div class="flex flex-col gap-1">
+        {#if item.gear_score > 0}
+          <p>Gear score {item.gear_score}</p>
+        {/if}
+
+        {#if item.level_min > 1}
+          <p>Requires level {item.level_min}</p>
+        {/if}
+
+        <p>{generateItemDescription()}</p>
+
+        {#if !item.job_limit.includes(Job.GlobalJob)}
+          <p>
+            Job:{' '}
+            {item.job_limit.length > 0 ? item.job_limit.map((j) => Job[j]).join(', ') : 'None'}
+          </p>
+        {/if}
+
+        {#if item.main_description.length > 0 && !itemHelper.isConsumable(item.id)}
+          <p>{@html closeMissingTags(unescapeHtml(item.main_description), true)}</p>
+        {/if}
+      </div>
+      {#if item.gender !== 2}
+        <div class="absolute right-4">
+          <img
+            src={`/item/genderLimit ${item.gender}.png`}
+            width={22}
+            height={22}
+            alt="Gender"
+          />
+        </div>
+      {/if}
+    </div>
+    {#if item.constants_stats.length > 0 || item.static_stats.length > 0 || item.guide_description.length > 0 || item.tooltip_description.length > 0}
+      <hr id="splitline1" />
+    {/if}
+    <div class="item-middle">
+      {#if item.constants_stats.length > 0 || item.static_stats.length > 0}
+        <ItemBasicAttributes
+          constantsStats={item.constants_stats}
+          staticStats={item.static_stats}
+          representOption={item.represent_option}
+          additionalEffectsDescriptions={descriptions}
+          additionalEffects={item.additional_effects}
+        />
+      {/if}
+      {#if item.random_stats.length > 0}
+        <ItemRandomAttributes
+          randomStats={item.random_stats}
+          randomStatCount={item.random_stat_count}
+        />
+      {/if}
+      {#if item.guide_description.length > 0 || item.tooltip_description.length > 0}
+        <div class="item-middle__descriptions">
+          {#if item.tooltip_description.length > 0}
+            <p>{@html closeMissingTags(unescapeHtml(item.tooltip_description))}</p>
+          {/if}
+          {#if item.guide_description.length > 0}
+            <p class="item-middle__descriptions__guide">
+              {@html closeMissingTags(unescapeHtml(item.guide_description), true)}
+            </p>
+          {/if}
+        </div>
+      {/if}
+    </div>
+    {#if item.set_name !== '' && item.set_data}
+      <hr id="splitline1" />
+      <div class="item-middle pt-3">
+        <p class="text-green">{item.set_name}</p>
+        <ul>
+          {#each item.set_data as set}
+            <a href={`/items/${set.Item1}`} data-sveltekit-reload>
+              <li class="mt-1">{set.Item2}</li>
+            </a>
+          {/each}
+        </ul>
+      </div>
+    {/if}
+    <hr id="splitline1" />
+    <div class="item-middle gap-1 pt-3">
+      {#if item.tradeable_count > 0}
+        <p class="text-gold">Tradable {item.tradeable_count} time(s).</p>
+      {/if}
+      {#if item.tradeable_count === 0}
+        <p class="text-red">Untradable</p>
+      {/if}
+      <span class={`text-${item.sellable ? 'gold' : 'red'}`}>
+        {item.sellable ? 'Sellable' : 'Unsellable'}
+      </span>
+      <p class="text-red">{TransferType[item.transfer_type]}</p>
+      {#if item.repackage_limit > 0}
+        <p class="text-gold">
+          Possible repackages: {item.repackage_limit} (Requires [
+          <a href={`/items/20302422`} data-sveltekit-reload>Trader's Ribbon</a>
+          ] x{item.repackage_count})
+        </p>
+      {/if}
+      {#if item.item_type === 1 && !item.is_outfit}
+        {#if item.enchantable}
+          <p class="text-gold">Can be enchanted</p>
+        {:else}
+          <p class="text-red">Cannot be Enchanted</p>
+        {/if}
+      {/if}
+      {#if item.item_type === 1}
+        {#if item.dyeable === 1}
+          <p class="text-gold">Can be Dyed</p>
+        {/if}
+      {:else}
+        <p class="text-red">Cannot be Dyed</p>
+      {/if}
+      {#if item.glamour_count > 0}
+        <p class="text-gold">Glamour Forges Possible: {item.glamour_count}</p>
+      {/if}
+    </div>
+    <div class="item-bot"></div>
+  </div>
+
+  <!-- Mobile version with simple styling -->
+  <div class="sm:hidden flex flex-col bg-[rgb(32,33,34)] border border-[rgb(116,117,118)] rounded">
+    <div class="relative p-4">
+      <div class="absolute top-2 right-2">
+        <img
+          src={`/resource/icons/icon_code/${item.icon_code}.png`}
+          width={40}
+          height={44}
+          alt="Icon Code"
+          title="Icon Code"
+        />
+      </div>
       <img
         src={`/resource/sprites/rarity star ${item.rarity}.png`}
         width={93}
@@ -74,10 +262,10 @@
             {#if itemHelper.isArmor(item.slot) || itemHelper.isAccessory(item.slot)}
               <p class="font-medium">{Stat[item.represent_option]}</p>
               <div class="value__container">
-                <div class={`value__container__blur text-3xl rarity-${item.rarity}`}>
+                <div class={`value__container__blur text-2xl rarity-${item.rarity}`}>
                   {mainStat()}
                 </div>
-                <div class={`value__container__value rarity-black text-3xl`}>
+                <div class={`value__container__value rarity-black text-2xl`}>
                   {mainStat()}
                 </div>
               </div>
@@ -85,10 +273,10 @@
             {#if itemHelper.isWeapon(item.slot)}
               <p class="font-medium">Weapon Attack</p>
               <div class="value__container">
-                <div class={`value__container__blur text-3xl rarity-${item.rarity}`}>
+                <div class={`value__container__blur text-2xl rarity-${item.rarity}`}>
                   {mainStat()}
                 </div>
-                <div class={`value__container__value rarity-black text-3xl`}>
+                <div class={`value__container__value rarity-black text-2xl`}>
                   {mainStat()}
                 </div>
               </div>
@@ -96,137 +284,141 @@
           {/if}
           {#if itemHelper.isConsumable(item.id)}
             {#if fixedMainDescription.includes('<br>')}
-              <p class="text-sm">
+              <p class="text-xs">
                 {@html closeMissingTags(unescapeHtml(item.main_description), true).split('<br>')[0]}
               </p>
-              <p class="text-2xl">
+              <p class="text-xl">
                 {@html closeMissingTags(unescapeHtml(item.main_description), true).split('<br>')[1]}
               </p>
             {:else}
-              <p class="text-2xl">{fixedMainDescription}</p>
+              <p class="text-xl">{fixedMainDescription}</p>
             {/if}
           {/if}
         </div>
       </div>
     </div>
-  </div>
-  <div class="item-middle">
-    <div class="flex flex-col gap-1">
-      {#if item.gear_score > 0}
-        <p>Gear score {item.gear_score}</p>
-      {/if}
 
-      {#if item.level_min > 1}
-        <p>Requires level {item.level_min}</p>
-      {/if}
-
-      <p>{generateItemDescription()}</p>
-
-      {#if !item.job_limit.includes(Job.GlobalJob)}
-        <p>
-          Job:{' '}
-          {item.job_limit.length > 0 ? item.job_limit.map((j) => Job[j]).join(', ') : 'None'}
-        </p>
-      {/if}
-
-      {#if item.main_description.length > 0 && !itemHelper.isConsumable(item.id)}
-        <p>{@html closeMissingTags(unescapeHtml(item.main_description), true)}</p>
-      {/if}
-    </div>
-    {#if item.gender !== 2}
-      <div class="absolute right-4">
-        <img
-          src={`/item/genderLimit ${item.gender}.png`}
-          width={22}
-          height={22}
-          alt="Gender"
-        />
-      </div>
-    {/if}
-  </div>
-  {#if item.constants_stats.length > 0 || item.static_stats.length > 0 || item.guide_description.length > 0 || item.tooltip_description.length > 0}
-    <hr id="splitline1" />
-  {/if}
-  <div class="item-middle">
-    {#if item.constants_stats.length > 0 || item.static_stats.length > 0}
-      <ItemBasicAttributes
-        constantsStats={item.constants_stats}
-        staticStats={item.static_stats}
-        representOption={item.represent_option}
-        additionalEffectsDescriptions={descriptions}
-        additionalEffects={item.additional_effects}
-      />
-    {/if}
-    {#if item.random_stats.length > 0}
-      <ItemRandomAttributes
-        randomStats={item.random_stats}
-        randomStatCount={item.random_stat_count}
-      />
-    {/if}
-    {#if item.guide_description.length > 0 || item.tooltip_description.length > 0}
-      <div class="item-middle__descriptions">
-        {#if item.tooltip_description.length > 0}
-          <p>{@html closeMissingTags(unescapeHtml(item.tooltip_description))}</p>
+    <div class="relative px-4 pb-4">
+      <div class="flex flex-col gap-1 text-sm">
+        {#if item.gear_score > 0}
+          <p>Gear score {item.gear_score}</p>
         {/if}
-        {#if item.guide_description.length > 0}
-          <p class="item-middle__descriptions__guide">
-            {@html closeMissingTags(unescapeHtml(item.guide_description), true)}
+
+        {#if item.level_min > 1}
+          <p>Requires level {item.level_min}</p>
+        {/if}
+
+        <p>{generateItemDescription()}</p>
+
+        {#if !item.job_limit.includes(Job.GlobalJob)}
+          <p>
+            Job:{' '}
+            {item.job_limit.length > 0 ? item.job_limit.map((j) => Job[j]).join(', ') : 'None'}
           </p>
         {/if}
+
+        {#if item.main_description.length > 0 && !itemHelper.isConsumable(item.id)}
+          <p>{@html closeMissingTags(unescapeHtml(item.main_description), true)}</p>
+        {/if}
+      </div>
+      {#if item.gender !== 2}
+        <div class="absolute right-4 top-0">
+          <img
+            src={`/item/genderLimit ${item.gender}.png`}
+            width={22}
+            height={22}
+            alt="Gender"
+          />
+        </div>
+      {/if}
+    </div>
+
+    {#if item.constants_stats.length > 0 || item.static_stats.length > 0 || item.guide_description.length > 0 || item.tooltip_description.length > 0}
+      <hr class="border-[rgb(116,117,118)] mx-4" />
+    {/if}
+
+    <div class="px-4 py-4 text-sm">
+      {#if item.constants_stats.length > 0 || item.static_stats.length > 0}
+        <ItemBasicAttributes
+          constantsStats={item.constants_stats}
+          staticStats={item.static_stats}
+          representOption={item.represent_option}
+          additionalEffectsDescriptions={descriptions}
+          additionalEffects={item.additional_effects}
+        />
+      {/if}
+      {#if item.random_stats.length > 0}
+        <ItemRandomAttributes
+          randomStats={item.random_stats}
+          randomStatCount={item.random_stat_count}
+        />
+      {/if}
+      {#if item.guide_description.length > 0 || item.tooltip_description.length > 0}
+        <div class="mt-4">
+          {#if item.tooltip_description.length > 0}
+            <p>{@html closeMissingTags(unescapeHtml(item.tooltip_description))}</p>
+          {/if}
+          {#if item.guide_description.length > 0}
+            <p class="mb-4">
+              {@html closeMissingTags(unescapeHtml(item.guide_description), true)}
+            </p>
+          {/if}
+        </div>
+      {/if}
+    </div>
+
+    {#if item.set_name !== '' && item.set_data}
+      <hr class="border-[rgb(116,117,118)] mx-4" />
+      <div class="px-4 py-4 text-sm">
+        <p class="text-green">{item.set_name}</p>
+        <ul>
+          {#each item.set_data as set}
+            <a href={`/items/${set.Item1}`} data-sveltekit-reload>
+              <li class="mt-1">{set.Item2}</li>
+            </a>
+          {/each}
+        </ul>
       </div>
     {/if}
-  </div>
-  {#if item.set_name !== '' && item.set_data}
-    <hr id="splitline1" />
-    <div class="item-middle pt-3">
-      <p class="text-green">{item.set_name}</p>
-      <ul>
-        {#each item.set_data as set}
-          <a href={`/items/${set.Item1}`} data-sveltekit-reload>
-            <li class="mt-1">{set.Item2}</li>
-          </a>
-        {/each}
-      </ul>
-    </div>
-  {/if}
-  <hr id="splitline1" />
-  <div class="item-middle gap-1 pt-3">
-    {#if item.tradeable_count > 0}
-      <p class="text-gold">Tradable {item.tradeable_count} time(s).</p>
-    {/if}
-    {#if item.tradeable_count === 0}
-      <p class="text-red">Untradable</p>
-    {/if}
-    <span class={`text-${item.sellable ? 'gold' : 'red'}`}>
-      {item.sellable ? 'Sellable' : 'Unsellable'}
-    </span>
-    <p class="text-red">{TransferType[item.transfer_type]}</p>
-    {#if item.repackage_limit > 0}
-      <p class="text-gold">
-        Possible repackages: {item.repackage_limit} (Requires [
-        <a href={`/items/20302422`} data-sveltekit-reload>Trader's Ribbon</a>
-        ] x{item.repackage_count})
-      </p>
-    {/if}
-    {#if item.item_type === 1 && !item.is_outfit}
-      {#if item.enchantable}
-        <p class="text-gold">Can be enchanted</p>
+
+    <hr class="border-[rgb(116,117,118)] mx-4" />
+    <div class="px-4 py-4 flex flex-col gap-1 text-sm">
+      {#if item.tradeable_count > 0}
+        <p class="text-gold">Tradable {item.tradeable_count} time(s).</p>
+      {/if}
+      {#if item.tradeable_count === 0}
+        <p class="text-red">Untradable</p>
+      {/if}
+      <span class={`text-${item.sellable ? 'gold' : 'red'}`}>
+        {item.sellable ? 'Sellable' : 'Unsellable'}
+      </span>
+      <p class="text-red">{TransferType[item.transfer_type]}</p>
+      {#if item.repackage_limit > 0}
+        <p class="text-gold">
+          Possible repackages: {item.repackage_limit} (Requires [
+          <a href={`/items/20302422`} data-sveltekit-reload>Trader's Ribbon</a>
+          ] x{item.repackage_count})
+        </p>
+      {/if}
+      {#if item.item_type === 1 && !item.is_outfit}
+        {#if item.enchantable}
+          <p class="text-gold">Can be enchanted</p>
+        {:else}
+          <p class="text-red">Cannot be Enchanted</p>
+        {/if}
+      {/if}
+      {#if item.item_type === 1}
+        {#if item.dyeable === 1}
+          <p class="text-gold">Can be Dyed</p>
+        {/if}
       {:else}
-        <p class="text-red">Cannot be Enchanted</p>
+        <p class="text-red">Cannot be Dyed</p>
       {/if}
-    {/if}
-    {#if item.item_type === 1}
-      {#if item.dyeable === 1}
-        <p class="text-gold">Can be Dyed</p>
+      {#if item.glamour_count > 0}
+        <p class="text-gold">Glamour Forges Possible: {item.glamour_count}</p>
       {/if}
-    {:else}
-      <p class="text-red">Cannot be Dyed</p>
-    {/if}
-    {#if item.glamour_count > 0}
-      <p class="text-gold">Glamour Forges Possible: {item.glamour_count}</p>
-    {/if}
+    </div>
   </div>
-  <div class="item-bot"></div>
 </div>
 
 <style>

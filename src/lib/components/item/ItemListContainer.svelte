@@ -10,11 +10,19 @@
 </script>
 
 <div class={classname ? classname : 'lg:mt-7'}>
-  <div class="box__top"></div>
-  <div class="box__middle flex flex-col gap-{gap} p-4 px-8">
+  <!-- Desktop version with images -->
+  <div class="hidden sm:block">
+    <div class="box__top"></div>
+    <div class="box__middle flex flex-col gap-{gap} p-4 px-8">
+      {@render children()}
+    </div>
+    <div class="box__bot"></div>
+  </div>
+
+  <!-- Mobile version with Tailwind -->
+  <div class="sm:hidden flex flex-col gap-{gap} p-4 bg-[rgb(32,33,34)] border border-[rgb(116,117,118)] rounded">
     {@render children()}
   </div>
-  <div class="box__bot"></div>
 </div>
 
 <style>

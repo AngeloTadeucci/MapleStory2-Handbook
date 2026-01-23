@@ -78,13 +78,18 @@
       <NpcDetails {npc} {npcMaps} />
       {#if npc.kfm.length > 0 && gltfExists}
         <div>
-          <div class="model px-3 pt-2">
+          <!-- Desktop: with background image -->
+          <div class="model hidden sm:block px-3 pt-2">
             <NpcRenderer {npc} />
             <img
               src="/item/mouse_controls.png"
               class="absolute bottom-5 left-5 hidden md:block"
               alt="Mouse Controls"
             />
+          </div>
+          <!-- Mobile: simple styling -->
+          <div class="sm:hidden p-4 bg-[rgb(32,33,34)] border border-[rgb(116,117,118)] rounded">
+            <NpcRenderer {npc} />
           </div>
         </div>
       {/if}

@@ -21,7 +21,13 @@
     onPageSizeChange,
     class: className = ''
   }: Props = $props();
+
+  let innerWidth = $state(768);
+  let isMobile = $derived(innerWidth < 640);
+  let totalPages = $derived(Math.ceil(count / pageSize));
 </script>
+
+<svelte:window bind:innerWidth />
 
 <div class="flex flex-wrap items-center justify-center gap-2 {className}">
   {#if onPageSizeChange}
@@ -40,7 +46,7 @@
     {pageSize}
     {page}
     onPageChange={(event) => onPageChange(event.page)}
-     class="flex items-center gap-1 rounded-lg bg-surface-700 p-2"
+    class="flex items-center gap-1 rounded-lg bg-surface-700 p-2"
   >
     <Pagination.FirstTrigger class="btn btn-sm preset-tonal">
       <ChevronsLeft size={16} />
@@ -48,17 +54,21 @@
     <Pagination.PrevTrigger class="btn btn-sm preset-tonal">
       <ChevronLeft size={16} />
     </Pagination.PrevTrigger>
-    <Pagination.Context>
-      {#snippet children(pagination)}
-        {#each pagination().pages as p, index (p)}
-          {#if p.type === 'page'}
-            <Pagination.Item {...p} class="btn btn-sm {p.value === page ? 'preset-filled-primary-500' : 'preset-tonal'}">{p.value}</Pagination.Item>
-          {:else}
-            <Pagination.Ellipsis {index} class="btn btn-sm preset-tonal">…</Pagination.Ellipsis>
-          {/if}
-        {/each}
-      {/snippet}
-    </Pagination.Context>
+    {#if isMobile}
+      <span class="px-2 text-sm text-surface-50">{page} / {totalPages}</span>
+    {:else}
+      <Pagination.Context>
+        {#snippet children(pagination)}
+          {#each pagination().pages as p, index (p)}
+            {#if p.type === 'page'}
+              <Pagination.Item {...p} class="btn btn-sm {p.value === page ? 'preset-filled-primary-500' : 'preset-tonal'}">{p.value}</Pagination.Item>
+            {:else}
+              <Pagination.Ellipsis {index} class="btn btn-sm preset-tonal">…</Pagination.Ellipsis>
+            {/if}
+          {/each}
+        {/snippet}
+      </Pagination.Context>
+    {/if}
     <Pagination.NextTrigger class="btn btn-sm preset-tonal">
       <ChevronRight size={16} />
     </Pagination.NextTrigger>

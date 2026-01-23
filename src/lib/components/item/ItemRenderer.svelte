@@ -44,20 +44,34 @@
     <LoadingSpinner />
   </div>
 {:else}
-  <model-viewer
-    src="{gltfUrl}{item.kfms[0]}/{item.kfms[0]}.gltf"
-    alt={item.name}
-    camera-controls
-    {...{ cameraTarget, customOrbit, orientation }}
-    autoplay
-    max-field-of-view="70deg"
-    touch-action="pan-y"
-    interaction-prompt="none"
-    style={`width: 550px; height: 760px; --iconPath: url(${iconPath});`}
-  ></model-viewer>
+  <div class="model-container">
+    <model-viewer
+      src="{gltfUrl}{item.kfms[0]}/{item.kfms[0]}.gltf"
+      alt={item.name}
+      camera-controls
+      {...{ cameraTarget, customOrbit, orientation }}
+      autoplay
+      max-field-of-view="70deg"
+      touch-action="pan-y"
+      interaction-prompt="none"
+      style={`width: 100%; height: 100%; --iconPath: url(${iconPath});`}
+    ></model-viewer>
+  </div>
 {/if}
 
 <style>
+  .model-container {
+    width: 100%;
+    height: 400px;
+  }
+
+  @media (min-width: 640px) {
+    .model-container {
+      width: 550px;
+      height: 760px;
+    }
+  }
+
   #lazy-load-poster {
     position: absolute;
     left: 0;

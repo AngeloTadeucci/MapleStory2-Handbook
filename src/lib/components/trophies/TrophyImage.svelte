@@ -21,5 +21,5 @@
   height={60}
   alt={name}
   onerror={handleMissingImage}
-  class="h-15 w-15 hidden sm:block"
+  class="h-15 w-15"
 />
