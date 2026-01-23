@@ -8,10 +8,9 @@ export interface ItemBox {
   rarity: number;
   smart_drop_rate: number;
   group_drop_id: number;
-  item1: {
-    name: string;
-    icon_path: string;
-    job_limit: number[];
-    job_recommend: number[];
-  };
+  // Joined fields from items table
+  name: string;
+  icon_path: string;
+  job_limit: number[]; // Parsed by Prisma
+  job_recommend: number[]; // Parsed by Prisma
 }

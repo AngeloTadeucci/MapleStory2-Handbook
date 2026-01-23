@@ -3,7 +3,7 @@
   import { url } from '$lib/helpers/addBasePath';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
-  import type { Map, MapNpc, MapPortal, QuestMap } from '$lib/types/Map';
+  import type { Map, MapNpc, MapMob, MapPortal, QuestMap } from '$lib/types/Map';
   import ItemListContainer from '$lib/components/item/ItemListContainer.svelte';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
   import NpcImage from '$lib/components/npc/NpcImage.svelte';
@@ -16,21 +16,40 @@
 
   const map = $derived(data.props.map as unknown as Map);
   const mapNpcs = $derived(data.props.mapNpcs as MapNpc[]);
+  const mapMobs = $derived(data.props.mapMobs as MapMob[]);
   const mapPortals = $derived(data.props.mapPortals as MapPortal[]);
   const mapQuests = $derived(data.props.mapQuests as QuestMap[]);
-  const revivalReturnMap = $derived(data.props.revivalReturnMap as { id: number; name: string } | null);
+  const revivalReturnMap = $derived(
+    data.props.revivalReturnMap as { id: number; name: string } | null
+  );
   const enterReturnMap = $derived(data.props.enterReturnMap as { id: number; name: string } | null);
 
   // Search filters
   let npcSearch = $state('');
+  let mobSearch = $state('');
   let portalSearch = $state('');
   let questSearch = $state('');
 
+  // Get unique mobs by npc_id
+  const uniqueMobs = $derived.by(() => {
+    const mobMap = new Map<number, MapMob>();
+
+    mapMobs.forEach((mob) => {
+      if (!mobMap.has(mob.npc_id)) {
+        mobMap.set(mob.npc_id, mob);
+      }
+    });
+
+    return Array.from(mobMap.values());
+  });
+
   // Filtered lists
   const filteredNpcs = $derived(
-    mapNpcs.filter((npc) =>
-      (npc.npc_name ?? '').toLowerCase().includes(npcSearch.toLowerCase())
-    )
+    mapNpcs.filter((npc) => (npc.npc_name ?? '').toLowerCase().includes(npcSearch.toLowerCase()))
+  );
+
+  const filteredMobs = $derived(
+    uniqueMobs.filter((mob) => (mob.npc_name ?? '').toLowerCase().includes(mobSearch.toLowerCase()))
   );
 
   const filteredPortals = $derived(
@@ -62,7 +81,6 @@
 
     incrementViewCount();
   });
-
 </script>
 
 <svelte:head>
@@ -90,7 +108,7 @@
     </div>
     <div class="max-w-450 mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
       <h1>{map.name}</h1>
-      <div class="flex flex-col flex-wrap justify-start items-start gap-8 gap-y-2 xl:flex-row">
+      <div class="flex flex-col flex-wrap justify-start items-start gap-6 xl:flex-row">
         <!-- Map Information Panel -->
         <ItemListContainer>
           <h2 class="text-xl font-bold mb-3">Map Information</h2>
@@ -101,13 +119,15 @@
 
           {#if map.recommended_level}
             <p class="mb-2">
-              <span class="font-semibold">Recommended Level:</span> {map.recommended_level}
+              <span class="font-semibold">Recommended Level:</span>
+              {map.recommended_level}
             </p>
           {/if}
 
           {#if map.max_capacity}
             <p class="mb-2">
-              <span class="font-semibold">Max Capacity:</span> {map.max_capacity} players
+              <span class="font-semibold">Max Capacity:</span>
+              {map.max_capacity} players
             </p>
           {/if}
 
@@ -118,28 +138,40 @@
           {/if} -->
 
           <!-- Return maps -->
-          {#if revivalReturnMap}
+          {#if revivalReturnMap && enterReturnMap && revivalReturnMap.id === enterReturnMap.id}
             <p class="mb-2">
-              <span class="font-semibold">Revival Return Map:</span>
-              <a href="/maps/{revivalReturnMap.id}" class="unstyled underline hover:text-primary-400">
+              <span class="font-semibold">Return Map:</span>
+              <a
+                href="/maps/{revivalReturnMap.id}"
+                class="unstyled underline hover:text-primary-400"
+              >
                 {revivalReturnMap.name}
               </a>
             </p>
-          {/if}
+          {:else}
+            {#if revivalReturnMap}
+              <p class="mb-2">
+                <span class="font-semibold">Revival Return Map:</span>
+                <a
+                  href="/maps/{revivalReturnMap.id}"
+                  class="unstyled underline hover:text-primary-400"
+                >
+                  {revivalReturnMap.name}
+                </a>
+              </p>
+            {/if}
 
-          {#if enterReturnMap}
-            <p class="mb-2">
-              <span class="font-semibold">Enter Return Map:</span>
-              <a href="/maps/{enterReturnMap.id}" class="unstyled underline hover:text-primary-400">
-                {enterReturnMap.name}
-              </a>
-            </p>
-          {/if}
-
-          {#if map.minimap_width && map.minimap_height}
-            <p class="mb-2">
-              <span class="font-semibold">Minimap Size:</span> {map.minimap_width} × {map.minimap_height}
-            </p>
+            {#if enterReturnMap}
+              <p class="mb-2">
+                <span class="font-semibold">Enter Return Map:</span>
+                <a
+                  href="/maps/{enterReturnMap.id}"
+                  class="unstyled underline hover:text-primary-400"
+                >
+                  {enterReturnMap.name}
+                </a>
+              </p>
+            {/if}
           {/if}
 
           <!-- Features badges -->
@@ -165,25 +197,20 @@
         </ItemListContainer>
 
         {#if map.minimap}
-          <div
-            class="px-3 flex items-center justify-center border-gray-500 border-2 rounded-lg bg-surface-700 max-w-125 max-h-125 lg:mt-7"
-
-          >
+          <ItemListContainer>
             <img
-              src={url(`/resource/image/map/minimap/${map.minimap}`)}
+              src={url(`/resource/image/map/minimap/${map.minimap.toLocaleLowerCase()}`)}
               alt={map.name}
               class="max-w-full max-h-120 object-contain"
             />
-          </div>
+          </ItemListContainer>
         {/if}
       </div>
 
-      <!-- Two column layout for NPCs, Portals, and Quests -->
-      {#if mapNpcs.length > 0 || mapPortals.length > 0 || mapQuests.length > 0}
-        <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- NPCs on this map -->
-          {#if mapNpcs.length > 0}
-            <div class="flex flex-col min-w-0">
+      <!-- Two column layout for NPCs, Mobs, Portals, and Quests -->
+      <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- NPCs on this map -->
+        <div class="flex flex-col min-w-0">
               <div class="column-wrapper">
                 <ItemListContainer classname="scrollable-container">
                   <div class="flex flex-col gap-3 mb-4">
@@ -208,7 +235,10 @@
                         href="/npcs/{mapNpc.npc_id}"
                         class="flex items-center gap-3 p-2 rounded hover:bg-surface-600 transition-colors"
                       >
-                        <NpcImage portrait={mapNpc.portrait ?? ''} name={mapNpc.npc_name ?? 'Unknown'} />
+                        <NpcImage
+                          portrait={mapNpc.portrait ?? ''}
+                          name={mapNpc.npc_name ?? 'Unknown'}
+                        />
                         <div class="flex-1 min-w-0">
                           <p class="font-semibold truncate">{mapNpc.npc_name ?? 'Unknown NPC'}</p>
                           {#if mapNpc.is_boss === 1}
@@ -229,11 +259,59 @@
                 </ItemListContainer>
               </div>
             </div>
-          {/if}
+
+          <!-- Mobs on this map -->
+          <div class="flex flex-col min-w-0">
+            <div class="column-wrapper">
+              <ItemListContainer classname="scrollable-container">
+                <div class="flex flex-col gap-3 mb-4">
+                  <div class="flex items-center gap-3">
+                    <h2 class="text-xl font-bold w-1/3 min-w-[30%]">
+                      Mobs
+                      {#if mobSearch}
+                        ({filteredMobs.length}/{uniqueMobs.length})
+                      {/if}
+                    </h2>
+                      <input
+                        type="text"
+                        bind:value={mobSearch}
+                        placeholder="Search..."
+                        class="input flex-1 px-3 py-1 text-sm rounded bg-surface-600 border border-surface-500 focus:border-primary-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-2 column-content">
+                    {#each filteredMobs as mapMob}
+                      <a
+                        href="/npcs/{mapMob.npc_id}"
+                        class="flex items-center gap-3 p-2 rounded hover:bg-surface-600 transition-colors"
+                      >
+                        <NpcImage
+                          portrait={mapMob.portrait ?? ''}
+                          name={mapMob.npc_name ?? 'Unknown'}
+                        />
+                        <div class="flex-1 min-w-0">
+                          <p class="font-semibold truncate">{mapMob.npc_name ?? 'Unknown Mob'}</p>
+                          <div class="flex flex-wrap gap-2 items-center">
+                            {#if mapMob.level}
+                              <span class="text-xs text-gray-400">Lv. {mapMob.level}</span>
+                            {/if}
+                            {#if mapMob.is_boss === 1}
+                              <span class="badge variant-filled-error text-xs">Boss</span>
+                            {/if}
+                          </div>
+                        </div>
+                      </a>
+                    {:else}
+                      <p class="text-gray-400 text-center py-4">No mobs found</p>
+                    {/each}
+                  </div>
+                </ItemListContainer>
+              </div>
+            </div>
 
           <!-- Portals on this map -->
-          {#if mapPortals.length > 0}
-            <div class="flex flex-col min-w-0">
+          <div class="flex flex-col min-w-0">
               <div class="column-wrapper">
                 <ItemListContainer classname="scrollable-container">
                   <div class="flex flex-col gap-3 mb-4">
@@ -269,7 +347,9 @@
                             <span class="badge variant-filled-warning text-xs">Hidden</span>
                           {/if}
                           {#if portal.minimap_visible === 0}
-                            <span class="badge variant-filled-secondary text-xs">Not on Minimap</span>
+                            <span class="badge variant-filled-secondary text-xs"
+                              >Not on Minimap</span
+                            >
                           {/if}
                         </div>
                       </div>
@@ -280,10 +360,8 @@
                 </ItemListContainer>
               </div>
             </div>
-          {/if}
 
           <!-- Quests on this map -->
-          {#if mapQuests.length > 0}
             <div class="flex flex-col min-w-0">
               <div class="column-wrapper">
                 <ItemListContainer classname="scrollable-container">
@@ -309,12 +387,16 @@
                         href="/quests/{questMap.quest_id}"
                         class="p-3 rounded bg-surface-600 hover:bg-surface-500 transition-colors"
                       >
-                        <p class="font-semibold wrap-break-word">{questMap.quest_name ?? 'Unknown Quest'}</p>
+                        <p class="font-semibold wrap-break-word">
+                          {questMap.quest_name ?? 'Unknown Quest'}
+                        </p>
                         {#if questMap.quest_level}
                           <p class="text-sm text-gray-400">Level {questMap.quest_level}</p>
                         {/if}
                         {#if questMap.required_level}
-                          <p class="text-xs text-gray-500">Required: Lv. {questMap.required_level}</p>
+                          <p class="text-xs text-gray-500">
+                            Required: Lv. {questMap.required_level}
+                          </p>
                         {/if}
                       </a>
                     {:else}
@@ -324,9 +406,7 @@
                 </ItemListContainer>
               </div>
             </div>
-          {/if}
         </div>
-      {/if}
 
       <SupportNotice />
     </div>

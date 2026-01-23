@@ -1,3 +1,17 @@
+export enum QuestType {
+  EpicQuest = 0,
+  WorldQuest = 1,
+  EventQuest = 2,
+  DailyMission = 3, // Navigator
+  FieldMission = 4, // Exploration
+  EventMission = 5,
+  GuildQuest = 6,
+  MentoringMission = 7,
+  FieldQuest = 8,
+  AllianceQuest = 9,
+  WeddingMission = 10,
+}
+
 export interface Quest {
   id: number;
   name: string;
@@ -6,6 +20,7 @@ export interface Quest {
   completeDescription: string;
   questLevel: number;
   requiredLevel: number;
+  questType: number;
   requiredQuest: {
     Id: number;
     Name: string;
@@ -48,3 +63,32 @@ export interface QuestItem {
 }
 
 export type SearchQuest = Pick<Quest, 'id' | 'name'>;
+
+export function getQuestTypeName(questType: number): string {
+  switch (questType) {
+    case QuestType.EpicQuest:
+      return 'Epic Quest';
+    case QuestType.WorldQuest:
+      return 'World Quest';
+    case QuestType.EventQuest:
+      return 'Event Quest';
+    case QuestType.DailyMission:
+      return 'Daily Mission';
+    case QuestType.FieldMission:
+      return 'Field Mission';
+    case QuestType.EventMission:
+      return 'Event Mission';
+    case QuestType.GuildQuest:
+      return 'Guild Quest';
+    case QuestType.MentoringMission:
+      return 'Mentoring Mission';
+    case QuestType.FieldQuest:
+      return 'Field Quest';
+    case QuestType.AllianceQuest:
+      return 'Alliance Quest';
+    case QuestType.WeddingMission:
+      return 'Wedding Mission';
+    default:
+      return 'Unknown Quest Type';
+  }
+}

@@ -20,6 +20,15 @@ export const load = (async ({ params }) => {
     throw redirect(303, '/quests');
   }
 
+  // Fetch maps where this quest progresses
+  const questMaps = await prisma.$queryRaw<Array<{ id: number; name: string }>>`
+    SELECT DISTINCT m.id, m.name
+    FROM quest_maps qm
+    JOIN maps m ON qm.map_id = m.id
+    WHERE qm.quest_id = ${quest.id}
+    ORDER BY m.name ASC
+  `;
+
   const result: Quest = quest as unknown as Quest;
 
   if (quest.startNpcId) {
@@ -118,7 +127,8 @@ export const load = (async ({ params }) => {
 
   return {
     props: {
-      quest: result
+      quest: result,
+      questMaps
     }
   };
 }) satisfies PageServerLoad;

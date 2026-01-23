@@ -19,14 +19,14 @@
   function filterList() {
     let result = boxContent.filter((x) => {
       if (filterJob === 0) {
-        return x.item1.job_limit.includes(filterJob) && x.item1.job_recommend.includes(filterJob);
+        return x.job_limit.includes(filterJob) && x.job_recommend.includes(filterJob);
       }
-      return x.item1.job_limit.includes(filterJob) || x.item1.job_recommend.includes(filterJob);
+      return x.job_limit.includes(filterJob) || x.job_recommend.includes(filterJob);
     });
 
     if (filterJob !== 0) {
       result = result.concat(
-        boxContent.filter((x) => x.item1.job_limit.includes(0) && x.item1.job_recommend.includes(0))
+        boxContent.filter((x) => x.job_limit.includes(0) && x.job_recommend.includes(0))
       );
     }
     filtered = result;
@@ -57,6 +57,7 @@
                 }
                 filterList();
               }}
+              title={Job[job]}
             >
               <img
                 src={url(`/resource/icons/job/${job}.png`)}
@@ -81,13 +82,13 @@
             class="unstyled flex items-center gap-4"
           >
             <ItemImage
-              iconPath={content.item1.icon_path}
+              iconPath={content.icon_path}
               rarity={content.rarity}
-              name={content.item1.name}
+              name={content.name}
               minCount={content.min_count}
               maxCount={content.max_count}
             />
-            {content.item1.name}
+            {content.name}
           </a>
         {/each}
       </div>
@@ -105,13 +106,13 @@
         id={String(content.item_id)}
       >
         <ItemImage
-          iconPath={content.item1.icon_path}
+          iconPath={content.icon_path}
           rarity={content.rarity}
-          name={content.item1.name}
+          name={content.name}
           minCount={content.min_count}
           maxCount={content.max_count}
         />
-        <p>{content.item1.name}</p>
+        <p>{content.name}</p>
       </a>
     {/each}
   </ItemListContainer>

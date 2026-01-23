@@ -20,21 +20,26 @@ export const load = (async ({ params }) => {
     throw redirect(303, '/items');
   }
 
-  const boxContent = await prisma.item_boxes.findMany({
-    where: {
-      box_id: item.box_id
-    },
-    include: {
-      item1: {
-        select: {
-          name: true,
-          icon_path: true,
-          job_limit: true,
-          job_recommend: true
-        }
-      }
-    }
-  });
+  const boxContent = await prisma.$queryRaw<Array<{
+    uid: number;
+    box_id: number;
+    item_id: number;
+    item_id2: number;
+    min_count: number;
+    max_count: number;
+    rarity: number;
+    smart_drop_rate: number;
+    group_drop_id: number;
+    name: string;
+    icon_path: string;
+    job_limit: string;
+    job_recommend: string;
+  }>>`
+    SELECT ib.*, i.name, i.icon_path, i.job_limit, i.job_recommend
+    FROM item_boxes ib
+    JOIN items i ON ib.item_id = i.id
+    WHERE ib.box_id = ${item.box_id}
+  `;
 
   const additionalEffectDescriptions = [];
   if (item.additional_effects) {

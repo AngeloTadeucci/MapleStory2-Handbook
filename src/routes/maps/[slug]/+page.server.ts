@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import DBClient from '$lib/prismaClient';
 import { redirect } from '@sveltejs/kit';
-import type { MapNpc, MapPortal, QuestMap } from '$lib/types/Map';
+import type { MapNpc, MapMob, MapPortal, QuestMap } from '$lib/types/Map';
 
 const prisma = DBClient.getInstance().prisma;
 
@@ -30,6 +30,15 @@ export const load = (async ({ params }) => {
     JOIN npcs n ON mn.npc_id = n.id
     WHERE mn.map_id = ${mapId}
     ORDER BY n.name ASC
+  `;
+
+  // Fetch Mobs on this map with NPC details
+  const mapMobs = await prisma.$queryRaw<MapMob[]>`
+    SELECT mm.*, n.name as npc_name, n.portrait, n.npc_type, n.is_boss, n.level
+    FROM map_mobs mm
+    JOIN npcs n ON mm.npc_id = n.id
+    WHERE mm.map_id = ${mapId}
+    ORDER BY n.level DESC, n.name ASC
   `;
 
   // Fetch portals with destination map names
@@ -72,6 +81,7 @@ export const load = (async ({ params }) => {
     props: {
       map,
       mapNpcs,
+      mapMobs,
       mapPortals,
       mapQuests,
       revivalReturnMap,

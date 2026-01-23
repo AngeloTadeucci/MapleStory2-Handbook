@@ -6,13 +6,33 @@
 
   interface Props {
     npc: Npc;
+    npcMaps?: Array<{ id: number; name: string }>;
   }
 
-  let { npc }: Props = $props();
+  let { npc, npcMaps = [] }: Props = $props();
   // todo:
   // - skills
 
   let toggleStats: boolean = $state(false);
+
+  // Parse field_metadata if it's a string
+  const fieldMetadata = $derived.by(() => {
+    if (!npc.field_metadata) return [];
+    if (typeof npc.field_metadata === 'string') {
+      try {
+        return JSON.parse(npc.field_metadata);
+      } catch {
+        return [];
+      }
+    }
+    return npc.field_metadata;
+  });
+
+  // Filter out maps already in fieldMetadata from npcMaps
+  const filteredNpcMaps = $derived.by(() => {
+    const fieldMapIds = fieldMetadata.map((field: { Item1: string; Item2: number }) => field.Item2);
+    return npcMaps.filter(map => !fieldMapIds.includes(map.id));
+  });
 </script>
 
 <ItemListContainer>
@@ -64,24 +84,42 @@
         Shop ID: {npc.shop_id}
       </p>
     {/if}
-    {#if npc.field_metadata?.length > 0}
+    {#if fieldMetadata.length > 0}
+      {@const validFields = fieldMetadata.filter((field: { Item1: string; Item2: number }) => field.Item1 && field.Item1.trim() !== '')}
+      {#if validFields.length > 0}
+        <hr class="my-4" />
+        <div class="flex flex-col">
+          {#if npc.npc_type === 0}
+            Main Habitat:
+          {:else}
+            Found in:
+          {/if}
+          <div>
+            {#each validFields as field, index}
+              <Link href={`/maps/${field.Item2}`}>
+                {field.Item1}
+              </Link>
+              {#if index < validFields.length - 1}
+                <span class="-ml-1">, </span>
+              {/if}
+            {/each}
+          </div>
+        </div>
+      {/if}
+    {/if}
+    {#if filteredNpcMaps.length > 0}
       <hr class="my-4" />
       <div class="flex flex-col">
-        {#if npc.npc_type === 0}
-          Main Habitat:
-        {:else}
-          Found in:
-        {/if}
-        <div>
-          {#each npc.field_metadata as field, index}
-            <Link href={`/maps/${field.Item2}`}>
-              {field.Item1}
-            </Link>
-            {#if index < npc.field_metadata.length - 1}
-              <span class="-ml-1">, </span>
-            {/if}
+        Also found at:
+        <ul>
+          {#each filteredNpcMaps as map}
+            <li>
+              <Link href={`/maps/${map.id}`}>
+                {map.name}
+              </Link>
+            </li>
           {/each}
-        </div>
+        </ul>
       </div>
     {/if}
   </div>

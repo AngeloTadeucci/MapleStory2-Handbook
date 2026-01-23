@@ -4,10 +4,10 @@
   import type { PageData } from './$types';
   import { onMount } from 'svelte';
   import type { Quest } from '$lib/types/Quest';
+  import { getQuestTypeName } from '$lib/types/Quest';
   import ItemListContainer from '$lib/components/item/ItemListContainer.svelte';
   import Link from '$lib/components/Link.svelte';
   import { closeMissingTags, unescapeHtml } from '$lib/helpers/htmlParser';
-  import ItemImage from '$lib/components/item/ItemImage.svelte';
   import Rewards from '$lib/components/quest/Rewards.svelte';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
 
@@ -18,6 +18,7 @@
   let { data }: Props = $props();
 
   const quest = $derived(data.props.quest as unknown as Quest);
+  const questMaps = $derived(data.props.questMaps as Array<{ id: number; name: string }>);
 
   async function incrementViewCount() {
     await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
@@ -57,10 +58,11 @@
       <ItemListContainer classname="relative">
         <img
           src={url('/quest/quest_epic.png')}
-          class="absolute w-[63px] h-[88px] -top-[10px]"
+          class="absolute w-15.75 h-22 -top-2.5"
           alt="Epic quest"
         />
-        <h1 class="text-center z-10 l">{quest.name}</h1>
+        <h1 class="text-center z-10">{quest.name}</h1>
+        <p class="text-center text-sm text-gray-400">{getQuestTypeName(quest.questType)}</p>
         <div class="relative flex items-center justify-center">
           <hr id="splitline" />
           <p class="absolute">Lv. {quest.requiredLevel}</p>
@@ -97,6 +99,16 @@
             <Link href={`/npcs/${quest.completeNpcId}`}>{quest.completeNpcName}</Link>
           </p>
         {/if}
+        {#if questMaps.length > 0}
+          <p>Quest progresses in:</p>
+          <ul class="ml-1">
+            {#each questMaps as map}
+              <li class="mt-1">
+                <Link href={`/maps/${map.id}`}>{map.name}</Link>
+              </li>
+            {/each}
+          </ul>
+        {/if}
         <hr id="splitline" />
         <p>{@html closeMissingTags(unescapeHtml(quest.description))}</p>
         {#if quest.manualDescription}
@@ -120,6 +132,14 @@
 </div>
 
 <style>
+  h1 {
+    text-shadow:
+      -1px -1px 0 #000,
+      1px -1px 0 #000,
+      -1px 1px 0 #000,
+      1px 1px 0 #000;
+  }
+
   ul {
     list-style-type: disc;
     list-style-position: inside;
@@ -138,6 +158,6 @@
     margin-bottom: 1rem;
 
     /* invert image colors */
-    /* filter: invert(1); */
+    filter: invert(1);
   }
 </style>

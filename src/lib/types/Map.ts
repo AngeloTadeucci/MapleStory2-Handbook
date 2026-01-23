@@ -56,6 +56,32 @@ export interface MapNpc {
   is_boss?: number | null;
 }
 
+export interface MapMob {
+  uid: number;
+  map_id: number;
+  spawn_point_id: number;
+  npc_id: number;
+  coord_x: number;
+  coord_y: number;
+  coord_z: number;
+  rotation_x: number;
+  rotation_y: number;
+  rotation_z: number;
+  min_difficulty?: number | null;
+  max_difficulty?: number | null;
+  population?: number | null;
+  cooldown?: number | null;
+  pet_population?: number | null;
+  pet_spawn_rate?: number | null;
+
+  // Joined NPC data
+  npc_name?: string;
+  portrait?: string | null;
+  npc_type?: number | null;
+  is_boss?: number | null;
+  level?: number | null;
+}
+
 export interface MapPortal {
   uid: number;
   map_id: number;

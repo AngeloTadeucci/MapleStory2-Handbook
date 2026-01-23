@@ -77,7 +77,7 @@
     </Combobox.Control>
     <Portal>
       <Combobox.Positioner>
-        <Combobox.Content class="bg-surface-700 border border-surface-600 rounded-md shadow-xl z-50">
+        <Combobox.Content class="bg-surface-700 border border-surface-600 rounded-md shadow-xl z-50 max-h-70 overflow-y-auto">
           {#each items as item (item.value)}
             <Combobox.Item {item} class="flex items-center justify-between text-surface-50 hover:bg-surface-600 data-highlighted:bg-surface-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-surface-950 px-3 py-2 cursor-pointer">
               <Combobox.ItemText>{item.label}</Combobox.ItemText>
@@ -103,3 +103,29 @@
     </div>
   {/if}
 </div>
+
+<style>
+  /* Force scrollbar to always show in Firefox */
+  :global([data-scope="combobox"][data-part="content"]) {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+  }
+
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  :global([data-scope="combobox"][data-part="content"]::-webkit-scrollbar) {
+    width: 8px;
+  }
+
+  :global([data-scope="combobox"][data-part="content"]::-webkit-scrollbar-track) {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  :global([data-scope="combobox"][data-part="content"]::-webkit-scrollbar-thumb) {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+  }
+
+  :global([data-scope="combobox"][data-part="content"]::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(255, 255, 255, 0.4);
+  }
+</style>

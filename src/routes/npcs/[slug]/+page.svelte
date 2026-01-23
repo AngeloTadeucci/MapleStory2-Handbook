@@ -16,6 +16,7 @@
   let { data }: Props = $props();
 
   const npc = $derived(data.props.npc as unknown as Npc);
+  const npcMaps = $derived(data.props.npcMaps as Array<{ id: number; name: string }>);
 
   let gltfExists: boolean = $state(false);
 
@@ -71,7 +72,7 @@
   <div class="main-container grid-image mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
     <h1>{npc.title ?? npc.title} {npc.name}</h1>
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
-      <NpcDetails {npc} />
+      <NpcDetails {npc} {npcMaps} />
       {#if npc.kfm.length > 0 && gltfExists}
         <div>
           <div class="model px-3 pt-2">
