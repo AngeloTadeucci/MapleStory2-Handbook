@@ -186,6 +186,10 @@
               <span class="badge bg-blue-600 text-white">Flight Enabled</span>
             {/if}
 
+            {#if map.climb_enabled === 1}
+              <span class="badge bg-teal-600 text-white">Climb Enabled</span>
+            {/if}
+
             {#if map.home_returnable === 1}
               <span class="badge bg-purple-600 text-white">Home Returnable</span>
             {/if}

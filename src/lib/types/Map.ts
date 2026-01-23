@@ -14,6 +14,7 @@ export interface Map {
   max_capacity?: number | null;
   death_penalty?: number | null; // 0/1 boolean
   flight_enabled?: number | null; // 0/1 boolean
+  climb_enabled?: number | null; // 0/1 boolean
   home_returnable?: number | null; // 0/1 boolean
   is_tutorial_map?: number | null; // 0/1 boolean
   revival_return_map_id?: number | null;

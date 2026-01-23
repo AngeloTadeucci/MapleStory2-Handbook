@@ -20,16 +20,18 @@
     if (!npc.field_metadata) return [];
     if (typeof npc.field_metadata === 'string') {
       try {
-        return JSON.parse(npc.field_metadata);
+        const parsed = JSON.parse(npc.field_metadata);
+        return Array.isArray(parsed) ? parsed : [];
       } catch {
         return [];
       }
     }
-    return npc.field_metadata;
+    return Array.isArray(npc.field_metadata) ? npc.field_metadata : [];
   });
 
   // Filter out maps already in fieldMetadata from npcMaps
   const filteredNpcMaps = $derived.by(() => {
+    if (!fieldMetadata || fieldMetadata.length === 0) return npcMaps;
     const fieldMapIds = fieldMetadata.map((field: { Item1: string; Item2: number }) => field.Item2);
     return npcMaps.filter(map => !fieldMapIds.includes(map.id));
   });

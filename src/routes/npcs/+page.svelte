@@ -4,10 +4,13 @@
   import CopyId from '$lib/components/CopyId.svelte';
   import NpcImage from '$lib/components/npc/NpcImage.svelte';
   import PaginationWrapper from '$lib/components/PaginationWrapper.svelte';
+  import RangeSlider from '$lib/components/RangeSlider.svelte';
   import { url } from '$lib/helpers/addBasePath';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchNpc } from '$lib/types/Npc';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+  import ComboboxChips from '$lib/components/ComboboxChips.svelte';
+  import { NpcType, enumToWhitelist } from '$lib/Enums';
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
@@ -21,6 +24,12 @@
   let pageSize = $state(10);
   let totalItems = $state(0);
   const pageSizeOptions = [10, 25, 50, 100, 200];
+
+  // Filter state
+  let npcTypeList: string[] = $state([]);
+  let levelRange = $state<number[]>([0, 99]);
+  let isBossOnly = $state(false);
+  let hasShopOnly = $state(false);
 
   async function fetchData(clearCache: boolean) {
     let lastSearchTerm = searchTerm;
@@ -45,6 +54,26 @@
       {
         name: 'limit',
         value: pageSize
+      },
+      {
+        name: 'npcType',
+        value: npcTypeList.map((x) => NpcType[x as keyof typeof NpcType]).join(',')
+      },
+      {
+        name: 'minLevel',
+        value: levelRange[0] === 0 ? null : levelRange[0]
+      },
+      {
+        name: 'maxLevel',
+        value: levelRange[1] === 99 ? null : levelRange[1]
+      },
+      {
+        name: 'isBoss',
+        value: isBossOnly ? 'true' : null
+      },
+      {
+        name: 'hasShop',
+        value: hasShopOnly ? 'true' : null
       }
     ]);
 
@@ -100,6 +129,21 @@
       ? parseInt($page.url.searchParams.get('limit')!)
       : 10;
 
+    const npcType = $page.url.searchParams.get('npcType');
+    if (npcType) {
+      npcTypeList = npcType.split(',').map((x) => NpcType[x as keyof typeof NpcType].toString());
+    }
+
+    const minLevel = $page.url.searchParams.get('minLevel');
+    const maxLevel = $page.url.searchParams.get('maxLevel');
+    levelRange = [
+      minLevel ? parseInt(minLevel) : 0,
+      maxLevel ? parseInt(maxLevel) : 99
+    ];
+
+    isBossOnly = $page.url.searchParams.get('isBoss') === 'true';
+    hasShopOnly = $page.url.searchParams.get('hasShop') === 'true';
+
     // load first batch onMount
     fetchData(false);
   });
@@ -124,6 +168,14 @@
     fetchData(true);
   }
 
+  function updateParams(key: string, list: string[], enumerator: any) {
+    if (list.length === 0) {
+      $page.url.searchParams.delete(key);
+    } else {
+      $page.url.searchParams.set(key, list.map((x) => enumerator[x]).join(','));
+    }
+  }
+
   const debouncedSearch = debounce(
     async () => {
       $page.url.searchParams.set('search', searchTerm);
@@ -142,6 +194,41 @@
       maxWait: 1000
     }
   );
+
+  const debouncedLevelRangeChange = debounce(
+    async (prevRange: number[], newRange: number[]) => {
+      // Only fetch if values actually changed
+      if (prevRange[0] !== newRange[0] || prevRange[1] !== newRange[1]) {
+        if (newRange[0] !== 0) {
+          $page.url.searchParams.set('minLevel', newRange[0].toString());
+        } else {
+          $page.url.searchParams.delete('minLevel');
+        }
+
+        if (newRange[1] !== 99) {
+          $page.url.searchParams.set('maxLevel', newRange[1].toString());
+        } else {
+          $page.url.searchParams.delete('maxLevel');
+        }
+
+        currentPage = 1;
+        $page.url.searchParams.set('page', '0');
+
+        goto($page.url.href, { keepFocus: true, replaceState: true });
+        await fetchData(true);
+      }
+    },
+    300,
+    {
+      maxWait: 1000
+    }
+  );
+
+  function handleLevelRangeChange(details: { value: number[] }) {
+    const prevRange = [...levelRange];
+    levelRange = details.value;
+    debouncedLevelRangeChange(prevRange, details.value);
+  }
 </script>
 
 <svelte:head>
@@ -151,13 +238,115 @@
 <div class="mt-8 h-px"></div>
 <div class="main-container mx-4 rounded-xl px-5 pb-40 pt-2 lg:m-auto lg:w-3/4">
   <h1 class="mb-4 text-4xl font-bold">NPCs</h1>
-  <input
-    type="text"
-    placeholder="Search 🔎"
-    class="input w-1/2 px-4 py-2 lg:w-1/3 bg-surface-700 text-surface-50 border-transparent placeholder:text-surface-400"
-    bind:value={searchTerm}
-    onkeyup={debouncedSearch}
-  />
+  <div class="mb-4 flex items-center justify-between">
+    <input
+      type="text"
+      placeholder="Search 🔎"
+      class="input w-1/2 px-4 py-2 lg:w-1/3 bg-surface-700 text-surface-50 border-transparent placeholder:text-surface-400"
+      bind:value={searchTerm}
+      onkeyup={debouncedSearch}
+    />
+    <div>
+      <label class="label flex items-center justify-center gap-4 cursor-pointer">
+        <span>Clear filters</span>
+        <button
+          type="button"
+          class="btn-icon btn-icon-sm preset-filled flex items-center justify-center"
+          onclick={async () => {
+            $page.url.searchParams.delete('npcType');
+            $page.url.searchParams.delete('minLevel');
+            $page.url.searchParams.delete('maxLevel');
+            $page.url.searchParams.delete('isBoss');
+            $page.url.searchParams.delete('hasShop');
+            $page.url.searchParams.delete('search');
+            $page.url.searchParams.delete('page');
+            $page.url.searchParams.delete('limit');
+
+            npcTypeList = [];
+            levelRange = [1, 120];
+            isBossOnly = false;
+            hasShopOnly = false;
+
+            currentPage = 1;
+            pageSize = 10;
+            searchTerm = '';
+
+            goto($page.url.href, { keepFocus: true, replaceState: true });
+            await fetchData(true);
+          }}
+        >
+          <img src={url('/icons/filter_alt_off.svg')} width="24" alt="Clear filters" />
+        </button>
+      </label>
+    </div>
+  </div>
+  <div class="flex flex-col gap-3 lg:flex-row">
+    <label class="label w-full lg:w-1/2">
+      <span>Filter by NPC type</span>
+      <ComboboxChips
+        name="npcType"
+        bind:value={npcTypeList}
+        whitelist={enumToWhitelist(NpcType)}
+        placeholder="Select NPC type..."
+        onValueChange={async () => {
+          updateParams('npcType', npcTypeList, NpcType);
+          currentPage = 1;
+          $page.url.searchParams.set('page', '0');
+          goto($page.url.href, { keepFocus: true, replaceState: true });
+          await fetchData(true);
+        }}
+      />
+    </label>
+    <div class="w-full lg:w-1/2">
+      <RangeSlider
+        label="Level Range"
+        min={0}
+        max={99}
+        value={levelRange}
+        onValueChange={handleLevelRangeChange}
+      />
+    </div>
+  </div>
+  <div class="flex flex-col gap-3 lg:flex-row mt-3">
+    <label class="flex items-center space-x-2">
+      <input
+        class="checkbox bg-surface-700 border-surface-500 checked:bg-primary-500 checked:border-primary-500"
+        type="checkbox"
+        bind:checked={isBossOnly}
+        onchange={async () => {
+          if (isBossOnly) {
+            $page.url.searchParams.set('isBoss', 'true');
+          } else {
+            $page.url.searchParams.delete('isBoss');
+          }
+          currentPage = 1;
+          $page.url.searchParams.set('page', '0');
+          goto($page.url.href, { keepFocus: true, replaceState: true });
+          await fetchData(true);
+        }}
+      />
+      <span>Show bosses only</span>
+    </label>
+    <label class="flex items-center space-x-2">
+      <input
+        class="checkbox bg-surface-700 border-surface-500 checked:bg-primary-500 checked:border-primary-500"
+        type="checkbox"
+        bind:checked={hasShopOnly}
+        onchange={async () => {
+          if (hasShopOnly) {
+            $page.url.searchParams.set('hasShop', 'true');
+          } else {
+            $page.url.searchParams.delete('hasShop');
+          }
+          currentPage = 1;
+          $page.url.searchParams.set('page', '0');
+          goto($page.url.href, { keepFocus: true, replaceState: true });
+          await fetchData(true);
+        }}
+      />
+      <span>Show merchants only</span>
+    </label>
+  </div>
 
   {#if totalItems > 0}
     <PaginationWrapper

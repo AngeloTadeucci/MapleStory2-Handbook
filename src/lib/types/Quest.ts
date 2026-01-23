@@ -92,3 +92,48 @@ export function getQuestTypeName(questType: number): string {
       return 'Unknown Quest Type';
   }
 }
+
+export function questTypeToWhitelist(): string[] {
+  return [
+    'Epic Quest',
+    'World Quest',
+    'Event Quest',
+    'Daily Mission',
+    'Field Mission',
+    'Event Mission',
+    'Guild Quest',
+    'Mentoring Mission',
+    'Field Quest',
+    'Alliance Quest',
+    'Wedding Mission'
+  ];
+}
+
+export function getQuestTypeByDisplayName(displayName: string): number | undefined {
+  switch (displayName) {
+    case 'Epic Quest':
+      return QuestType.EpicQuest;
+    case 'World Quest':
+      return QuestType.WorldQuest;
+    case 'Event Quest':
+      return QuestType.EventQuest;
+    case 'Daily Mission':
+      return QuestType.DailyMission;
+    case 'Field Mission':
+      return QuestType.FieldMission;
+    case 'Event Mission':
+      return QuestType.EventMission;
+    case 'Guild Quest':
+      return QuestType.GuildQuest;
+    case 'Mentoring Mission':
+      return QuestType.MentoringMission;
+    case 'Field Quest':
+      return QuestType.FieldQuest;
+    case 'Alliance Quest':
+      return QuestType.AllianceQuest;
+    case 'Wedding Mission':
+      return QuestType.WeddingMission;
+    default:
+      return undefined;
+  }
+}

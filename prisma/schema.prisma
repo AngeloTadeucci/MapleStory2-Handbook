@@ -113,6 +113,7 @@ model maps {
   max_capacity          Int?    @default(0)
   death_penalty         Int?    @default(0) @db.TinyInt
   flight_enabled        Int?    @default(1) @db.TinyInt
+  climb_enabled         Int?    @default(1) @db.TinyInt
   home_returnable       Int?    @default(1) @db.TinyInt
   is_tutorial_map       Int?    @default(0) @db.TinyInt
   revival_return_map_id Int?    @default(0)

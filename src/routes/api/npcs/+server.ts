@@ -13,6 +13,11 @@ export const GET = (async ({ url }) => {
   const search = url.searchParams.get('search') ?? '';
   const limit = Number(url.searchParams.get('limit') ?? 20);
   const offset = Number(url.searchParams.get('page') ?? 0) * limit;
+  const npcTypeString = url.searchParams.get('npcType');
+  const minLevel = url.searchParams.get('minLevel');
+  const maxLevel = url.searchParams.get('maxLevel');
+  const isBoss = url.searchParams.get('isBoss') === 'true';
+  const hasShop = url.searchParams.get('hasShop') === 'true';
 
   if (search.includes('"')) {
     return json({ npcs: [], total: 0 });
@@ -20,10 +25,53 @@ export const GET = (async ({ url }) => {
 
   const searchString = `"%${search}%"`;
 
-  const npcsStatement = `SELECT id, name, portrait, title FROM maple2_codex.npcs WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${offset}`;
+  let npcsStatement = `SELECT id, name, portrait, title FROM maple2_codex.npcs WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
+
+  if (npcTypeString) {
+    npcsStatement += ` AND npc_type IN (${npcTypeString})`;
+  }
+
+  if (minLevel) {
+    npcsStatement += ` AND level >= ${Number(minLevel)}`;
+  }
+
+  if (maxLevel) {
+    npcsStatement += ` AND level <= ${Number(maxLevel)}`;
+  }
+
+  if (isBoss) {
+    npcsStatement += ` AND is_boss = 1`;
+  }
+
+  if (hasShop) {
+    npcsStatement += ` AND shop_id > 0`;
+  }
+
+  npcsStatement += ` LIMIT ${limit} OFFSET ${offset}`;
   const npcs = await prisma.$queryRawUnsafe<SearchNpc[]>(npcsStatement);
 
-  const totalStatement = `SELECT COUNT(*) as count FROM maple2_codex.npcs WHERE name LIKE ${searchString} OR id LIKE ${searchString}`;
+  let totalStatement = `SELECT COUNT(*) as count FROM maple2_codex.npcs WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
+
+  if (npcTypeString) {
+    totalStatement += ` AND npc_type IN (${npcTypeString})`;
+  }
+
+  if (minLevel) {
+    totalStatement += ` AND level >= ${Number(minLevel)}`;
+  }
+
+  if (maxLevel) {
+    totalStatement += ` AND level <= ${Number(maxLevel)}`;
+  }
+
+  if (isBoss) {
+    totalStatement += ` AND is_boss = 1`;
+  }
+
+  if (hasShop) {
+    totalStatement += ` AND shop_id > 0`;
+  }
+
   const npcCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(totalStatement);
   const total = Number(npcCount[0].count); // bigint here cast as number since it'll never get that big uwu
 
