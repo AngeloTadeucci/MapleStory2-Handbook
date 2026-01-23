@@ -79,15 +79,16 @@
       const tempAnimations: string[] = [];
       const fetchWithTimeout = (url: string, timeout = 5000) => {
         return Promise.race([
-          fetch(url),
+          fetch(url, { method: 'HEAD' }),
           new Promise<Response>((_, reject) =>
             setTimeout(() => reject(new Error('Timeout')), timeout)
           )
         ]);
       };
 
-      // Create a plain array copy to avoid proxy issues
-      const animationsToCheck = [...npc.animations];
+      // Parse JSON string to array
+      const animationsToCheck: string[] =
+        typeof npc.animations === 'string' ? JSON.parse(npc.animations) : npc.animations;
 
       const promises = animationsToCheck.map((animation: string) => {
         return (async () => {
@@ -96,7 +97,8 @@
             if (response.ok) {
               tempAnimations.push(animation);
             }
-          } catch (e) {
+          } catch {
+            // Timeout or network error - skip this animation
           }
         })();
       });
@@ -134,15 +136,24 @@
         onOpenChange={handleAnimationOpenChange}
         openOnClick
       >
-        <Combobox.Control class="w-full bg-surface-700 border-transparent rounded-md p-2 flex items-center cursor-pointer">
-          <Combobox.Input class="w-full bg-transparent text-surface-50 placeholder:text-surface-400 border-none focus:ring-0 cursor-pointer" />
+        <Combobox.Control
+          class="w-full bg-surface-700 border-transparent rounded-md p-2 flex items-center cursor-pointer"
+        >
+          <Combobox.Input
+            class="w-full bg-transparent text-surface-50 placeholder:text-surface-400 border-none focus:ring-0 cursor-pointer"
+          />
           <Combobox.Trigger class="text-surface-400 hover:text-surface-50" />
         </Combobox.Control>
         <Portal>
           <Combobox.Positioner>
-            <Combobox.Content class="bg-surface-700 border border-surface-600 rounded-md shadow-xl z-50">
+            <Combobox.Content
+              class="bg-surface-700 border border-surface-600 rounded-md shadow-xl z-50"
+            >
               {#each animationItems as item (item.value)}
-                <Combobox.Item {item} class="flex items-center justify-between text-surface-50 hover:bg-surface-600 data-highlighted:bg-surface-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-surface-950 px-3 py-2 cursor-pointer">
+                <Combobox.Item
+                  {item}
+                  class="flex items-center justify-between text-surface-50 hover:bg-surface-600 data-highlighted:bg-surface-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-surface-950 px-3 py-2 cursor-pointer"
+                >
                   <Combobox.ItemText>{item.label}</Combobox.ItemText>
                   <Combobox.ItemIndicator />
                 </Combobox.Item>

@@ -97,8 +97,9 @@
         ]);
       };
 
-      // Create a plain array copy to avoid proxy issues
-      const animationsToCheck = [...npc.animations];
+      // Parse JSON string to array
+      const animationsToCheck: string[] =
+        typeof npc.animations === 'string' ? JSON.parse(npc.animations) : npc.animations;
 
       const promises = animationsToCheck.map((animation: string) => {
         return (async () => {
