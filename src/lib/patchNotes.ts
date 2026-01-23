@@ -10,6 +10,19 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    version: '1.7.0',
+    date: '2026-06-23',
+    title: 'New Features & Improvements',
+    changes: [
+      { type: 'added', description: 'Added map details with Npcs, Mobs, Portals and Quests' },
+      { type: 'added', description: 'Added cross references between Npcs, Mobs, Portals and Quests' },
+      { type: 'added', description: 'Added maps where mobs can be found outside of the main habitat' },
+      { type: 'added', description: 'Added filters for Npcs and Quests search page'},
+      { type: 'fixed', description: 'Dropdowns without a max height' },
+      { type: 'fixed', description: 'All mobile layout issues' }
+    ]
+  },
+  {
     version: '1.6.0',
     date: '2026-01-19',
     title: '2026 Site Rework',
