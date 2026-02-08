@@ -52,55 +52,32 @@ export const POST = async ({ request }: RequestEvent) => {
 
   for (let i = 0; i < screenshots.length; i++) {
     const screenshot: string = screenshots[i];
-    let base64Data: string;
-    let fileName: string;
-
-    // Support both PNG and JPEG formats from client
-    if (screenshot.includes('data:image/png;base64,')) {
-      base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
-      fileName = `${baseFileName}${i}.png`;
-    } else if (
-      screenshot.includes('data:image/jpeg;base64,') ||
-      screenshot.includes('data:image/jpg;base64,')
-    ) {
-      base64Data = screenshot.replace(/^data:image\/(jpeg|jpg);base64,/, '');
-      fileName = `${baseFileName}${i}.jpg`;
-    } else {
+    if (!screenshot.includes('data:image/png;base64,')) {
       return new Response(JSON.stringify({ message: 'Invalid screenshot format' }), {
         status: 400
       });
     }
-
+    const fileName = `${baseFileName}${i}.png`;
+    const base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
     if (base64Data.length <= 0) {
       return new Response(JSON.stringify({ message: 'No screenshot data' }), {
         status: 400
       });
     }
-
     const processingFile = join(processingFolder, fileName);
     fs.writeFileSync(processingFile, base64Data, 'base64');
   }
 
-  // Verify at least one screenshot was saved (checking for both PNG and JPG)
-  const files = fs.readdirSync(processingFolder);
-  const hasScreenshots = files.some(
-    (f) => f.startsWith(baseFileName) && (f.endsWith('.png') || f.endsWith('.jpg'))
-  );
-  if (!hasScreenshots) {
+  if (!fs.existsSync(join(processingFolder, baseFileName) + '0.png')) {
     return new Response(JSON.stringify({ message: 'No screenshot saved' }), {
       status: 400
     });
   }
 
   try {
-    // Determine file extension based on what files were saved
-    const files = fs.readdirSync(processingFolder);
-    const hasPng = files.some((f) => f.endsWith('.png'));
-    const ext = hasPng ? 'png' : 'jpg';
-
     const gif = await convertToGif(
       processingFolder,
-      `${baseFileName}*.${ext}`,
+      `${baseFileName}*.png`,
       model,
       animation,
       framerate,

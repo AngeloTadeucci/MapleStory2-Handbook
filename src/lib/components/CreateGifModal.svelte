@@ -56,42 +56,6 @@
 
   let errors: ZodIssue[] = $state([]);
 
-  // Compress and resize image to reduce payload size
-  async function compressImage(
-    dataUrl: string,
-    maxWidth: number,
-    maxHeight: number
-  ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        let { width, height } = img;
-
-        // Calculate new dimensions while maintaining aspect ratio
-        if (width > maxWidth || height > maxHeight) {
-          const ratio = Math.min(maxWidth / width, maxHeight / height);
-          width = Math.floor(width * ratio);
-          height = Math.floor(height * ratio);
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Failed to get canvas context'));
-          return;
-        }
-
-        ctx.drawImage(img, 0, 0, width, height);
-        // Use JPEG with 0.85 quality - much smaller than PNG
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
-      };
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = dataUrl;
-    });
-  }
-
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     if (!modelViewer) {
@@ -111,32 +75,33 @@
 
     modelViewer.pause();
     modelViewer.currentTime = 0;
-    const screenshots: string[] = [];
+    const screenshots = [];
     const duration = modelViewer.duration;
-
-    // Limit max dimensions to reduce payload (max 512px to keep quality reasonable but size low)
-    const maxDimension = 512;
-    const targetWidth = Math.min(formData.width, maxDimension);
-    const targetHeight = Math.min(formData.height, maxDimension);
 
     const iIncrease = 1 / formData.framerate;
     for (let i = 0.0; i < duration; i += iIncrease) {
       modelViewer.currentTime = i;
       await new Promise((resolve) => setTimeout(resolve, 50));
       const blob = modelViewer.toDataURL();
-      // Compress each screenshot immediately
-      const compressed = await compressImage(blob, targetWidth, targetHeight);
-      screenshots.push(compressed);
+      screenshots.push(blob);
     }
 
     if (screenshots.length === 0) {
-      loading = false;
-      modelViewer.play();
       return;
     }
     modelViewer.play();
 
     statusMessage = 'Uploading frames...';
+
+    // Log payload size
+    const payload = JSON.stringify({
+      model: npc.kfm,
+      animation: selectedAnimation,
+      screenshots,
+      ...formData
+    });
+    const sizeInMB = (payload.length / 1024 / 1024).toFixed(2);
+    console.log(`[GIF Upload] Payload size: ${sizeInMB} MB (${screenshots.length} frames)`);
 
     try {
       const response = await fetch(`/api/gif`, {
@@ -144,12 +109,7 @@
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          model: npc.kfm,
-          animation: selectedAnimation,
-          screenshots,
-          ...formData
-        })
+        body: payload
       });
 
       loading = false;
