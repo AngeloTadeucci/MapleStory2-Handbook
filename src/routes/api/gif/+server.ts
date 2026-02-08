@@ -1,4 +1,4 @@
-import { json } from '@sveltejs/kit';
+import { json, type RequestEvent } from '@sveltejs/kit';
 import { exec } from 'child_process';
 import type { ExecException } from 'child_process';
 import fs from 'fs';
@@ -15,7 +15,7 @@ const schema = z.object({
   quality: z.number().int().min(1).max(100)
 });
 
-export const POST = async ({ request }) => {
+export const POST = async ({ request }: RequestEvent) => {
   const { model, animation, screenshots, framerate, height, width, quality } = await request.json();
 
   const validation = schema.safeParse({
@@ -52,32 +52,55 @@ export const POST = async ({ request }) => {
 
   for (let i = 0; i < screenshots.length; i++) {
     const screenshot: string = screenshots[i];
-    if (!screenshot.includes('data:image/png;base64,')) {
-      return new Response(JSON.stringify({ message: 'No screenshot' }), {
+    let base64Data: string;
+    let fileName: string;
+
+    // Support both PNG and JPEG formats from client
+    if (screenshot.includes('data:image/png;base64,')) {
+      base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
+      fileName = `${baseFileName}${i}.png`;
+    } else if (
+      screenshot.includes('data:image/jpeg;base64,') ||
+      screenshot.includes('data:image/jpg;base64,')
+    ) {
+      base64Data = screenshot.replace(/^data:image\/(jpeg|jpg);base64,/, '');
+      fileName = `${baseFileName}${i}.jpg`;
+    } else {
+      return new Response(JSON.stringify({ message: 'Invalid screenshot format' }), {
         status: 400
       });
     }
-    const fileName = `${baseFileName}${i}.png`;
-    const base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
+
     if (base64Data.length <= 0) {
       return new Response(JSON.stringify({ message: 'No screenshot data' }), {
         status: 400
       });
     }
+
     const processingFile = join(processingFolder, fileName);
     fs.writeFileSync(processingFile, base64Data, 'base64');
   }
 
-  if (!fs.existsSync(join(processingFolder, baseFileName) + '0.png')) {
+  // Verify at least one screenshot was saved (checking for both PNG and JPG)
+  const files = fs.readdirSync(processingFolder);
+  const hasScreenshots = files.some(
+    (f) => f.startsWith(baseFileName) && (f.endsWith('.png') || f.endsWith('.jpg'))
+  );
+  if (!hasScreenshots) {
     return new Response(JSON.stringify({ message: 'No screenshot saved' }), {
       status: 400
     });
   }
 
   try {
+    // Determine file extension based on what files were saved
+    const files = fs.readdirSync(processingFolder);
+    const hasPng = files.some((f) => f.endsWith('.png'));
+    const ext = hasPng ? 'png' : 'jpg';
+
     const gif = await convertToGif(
       processingFolder,
-      `${baseFileName}*.png`,
+      `${baseFileName}*.${ext}`,
       model,
       animation,
       framerate,
