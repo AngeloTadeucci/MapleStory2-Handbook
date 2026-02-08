@@ -8,11 +8,19 @@
 A full-stack SvelteKit web application that provides a searchable database of MapleStory 2 game content (items, NPCs, maps, quests, achievements, etc.). The frontend displays data parsed and populated by the backend GameParser.
 
 **Framework Stack:**
+- Svelte 5.47.1 (component framework with runes)
 - SvelteKit 2.50.0 with SSR (Node.js adapter)
 - TypeScript 5.9.3 (strict mode)
-- Tailwind CSS 4.1.18 with Skeleton UI
+- Tailwind CSS 4.1.18
+- Skeleton UI 4.10.0 (component library)
 - Prisma 7.2.0 (ORM - read-only access to database)
 - Vite 7.3.1 (build tool)
+
+**Key Libraries:**
+- Lucide Svelte 0.562.0 (icon library)
+- Zod 4.3.5 (schema validation)
+- Floating UI 1.7.4 (tooltips/popovers)
+- Rate Limiter Flexible 5.0.5 (API rate limiting)
 
 ## Project Structure
 
@@ -48,15 +56,27 @@ src/
 
 ### ⚠️ Prisma Schema Changes DO NOT Create New Data
 
-**Critical:** The Prisma schema (`prisma/schema.prisma`) is generated from the MySQL database structure created by the backend GameParser.
+**Critical:** The Prisma schema (`prisma/schema.prisma`) is pulled from the MySQL database using `pnpm db:pull`. The database structure is created and populated by the backend GameParser.
 
-- **DO NOT** modify the Prisma schema to add new tables/columns expecting them to create data
+**Data Flow for Schema Updates:**
+```
+Backend GameParser
+  ↓ (creates tables & populates)
+MySQL Database
+  ↓ (introspected via `pnpm db:pull`)
+prisma/schema.prisma
+  ↓ (generates types via `prisma generate`)
+TypeScript types in src/lib/generated/
+```
+
+- **DO NOT** manually modify the Prisma schema to add new tables/columns expecting them to create data
+- **DO NOT** edit `schema.prisma` directly - it will be overwritten on the next `pnpm db:pull`
 - **Changes to Prisma schema** only affect the TypeScript types available to the frontend
 - **New data** comes exclusively from the backend GameParser parsing raw MapleStory 2 game files
 - **To add new data types or fields:**
   1. Modify the backend GameParser parsers
-  2. Run GameParser to populate the database
-  3. Regenerate Prisma schema: `pnpm exec prisma generate`
+  2. Run GameParser to create/update database tables and populate data
+  3. Pull updated schema: `pnpm db:pull` (runs `prisma db pull && prisma generate`)
   4. Update frontend components to use new fields
 
 ### Database Connection
@@ -104,13 +124,16 @@ Located in `src/routes/api/*/+server.ts`
 
 ## Development & Build
 
+**⚠️ Important Development Notes:**
+- **Assume the dev server is already running** - Do NOT run `pnpm dev` unless explicitly asked
+- **For type checking**, use `pnpm check` instead of building
+- **Do NOT** run `pnpm build` just to check for type errors
+
 **Installation:**
 ```bash
 pnpm install
 # Extract static assets (7z files to static/resource/image/)
 pnpm exec prisma generate
-pnpm dev        # Dev server on port 4000
-pnpm build      # Production build
 ```
 
 **Important Build Step:**
@@ -119,11 +142,33 @@ pnpm build      # Production build
 - Generated types are output to `src/lib/generated/prisma/`
 
 **Commands:**
-- `pnpm dev` - Development server
-- `pnpm build` - Build for production
+- `pnpm dev` - Development server (port 4000) - **DO NOT RUN unless explicitly requested**
+- `pnpm check` - Type check with svelte-check - **USE THIS for type validation**
+- `pnpm check:watch` - Type check in watch mode
+- `pnpm build` - Build for production - **DO NOT use for type checking**
 - `pnpm preview` - Preview production build
-- `pnpm lint` - Run ESLint
+- `pnpm lint` - Run ESLint and Prettier checks
 - `pnpm format` - Auto-format code with Prettier
+- `pnpm db:pull` - Pull database schema and regenerate Prisma client
+
+## Development Workflow
+
+**Typical development process:**
+1. Make code changes in your editor
+2. Changes auto-reload in the running dev server (assume it's already running)
+3. Check types with `pnpm check` if needed
+4. Format code with `pnpm format` before committing
+5. Run `pnpm lint` to ensure code quality
+
+**DO NOT:**
+- Start the dev server (`pnpm dev`) unless explicitly asked
+- Build the project (`pnpm build`) to check for type errors
+- Modify Prisma schema expecting it to create new data
+
+**DO:**
+- Use `pnpm check` for type validation
+- Edit existing files rather than creating new ones when possible
+- Keep changes focused and minimal
 
 ## When to Contact Backend Team
 
