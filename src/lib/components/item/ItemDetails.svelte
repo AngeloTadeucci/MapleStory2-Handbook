@@ -437,7 +437,8 @@
   }
 
   .item-top__image {
-    margin-top: 40px;
+    /* margin-top: 40px; */
+    padding-top: 40px;
     margin-left: 15px;
   }
 
