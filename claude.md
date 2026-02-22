@@ -46,6 +46,43 @@ src/
 └── static/             # Static assets (images, 3D models, GIFs)
 ```
 
+## Svelte 5 Runes
+
+This project uses **Svelte 5 runes** - do NOT use Svelte 4 syntax.
+
+**Component state and props:**
+```svelte
+<script lang="ts">
+  // Props (replaces `export let`)
+  let { name, count = 0 }: { name: string; count?: number } = $props();
+
+  // Reactive state (replaces `let x` with `$:`)
+  let value = $state(0);
+
+  // Derived values (replaces `$: derived = ...`)
+  let doubled = $derived(value * 2);
+
+  // Side effects (replaces `$: { ... }` blocks)
+  $effect(() => {
+    console.log('value changed:', value);
+  });
+</script>
+```
+
+**DO NOT use Svelte 4 patterns:**
+- `export let prop` → use `$props()` instead
+- `$: reactive = ...` → use `$derived()` or `$effect()` instead
+- `on:click={handler}` → use `onclick={handler}` instead (Svelte 5 event syntax)
+
+## Tailwind CSS v4
+
+This project uses **Tailwind CSS v4** - do NOT generate v3-style config.
+
+- **No `tailwind.config.js`** - configuration is CSS-first, done in the main CSS file via `@theme`
+- **No `@apply` with v3 directives** - use utility classes directly
+- Import syntax: `@import "tailwindcss"` (not `@tailwind base/components/utilities`)
+- Custom theme values are defined with `@theme { --color-X: ...; }` in CSS
+
 ## Key Dependencies
 
 - **Backend Integration:** Prisma ORM connects to MySQL database populated by the backend GameParser
@@ -137,7 +174,7 @@ pnpm exec prisma generate
 ```
 
 **Important Build Step:**
-- `pnpm build` runs `bunx prisma generate && vite build`
+- `pnpm build` runs `pnpm exec prisma generate && vite build`
 - Prisma client is regenerated from schema.prisma
 - Generated types are output to `src/lib/generated/prisma/`
 
