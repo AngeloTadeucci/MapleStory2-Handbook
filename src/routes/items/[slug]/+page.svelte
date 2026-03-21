@@ -11,6 +11,7 @@
   import getGltfUrl from '$lib/getGltfUrl';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
   import { IconCode, Rarity, SlotName } from '$lib/Enums';
+  import FrogAppreciationMeter from '$lib/components/item/FrogAppreciationMeter.svelte';
 
   interface Props {
     data: PageData;
@@ -100,6 +101,11 @@
     &gt;
     <CopyId id={item.id} />
   </div>
+  {#if item.id === 30000071}
+    <div class="mx-4 mt-3">
+      <FrogAppreciationMeter />
+    </div>
+  {/if}
   <div class="main-container grid-image mx-4 mt-3 rounded-xl p-6 pb-40">
     <h1>{item.name}</h1>
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">

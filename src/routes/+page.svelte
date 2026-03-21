@@ -1,5 +1,6 @@
 <script lang="ts">
   import MostViewedSection from '../lib/components/MostViewedSection.svelte';
+  import FrogBanner from '../lib/components/FrogBanner.svelte';
   import PatchNotesSection from '../lib/components/PatchNotesSection.svelte';
   import type { PageData } from './$types';
 
@@ -21,6 +22,9 @@
 </svelte:head>
 
 <div class="px-4">
+  <div class="lg:m-auto min-[1500px]:w-3/4">
+    <FrogBanner />
+  </div>
   <div
     class="flex h-full flex-col items-start justify-center gap-2 rounded-xl bg-surface-500 py-8 md:flex-row md:gap-3 lg:m-auto lg:flex-row lg:gap-10 min-[1500px]:w-3/4"
   >

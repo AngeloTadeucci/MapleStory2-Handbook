@@ -234,3 +234,8 @@ model map_mobs {
   @@index([npc_id], map: "idx_map_mobs_npc_id")
   @@index([spawn_point_id], map: "idx_map_mobs_spawn_point")
 }
+
+model site_stats {
+  id                       Int @id @default(1)
+  frog_appreciation_count  Int @default(0)
+}
