@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { url } from '$lib/helpers/addBasePath';
 
   // April Fools: Only active on April 1st (UTC)
   const isAprilFools = () => {
@@ -196,7 +195,7 @@
       title="Click to appreciate the Young Frog!"
     >
       <img
-        src={url('/resource/image/item/icon/30000071.png')}
+        src={'/resource/image/item/icon/30000071.png'}
         alt="Young Frog"
         width="64"
         height="64"

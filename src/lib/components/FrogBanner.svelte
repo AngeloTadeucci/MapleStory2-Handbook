@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { url } from '$lib/helpers/addBasePath';
 
   // April Fools: Only active on April 1st (UTC)
   const isAprilFools = () => {
@@ -36,10 +35,10 @@
 </script>
 
 {#if showBanner}
-<a href={url('/items/30000071')} class="unstyled">
+<a href={'/items/30000071'} class="unstyled">
   <div class="frog-banner mb-4 flex items-center justify-center gap-4 rounded-lg bg-gradient-to-r from-green-900 via-green-800 to-green-900 p-3">
     <img
-      src={url('/resource/image/item/icon/30000071.png')}
+      src={'/resource/image/item/icon/30000071.png'}
       alt="Young Frog"
       width="40"
       height="40"
@@ -54,7 +53,7 @@
       </p>
     </div>
     <img
-      src={url('/resource/image/item/icon/30000071.png')}
+      src={'/resource/image/item/icon/30000071.png'}
       alt="Young Frog"
       width="40"
       height="40"
