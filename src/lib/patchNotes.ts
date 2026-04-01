@@ -10,6 +10,15 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    version: '1.8.0',
+    date: '2026-04-02',
+    title: 'Soundtrack Player',
+    changes: [
+      { type: 'added', description: 'Soundtrack page with 289 BGM tracks from the game' },
+      { type: 'added', description: 'Floating music player with play/pause, skip, shuffle, loop, and volume controls' }
+    ]
+  },
+  {
     version: '1.7.0',
     date: '2026-06-23',
     title: 'New Features & Improvements',
