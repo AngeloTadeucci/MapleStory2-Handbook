@@ -6,6 +6,9 @@
   import ItemListContainer from '$lib/components/item/ItemListContainer.svelte';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
   import NpcImage from '$lib/components/npc/NpcImage.svelte';
+  import { musicPlayer, type Track } from '$lib/stores/musicPlayer.svelte';
+  import { Play, Pause } from 'lucide-svelte';
+  import { bgmDisplayName } from '$lib/helpers/bgm';
 
   interface Props {
     data: PageData;
@@ -22,6 +25,26 @@
     data.props.revivalReturnMap as { id: number; name: string } | null
   );
   const enterReturnMap = $derived(data.props.enterReturnMap as { id: number; name: string } | null);
+  const bgmTrack = $derived(data.props.bgmTrack as { id: number; name: string; file_name: string; duration_seconds: number } | null);
+
+  function playBgm() {
+    if (!bgmTrack) return;
+    const track: Track = {
+      id: bgmTrack.id,
+      name: bgmTrack.name,
+      fileName: bgmTrack.file_name,
+      durationSeconds: Number(bgmTrack.duration_seconds)
+    };
+    if (musicPlayer.currentTrack?.id === track.id) {
+      musicPlayer.togglePlay();
+    } else {
+      musicPlayer.play(track, [track]);
+    }
+  }
+
+  let isBgmPlaying = $derived(
+    bgmTrack != null && musicPlayer.currentTrack?.id === bgmTrack.id && musicPlayer.isPlaying
+  );
 
   // Search filters
   let npcSearch = $state('');
@@ -118,6 +141,22 @@
 
           {#if map.description}
             <p class="mb-3">{map.description}</p>
+          {/if}
+
+          {#if bgmTrack}
+            <div class="mb-3">
+              <button
+                onclick={playBgm}
+                class="unstyled flex items-center gap-2 rounded-lg bg-surface-600 px-3 py-2 transition-colors hover:bg-surface-500"
+              >
+                {#if isBgmPlaying}
+                  <Pause size={16} class="text-primary-400" />
+                {:else}
+                  <Play size={16} class="text-primary-400" />
+                {/if}
+                <span class="text-sm text-surface-200">{bgmDisplayName(bgmTrack.name)}</span>
+              </button>
+            </div>
           {/if}
 
           {#if map.recommended_level}

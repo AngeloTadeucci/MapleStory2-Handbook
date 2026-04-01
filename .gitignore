@@ -18,3 +18,5 @@ gltf/
 static/gifs/
 /static/resource/image
 /.claude
+CLAUDE.local.md
+/plans
