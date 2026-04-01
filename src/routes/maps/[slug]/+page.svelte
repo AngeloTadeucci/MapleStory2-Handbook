@@ -254,6 +254,7 @@
       </div>
 
       <!-- Two column layout for NPCs, Mobs, Portals, and Quests -->
+      {#if mapNpcs.length > 0 || mapMobs.length > 0 || mapPortals.length > 0 || mapQuests.length > 0}
       <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- NPCs on this map -->
         <div class="flex flex-col min-w-0">
@@ -451,6 +452,7 @@
           </div>
         </div>
       </div>
+      {/if}
 
       <SupportNotice />
     </div>

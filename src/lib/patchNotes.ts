@@ -15,7 +15,8 @@ export const patchNotes: PatchNote[] = [
     title: 'Soundtrack Player',
     changes: [
       { type: 'added', description: 'Soundtrack page with 289 BGM tracks from the game' },
-      { type: 'added', description: 'Floating music player with play/pause, skip, shuffle, loop, and volume controls' }
+      { type: 'added', description: 'Floating music player with play/pause, skip, shuffle, loop, and volume controls' },
+      { type: 'changed', description: 'Map detail pages now hide the NPCs, Mobs, Portals, and Quests grid when all sections are empty' }
     ]
   },
   {
