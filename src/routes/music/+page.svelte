@@ -11,6 +11,12 @@
 	let selectedCategory = $state(data.category);
 	let sortBy = $state(data.sort);
 
+	$effect(() => {
+		searchTerm = data.search;
+		selectedCategory = data.category;
+		sortBy = data.sort;
+	});
+
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
 	const categories = Object.values(BgmCategory);
@@ -111,7 +117,7 @@
 				{#if isCurrentTrack(track) && musicPlayer.isPlaying}
 					<Pause size={20} class="text-primary-400" />
 				{:else}
-					<Play size={20} class="{isCurrentTrack(track) ? 'text-primary-400' : 'text-surface-400'}" />
+					<Play size={20} class={isCurrentTrack(track) ? 'text-primary-400' : 'text-surface-400'} />
 				{/if}
 			</div>
 			<div class="flex-1 truncate py-4 pr-6 text-left {isCurrentTrack(track) ? 'text-primary-300' : ''}">
