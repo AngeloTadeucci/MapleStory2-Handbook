@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite dev",
-    "build": "pnpm exec prisma generate && vite build",
+    "build": "7z x static/resource/item.7z -o static/resource/image/ -y && 7z x static/resource/portrait.7z -o static/resource/image/ -y && 7z x static/resource/trophy.7z -o static/resource/image/ -y && 7z x static/resource/map.7z.001 -o static/resource/image/ -y && 7z x static/resource/storybooks.7z.001 -o static/resource/image/ -y && pnpm exec prisma generate && vite build",
     "db:pull": "bunx prisma db pull && bunx prisma generate",
     "preview": "vite preview",
     "test": "playwright test",
