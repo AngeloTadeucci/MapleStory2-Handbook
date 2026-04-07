@@ -1,6 +1,7 @@
 <script lang="ts">
   import { storyBooks } from '$lib/storyBooks';
   import type { PageData } from './$types';
+  import { getImageUrl } from '$lib/getImageUrl';
 
   interface Props {
     data: PageData;
@@ -22,7 +23,7 @@
         <h2 class="text-xl font-bold mb-2">Book {data.props.bookId} - {book[0].toUpperCase()}</h2>
         <a class="bg-white w-full sm:w-auto" href={`/storybooks/${data.props.bookId}/${book[0]}`}>
           <img
-            src={`/resource/image/storybooks/${data.props.bookId}/${book[0]}/${book[1]?.at(0)}`}
+            src={getImageUrl(`/resource/image/storybooks/${data.props.bookId}/${book[0]}/${book[1]?.at(0)}`)}
             alt=""
             class="w-full sm:w-53.5 h-auto sm:h-75 cursor-pointer"
           />

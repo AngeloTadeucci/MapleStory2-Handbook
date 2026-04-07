@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { getImageUrl } from '$lib/getImageUrl';
 
   // April Fools: Only active on April 1st (UTC)
   const isAprilFools = () => {
@@ -195,7 +196,7 @@
       title="Click to appreciate the Young Frog!"
     >
       <img
-        src={'/resource/image/item/icon/30000071.png'}
+        src={getImageUrl('/resource/image/item/icon/30000071.png')}
         alt="Young Frog"
         width="64"
         height="64"

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getImageUrl } from '$lib/getImageUrl';
 
   type ItemImageProp = {
     iconPath: string;
@@ -29,7 +30,7 @@
     image = noImage;
   };
 
-  let image = $derived(iconPath === '' ? noImage : fixIconPath());
+  let image = $derived(iconPath === '' ? noImage : getImageUrl(fixIconPath()));
 </script>
 
 <div class="frame relative">

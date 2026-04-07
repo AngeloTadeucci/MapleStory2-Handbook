@@ -9,6 +9,8 @@
   import { musicPlayer, type Track } from '$lib/stores/musicPlayer.svelte';
   import { Play, Pause } from 'lucide-svelte';
   import { bgmDisplayName } from '$lib/helpers/bgm';
+  import { getImageUrl } from '$lib/getImageUrl';
+  import { PUBLIC_MODELS_URL } from '$env/static/public';
 
   interface Props {
     data: PageData;
@@ -112,7 +114,7 @@
   <meta property="og:description" content={map.description || 'Map in MapleStory 2'} />
   <meta
     property="og:image"
-    content={`https://handbook.tadeucci.dev/resource/image/map/minimap/${map.minimap}`}
+    content={`${PUBLIC_MODELS_URL}resource/image/map/minimap/${map.minimap}`}
   />
   <meta property="og:url" content={`https://handbook.tadeucci.dev/maps/${map.id}`} />
   <meta name="twitter:card" content="summary" />
@@ -121,7 +123,7 @@
 <div class="bg-surface-500 bg-opacity-60 relative">
   {#if map.bg}
     <img
-      src={`/resource/image/map/bg/${map.bg}`}
+      src={getImageUrl(`/resource/image/map/bg/${map.bg}`)}
       alt={map.name}
       class="absolute -z-10 w-full h-full"
     />
@@ -245,7 +247,7 @@
         {#if map.minimap}
           <ItemListContainer>
             <img
-              src={`/resource/image/map/minimap/${map.minimap.toLocaleLowerCase()}`}
+              src={getImageUrl(`/resource/image/map/minimap/${map.minimap.toLocaleLowerCase()}`)}
               alt={map.name}
               class="max-w-full max-h-120 object-contain"
             />

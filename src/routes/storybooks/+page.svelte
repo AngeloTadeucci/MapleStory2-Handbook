@@ -1,5 +1,6 @@
 <script lang="ts">
   import { storyBooks } from '$lib/storyBooks';
+  import { getImageUrl } from '$lib/getImageUrl';
 
   // Get unique book IDs with their available languages
   const booksWithLanguages = $derived(
@@ -27,7 +28,7 @@
         <h2 class="text-xl font-bold mb-2 text-center">Book {book.id}<br />{book.languages}</h2>
         <a class="relative bg-white" href={`/storybooks/${book.id}`}>
           <img
-            src={`/resource/image/storybooks/${book.id}/${book.firstLang}/${book.firstImage}`}
+            src={getImageUrl(`/resource/image/storybooks/${book.id}/${book.firstLang}/${book.firstImage}`)}
             alt=""
             class="w-53.5 h-75 cursor-pointer mx-auto"
           />

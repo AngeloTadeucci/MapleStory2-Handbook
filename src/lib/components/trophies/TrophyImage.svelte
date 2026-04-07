@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getImageUrl } from '$lib/getImageUrl';
 
   type TrophyImageProp = {
     icon: string;
@@ -12,7 +13,7 @@
     image = noImage;
   };
 
-  let image = $derived(icon === '' ? noImage : `/resource/image/trophy/${icon}`);
+  let image = $derived(icon === '' ? noImage : getImageUrl(`/resource/image/trophy/${icon}`));
 </script>
 
 <img

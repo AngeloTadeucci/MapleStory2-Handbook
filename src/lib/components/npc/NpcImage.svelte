@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getImageUrl } from '$lib/getImageUrl';
 
   type NpcImageProp = {
     portrait: string;
@@ -13,7 +14,7 @@
     image = noImage;
   };
 
-  let image = $derived(portrait === '' ? noImage : fixIconPath());
+  let image = $derived(portrait === '' ? noImage : getImageUrl(fixIconPath()));
 </script>
 
 <img src={image} width={60} height={60} alt={name} onerror={handleMissingImage} />

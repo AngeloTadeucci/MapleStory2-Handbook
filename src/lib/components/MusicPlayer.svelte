@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { musicPlayer } from '$lib/stores/musicPlayer.svelte';
+	import { getImageUrl } from '$lib/getImageUrl';
 	import { SkipBack, SkipForward, Play, Pause, X, Volume2, VolumeX, Shuffle, Repeat } from 'lucide-svelte';
 	import { formatDuration, bgmDisplayName } from '$lib/helpers/bgm';
 
@@ -50,7 +51,7 @@
 				<!-- Disc icon -->
 				<div class="flex justify-center py-3">
 					<div class="disc-icon" class:spinning={musicPlayer.isPlaying}>
-						<img src="/resource/image/item/icon/30000071.png" alt="frog" width="28" height="28" class="rounded-full" />
+						<img src={getImageUrl('/resource/image/item/icon/30000071.png')} alt="frog" width="28" height="28" class="rounded-full" />
 					</div>
 				</div>
 
@@ -148,7 +149,7 @@
 				title="Expand player"
 			>
 				<div class="disc-icon-mini" class:spinning={musicPlayer.isPlaying}>
-					<img src="/resource/image/item/icon/30000071.png" alt="frog" width="24" height="24" class="rounded-full" />
+					<img src={getImageUrl('/resource/image/item/icon/30000071.png')} alt="frog" width="24" height="24" class="rounded-full" />
 				</div>
 			</button>
 		{/if}

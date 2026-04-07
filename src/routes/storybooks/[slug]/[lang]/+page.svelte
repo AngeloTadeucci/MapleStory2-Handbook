@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { getImageUrl } from '$lib/getImageUrl';
   interface Props {
     data: PageData;
   }
@@ -31,7 +32,7 @@
     <div class="svelte-mz1063 lg:mt-7">
       {#each images as image}
         <img
-          src={`/resource/image/storybooks/${data.props.bookId}/${data.props.lang}/${image}`}
+          src={getImageUrl(`/resource/image/storybooks/${data.props.bookId}/${data.props.lang}/${image}`)}
           alt=""
           class="mb-1"
         />

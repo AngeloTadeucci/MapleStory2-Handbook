@@ -1,5 +1,6 @@
 <script lang="ts">
   import ItemImage from '$lib/components/item/ItemImage.svelte';
+  import { getImageUrl } from '$lib/getImageUrl';
   import type { Rewards } from '$lib/types/Quest';
   import { ExpType } from '$lib/Enums';
 
@@ -30,7 +31,7 @@
       <p class="meso mt-2 flex gap-1 items-center">
         {reward.Meso.toLocaleString()}
         <img
-          src="/resource/image/item/icon/90000001.png"
+          src={getImageUrl('/resource/image/item/icon/90000001.png')}
           alt="Meso"
           class="h-6.75 w-6.75"
         />
@@ -40,7 +41,7 @@
       <p class="rue mt-2 flex gap-1 items-center">
         {reward.Rue.toLocaleString()}
         <img
-          src="/resource/image/item/icon/90000013.png"
+          src={getImageUrl('/resource/image/item/icon/90000013.png')}
           alt="Rue"
           class="h-6.75 w-6.75"
         />

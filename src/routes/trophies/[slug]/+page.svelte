@@ -1,5 +1,6 @@
 <script lang="ts">
   import CopyId from '$lib/components/CopyId.svelte';
+  import { PUBLIC_MODELS_URL } from '$env/static/public';
   import TrophyGrade from '$lib/components/trophies/TrophyGrade.svelte';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
@@ -37,7 +38,7 @@
   <!-- Open graph -->
   <meta property="og:title" content={trophy.name} />
   <meta property="og:description" content={trophy.description.replace('{0}', Intl.NumberFormat().format(trophy.grades[0]?.conditionValue ?? 0)) || 'Trophy in MapleStory 2'} />
-  <meta property="og:image" content={`https://handbook.tadeucci.dev/resource/image/trophy/${trophy.icon}`} />
+  <meta property="og:image" content={`${PUBLIC_MODELS_URL}resource/image/trophy/${trophy.icon}`} />
   <meta property="og:url" content={`https://handbook.tadeucci.dev/trophies/${trophy.id}`} />
   <meta name="twitter:card" content="summary" />
 </svelte:head>

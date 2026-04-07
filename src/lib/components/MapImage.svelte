@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getImageUrl } from '$lib/getImageUrl';
 
   type MapImageProp = {
     icon: string;
@@ -12,7 +13,7 @@
     image = noImage;
   };
 
-  let image = $derived(icon === '' ? noImage : `/resource/image/map/icon/${icon}`);
+  let image = $derived(icon === '' ? noImage : getImageUrl(`/resource/image/map/icon/${icon}`));
 </script>
 
 <img src={image} width={60} height={60} alt={name} onerror={handleMissingImage} />
