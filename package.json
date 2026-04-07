@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vite dev",
-    "build": "pnpm exec prisma generate && vite build",
+    "build": "svelte-kit sync && pnpm exec prisma generate && vite build",
     "db:pull": "bunx prisma db pull && bunx prisma generate",
     "preview": "vite preview",
     "test": "playwright test",
