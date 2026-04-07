@@ -1,6 +1,6 @@
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from './generated/prisma/client';
-import { DATABASE_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 function parseConnectionUrl(url: string) {
 	const parsed = new URL(url);
@@ -18,7 +18,7 @@ class DBClient {
 	private static instance: DBClient;
 
 	private constructor() {
-		const config = parseConnectionUrl(DATABASE_URL);
+		const config = parseConnectionUrl(env.DATABASE_URL);
 		const adapter = new PrismaMariaDb({
 			host: config.host,
 			port: config.port,
