@@ -7,9 +7,9 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let searchTerm = $state(data.search);
-	let selectedCategory = $state(data.category);
-	let sortBy = $state(data.sort);
+	let searchTerm = $state('');
+	let selectedCategory = $state('all');
+	let sortBy = $state('name');
 
 	$effect(() => {
 		searchTerm = data.search;
