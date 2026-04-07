@@ -106,11 +106,11 @@ async function convertToGif(
   width: number,
   quality: number
 ) {
-  let appPath = process.cwd();
+  const appPath = process.cwd();
 
-  appPath = appPath.substring(0, appPath.lastIndexOf(process.platform === 'win32' ? '\\' : '/'));
-
-  const outputFolder = join(appPath, 'gifs', model);
+  const outputFolder = process.env.GIFS_OUTPUT_PATH
+    ? join(process.env.GIFS_OUTPUT_PATH, model)
+    : join(appPath, '..', 'gifs', model);
 
   const outputFileName = `${model}-${animation}-${crypto.randomUUID()}.gif`;
 
@@ -127,8 +127,9 @@ async function convertToGif(
       fs.mkdirSync(outputFolder, { recursive: true });
     }
 
+    const gifskiBin = process.env.GIFSKI_PATH ?? join(process.cwd(), 'bin', 'gifski');
     const gifski = exec(
-      `gifski --fps ${framerate} -H ${height} -W ${width} --quality ${quality} ${inputFile} -o ${outputFile} `, // -H 320 -W 320 --quality 70 --motion-quality 40 --lossy-quality 40
+      `${gifskiBin} --fps ${framerate} -H ${height} -W ${width} --quality ${quality} ${inputFile} -o ${outputFile} `, // -H 320 -W 320 --quality 70 --motion-quality 40 --lossy-quality 40
       function (error: ExecException | null) {
         if (error) {
           console.log(error.stack);
