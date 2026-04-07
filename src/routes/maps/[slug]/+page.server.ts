@@ -59,6 +59,18 @@ export const load = (async ({ params }) => {
     ORDER BY q.questLevel ASC, q.name ASC
   `;
 
+  // Fetch BGM track for this map
+  let bgmTrack = null;
+  if (map.bgm_event_id) {
+    const raw = await prisma.bgm_tracks.findFirst({
+      where: { event_id: map.bgm_event_id },
+      select: { id: true, name: true, file_name: true, duration_seconds: true }
+    });
+    if (raw) {
+      bgmTrack = { ...raw, duration_seconds: Number(raw.duration_seconds) };
+    }
+  }
+
   // Fetch revival and enter return map names if they exist
   let revivalReturnMap = null;
   let enterReturnMap = null;
@@ -85,7 +97,8 @@ export const load = (async ({ params }) => {
       mapPortals,
       mapQuests,
       revivalReturnMap,
-      enterReturnMap
+      enterReturnMap,
+      bgmTrack
     }
   };
 }) satisfies PageServerLoad;

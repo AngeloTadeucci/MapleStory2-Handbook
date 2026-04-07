@@ -7,7 +7,8 @@
     { name: 'Quests', path: '/quests', extraClass: 'hidden min-[900px]:flex' },
     { name: 'Trophies', path: '/trophies', extraClass: 'hidden lg:flex' },
     { name: 'Dyes', path: '/dyes', extraClass: 'hidden min-[1150px]:flex' },
-    { name: 'Story Books', path: '/storybooks', extraClass: 'hidden min-[1200px]:flex' }
+    { name: 'Story Books', path: '/storybooks', extraClass: 'hidden min-[1200px]:flex' },
+    { name: 'Soundtrack', path: '/music', extraClass: 'hidden min-[1350px]:flex' }
     // { name: 'Dungeons', path: '/dungeons' },
     // { name: 'Skills', path: '/skills' },
   ];

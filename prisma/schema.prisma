@@ -127,6 +127,7 @@ model maps {
   bounding_box_max_y    Int?    @default(0)
   bounding_box_max_z    Int?    @default(0)
   block_metadata        Json?
+  bgm_event_id          Int?    @default(0)
 }
 
 model achieves {
@@ -235,7 +236,18 @@ model map_mobs {
   @@index([spawn_point_id], map: "idx_map_mobs_spawn_point")
 }
 
-model site_stats {
-  id                       Int @id @default(1)
-  frog_appreciation_count  Int @default(0)
+model bgm_tracks {
+  id               Int     @id @default(autoincrement())
+  name             String  @db.VarChar(200)
+  file_name        String  @db.VarChar(200)
+  source_bank      String  @default("") @db.VarChar(100)
+  frequency        Int     @default(44100)
+  channels         Int     @default(2)
+  duration_seconds Decimal @default(0.00) @db.Decimal(8, 2)
+  loop_start       Int     @default(0)
+  loop_end         Int     @default(0)
+  event_id         Int     @default(0)
+  visit_count      Int     @default(0)
+
+  @@index([event_id], map: "idx_bgm_tracks_event_id")
 }
