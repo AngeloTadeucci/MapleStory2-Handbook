@@ -57,14 +57,25 @@ export const load = (async ({ params }) => {
     }
   }
 
+  const furnishingShop =
+    item.housing_category > 0
+      ? await prisma.furnishing_shop.findUnique({
+          where: {
+            item_id: item.id
+          }
+        })
+      : null;
+
   const result: Item = item as unknown as Item;
   result.is_outfit = item.is_outfit === 1;
+  result.furnishing_shop = furnishingShop;
 
   return {
     props: {
-      item,
+      item: result,
       boxContent,
-      additionalEffectDescriptions
+      additionalEffectDescriptions,
+      furnishingShop
     }
   };
 }) satisfies PageServerLoad;

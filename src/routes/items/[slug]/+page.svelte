@@ -19,7 +19,13 @@
 
   let { data }: Props = $props();
 
-  const item = $derived(data.props.item as unknown as Item);
+  const item = $derived.by(() => {
+    const itemData = data.props.item as unknown as Item;
+    return {
+      ...itemData,
+      furnishing_shop: data.props.furnishingShop ?? null
+    } satisfies Item;
+  });
   const boxContent = $derived(data.props.boxContent as unknown as ItemBox[]);
   const descriptions = $derived(
     data.props.additionalEffectDescriptions as unknown as AdditionalEffectDescription[]
