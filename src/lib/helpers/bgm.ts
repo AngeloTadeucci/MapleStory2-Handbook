@@ -36,8 +36,8 @@ export function bgmDisplayName(name: string): string {
 
 export function getBgmCategory(name: string): BgmCategory {
 	const n = name.toLowerCase();
-	if (n.startsWith('ddstop_')) return 'dance';
-	if (n.includes('boss') || n.includes('barlog')) return 'boss';
+	if (n.startsWith('ddstop_')) return BgmCategory.Dance;
+	if (n.includes('boss') || n.includes('barlog')) return BgmCategory.Boss;
 	if (
 		n.includes('wedding') ||
 		n.includes('weddingmarch') ||
@@ -47,7 +47,7 @@ export function getBgmCategory(name: string): BgmCategory {
 		n.includes('weddingvalley') ||
 		n.includes('cruisewedding')
 	)
-		return 'wedding';
+		return BgmCategory.Wedding;
 	if (
 		/_theme_\d/.test(n) &&
 		(n.includes('assassin') ||
@@ -62,8 +62,8 @@ export function getBgmCategory(name: string): BgmCategory {
 			n.includes('soulbinder') ||
 			n.includes('runeblader'))
 	)
-		return 'theme';
-	if (n.includes('field') || n.includes('_field_')) return 'field';
+		return BgmCategory.Theme;
+	if (n.includes('field') || n.includes('_field_')) return BgmCategory.Field;
 	if (
 		n.includes('dungeon') ||
 		n.includes('prison') ||
@@ -72,7 +72,7 @@ export function getBgmCategory(name: string): BgmCategory {
 		n.includes('darktower') ||
 		n.includes('laboratory')
 	)
-		return 'dungeon';
+		return BgmCategory.Dungeon;
 	if (
 		n.includes('arcade') ||
 		n.includes('event') ||
@@ -86,7 +86,7 @@ export function getBgmCategory(name: string): BgmCategory {
 		n.includes('hidenseek') ||
 		n.includes('mushroom')
 	)
-		return 'event';
+		return BgmCategory.Event;
 	if (
 		n.includes('henesys') ||
 		n.includes('tria') ||
@@ -112,6 +112,6 @@ export function getBgmCategory(name: string): BgmCategory {
 		n.includes('iceville') ||
 		n.includes('icevillage')
 	)
-		return 'town';
-	return 'other';
+		return BgmCategory.Town;
+	return BgmCategory.Other;
 }

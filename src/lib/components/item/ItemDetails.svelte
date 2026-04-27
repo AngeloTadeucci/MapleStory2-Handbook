@@ -7,6 +7,7 @@
   import ItemImage from './ItemImage.svelte';
   import ItemBasicAttributes from './ItemBasicAttributes.svelte';
   import ItemRandomAttributes from './ItemRandomAttributes.svelte';
+  import HousingBadge from './HousingBadge.svelte';
 
   interface Props {
     item: Item;
@@ -189,6 +190,26 @@
             </a>
           {/each}
         </ul>
+      </div>
+    {/if}
+    {#if item.housing_category > 0}
+      <hr id="splitline1" />
+      <div class="item-middle gap-2 pt-3">
+        <p class="font-semibold text-green">Housing</p>
+        <HousingBadge
+          category={item.housing_category}
+          tokenType={item.furnishing_shop?.token_type}
+          price={item.furnishing_shop?.price}
+          buyable={item.furnishing_shop?.buyable}
+        />
+        {#if item.housing_trophy_id > 0}
+          <p class="text-sm text-surface-300">
+            Trophy requirement: {item.housing_trophy_id}
+            {#if item.housing_trophy_level > 0}
+              Lv. {item.housing_trophy_level}
+            {/if}
+          </p>
+        {/if}
       </div>
     {/if}
     <hr id="splitline1" />
@@ -378,6 +399,27 @@
             </a>
           {/each}
         </ul>
+      </div>
+    {/if}
+
+    {#if item.housing_category > 0}
+      <hr class="border-[rgb(116,117,118)] mx-4" />
+      <div class="px-4 py-4 flex flex-col gap-2 text-sm">
+        <p class="font-semibold text-green">Housing</p>
+        <HousingBadge
+          category={item.housing_category}
+          tokenType={item.furnishing_shop?.token_type}
+          price={item.furnishing_shop?.price}
+          buyable={item.furnishing_shop?.buyable}
+        />
+        {#if item.housing_trophy_id > 0}
+          <p class="text-sm text-surface-300">
+            Trophy requirement: {item.housing_trophy_id}
+            {#if item.housing_trophy_level > 0}
+              Lv. {item.housing_trophy_level}
+            {/if}
+          </p>
+        {/if}
       </div>
     {/if}
 
