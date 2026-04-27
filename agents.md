@@ -201,6 +201,7 @@ pnpm exec prisma generate
 - Start the dev server (`pnpm dev`) unless explicitly asked
 - Build the project (`pnpm build`) to check for type errors
 - Modify Prisma schema expecting it to create new data
+- Commit changes unless the user explicitly asks for a commit
 
 **DO:**
 - Use `pnpm check` for type validation

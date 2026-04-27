@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import {
 	getHousingCategoryLabel,
 	getHousingTokenLabel,
+	isCatalogHousingItem,
 	isHousingCategory,
 	parseHousingFilterNumber
 } from '$lib/helpers/housing';
@@ -23,9 +24,16 @@ describe('housing helpers', () => {
 		expect(isHousingCategory(777)).toBe(false);
 	});
 
+	test('treats misc as housing only when shop metadata exists', () => {
+		expect(isCatalogHousingItem(1, false)).toBe(true);
+		expect(isCatalogHousingItem(10000, true)).toBe(true);
+		expect(isCatalogHousingItem(10000, false)).toBe(false);
+		expect(isCatalogHousingItem(0, true)).toBe(false);
+	});
+
 	test('formats furnishing token labels', () => {
-		expect(getHousingTokenLabel(0)).toBe('Meso');
-		expect(getHousingTokenLabel(1)).toBe('Meret');
+		expect(getHousingTokenLabel(1)).toBe('Meso');
+		expect(getHousingTokenLabel(3)).toBe('Meret');
 		expect(getHousingTokenLabel(9)).toBe('Token 9');
 	});
 

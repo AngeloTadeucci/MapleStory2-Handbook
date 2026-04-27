@@ -18,7 +18,7 @@ export const GET = (async ({ url }) => {
     return json({ items: [], total: 0 });
   }
 
-  const filters: string[] = ['i.housing_category > 0'];
+  const filters: string[] = ['i.housing_category > 0', '(i.housing_category <> 10000 OR fs.item_id IS NOT NULL)'];
   const searchString = `"%${search}%"`;
 
   if (search) {

@@ -8,6 +8,7 @@
   import ItemBasicAttributes from './ItemBasicAttributes.svelte';
   import ItemRandomAttributes from './ItemRandomAttributes.svelte';
   import HousingBadge from './HousingBadge.svelte';
+  import { isCatalogHousingItem } from '$lib/helpers/housing';
 
   interface Props {
     item: Item;
@@ -42,6 +43,9 @@
   };
 
   const fixedMainDescription = $derived(closeMissingTags(unescapeHtml(item.main_description), true));
+  const showHousingDetails = $derived(
+    isCatalogHousingItem(item.housing_category, item.furnishing_shop != null)
+  );
 </script>
 
 <div class="relative mt-2 flex flex-col">
@@ -192,7 +196,7 @@
         </ul>
       </div>
     {/if}
-    {#if item.housing_category > 0}
+    {#if showHousingDetails}
       <hr id="splitline1" />
       <div class="item-middle gap-2 pt-3">
         <p class="font-semibold text-green">Housing</p>
@@ -402,7 +406,7 @@
       </div>
     {/if}
 
-    {#if item.housing_category > 0}
+    {#if showHousingDetails}
       <hr class="border-[rgb(116,117,118)] mx-4" />
       <div class="px-4 py-4 flex flex-col gap-2 text-sm">
         <p class="font-semibold text-green">Housing</p>

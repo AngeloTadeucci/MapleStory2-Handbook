@@ -1,19 +1,83 @@
-<script>
+<script lang="ts">
+  import { tick } from 'svelte';
 
-  let menus = [
-    { name: 'Items', path: '/items', extraClass: 'hidden md:flex' },
-    { name: 'Housing', path: '/housing', extraClass: 'hidden md:flex' },
-    { name: 'NPCs', path: '/npcs', extraClass: 'hidden md:flex' },
-    { name: 'Maps', path: '/maps', extraClass: 'hidden min-[800px]:flex' },
-    { name: 'Quests', path: '/quests', extraClass: 'hidden min-[900px]:flex' },
-    { name: 'Trophies', path: '/trophies', extraClass: 'hidden lg:flex' },
-    { name: 'Dyes', path: '/dyes', extraClass: 'hidden min-[1150px]:flex' },
-    { name: 'Story Books', path: '/storybooks', extraClass: 'hidden min-[1200px]:flex' },
-    { name: 'Soundtrack', path: '/music', extraClass: 'hidden min-[1350px]:flex' }
+  type MenuItem = {
+    name: string;
+    path: string;
+  };
+
+  const menus: MenuItem[] = [
+    { name: 'Items', path: '/items' },
+    { name: 'NPCs', path: '/npcs' },
+    { name: 'Maps', path: '/maps' },
+    { name: 'Quests', path: '/quests' },
+    { name: 'Housing', path: '/housing' },
+    { name: 'Trophies', path: '/trophies' },
+    { name: 'Dyes', path: '/dyes' },
+    { name: 'Story Books', path: '/storybooks' },
+    { name: 'Soundtrack', path: '/music' }
     // { name: 'Dungeons', path: '/dungeons' },
     // { name: 'Skills', path: '/skills' },
   ];
+
   let open = $state(false);
+  let moreOpen = $state(false);
+  let visibleCount = $state(menus.length);
+  let navContent: HTMLDivElement | null = $state(null);
+  let measureContainer: HTMLDivElement | null = $state(null);
+  let moreMeasure: HTMLDivElement | null = $state(null);
+
+  const visibleMenus = $derived(menus.slice(0, visibleCount));
+  const overflowMenus = $derived(menus.slice(visibleCount));
+
+  async function recalculateVisibleCount() {
+    await tick();
+
+    if (!navContent || !measureContainer || !moreMeasure) {
+      return;
+    }
+
+    const availableWidth = navContent.clientWidth;
+    const itemWidths = Array.from(measureContainer.children).map(
+      (child) => (child as HTMLElement).offsetWidth
+    );
+    const moreWidth = moreMeasure.offsetWidth;
+
+    let usedWidth = 0;
+    let nextVisibleCount = itemWidths.length;
+
+    for (let index = 0; index < itemWidths.length; index++) {
+      const remainingAfterThis = itemWidths.length - index - 1;
+      const reserveMore = remainingAfterThis > 0 ? moreWidth : 0;
+
+      if (usedWidth + itemWidths[index] + reserveMore > availableWidth) {
+        nextVisibleCount = index;
+        break;
+      }
+
+      usedWidth += itemWidths[index];
+    }
+
+    visibleCount = Math.max(0, nextVisibleCount);
+
+    if (visibleCount === menus.length) {
+      moreOpen = false;
+    }
+  }
+
+  $effect(() => {
+    if (!navContent) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      recalculateVisibleCount();
+    });
+    resizeObserver.observe(navContent);
+    recalculateVisibleCount();
+
+    return () => resizeObserver.disconnect();
+  });
 </script>
 
 <nav class="flex h-32 items-center bg-surface-700 px-12 py-6 drop-shadow-lg">
@@ -28,21 +92,63 @@
     />
   </a>
 
-  <div class="hidden md:flex">
-    <div class="ml-10 mr-6 h-20 w-px border-l border-gray2"></div>
+  <div class="hidden min-w-0 flex-1 md:flex" bind:this={navContent}>
+    <div class="ml-8 mr-4 h-20 w-px border-l border-gray2"></div>
 
-    {#each menus as menu, index}
-      <div class={`items-center ${menu.extraClass} xl:`}>
+    {#each visibleMenus as menu}
+      <div class="flex shrink-0 items-center">
         <a href={menu.path} class="unstyled px-2 py-2 font-sans font-bold">{menu.name}</a>
-        {#if index !== menus.length - 1}
-          <div class="mx-6 h-14 w-px border-l border-gray2"></div>
-        {/if}
+        <div class="mx-3 h-14 w-px border-l border-gray2"></div>
+      </div>
+    {/each}
+
+    {#if overflowMenus.length > 0}
+    <div class="relative flex shrink-0 items-center">
+      <button
+        type="button"
+        class="unstyled px-2 py-2 font-sans font-bold"
+        onmouseenter={() => (moreOpen = true)}
+        onclick={() => (moreOpen = !moreOpen)}
+      >
+        More
+      </button>
+      {#if moreOpen}
+        <div
+          role="menu"
+          tabindex="-1"
+          class="absolute left-0 top-full z-30 min-w-40 rounded border border-gray2 bg-surface-700 py-2 shadow-lg"
+          onmouseenter={() => (moreOpen = true)}
+          onmouseleave={() => (moreOpen = false)}
+        >
+          {#each overflowMenus as menu}
+            <a href={menu.path} role="menuitem" class="unstyled block px-4 py-2 font-sans font-bold hover:bg-surface-600">
+              {menu.name}
+            </a>
+          {/each}
+        </div>
+      {/if}
+      <div class="mx-3 h-14 w-px border-l border-gray2"></div>
+    </div>
+    {/if}
+  </div>
+
+  <div class="pointer-events-none invisible fixed -left-[9999px] top-0 flex" aria-hidden="true" bind:this={measureContainer}>
+    {#each menus as menu}
+      <div class="flex shrink-0 items-center">
+        <a href={menu.path} class="unstyled px-2 py-2 font-sans font-bold">{menu.name}</a>
+        <div class="mx-3 h-14 w-px border-l border-gray2"></div>
       </div>
     {/each}
   </div>
+  <div class="pointer-events-none invisible fixed -left-[9999px] top-0 flex" aria-hidden="true" bind:this={moreMeasure}>
+    <div class="relative flex shrink-0 items-center">
+      <button type="button" class="unstyled px-2 py-2 font-sans font-bold">More</button>
+      <div class="mx-3 h-14 w-px border-l border-gray2"></div>
+    </div>
+  </div>
 
-  <div class="ml-auto hidden items-center md:flex">
-    <div class="ml-12 mr-12 h-20 w-px border-l border-gray2"></div>
+  <div class="hidden items-center md:flex">
+    <div class="ml-6 mr-8 h-20 w-px border-l border-gray2"></div>
 
     <a href="https://ko-fi.com/angelotadeucci" target="_blank" rel="noreferrer" title="Ko-fi">
       <img src="/kofi.png" width={109} height={45} alt="Ko-fi" class="cursor-pointer" />

@@ -33,8 +33,8 @@ export const HOUSING_CATEGORIES = [
 ] as const;
 
 export const HOUSING_TOKENS = [
-	{ value: 0, label: 'Meso' },
-	{ value: 1, label: 'Meret' }
+	{ value: 1, label: 'Meso' },
+	{ value: 3, label: 'Meret' }
 ] as const;
 
 const categoryLabels = new Map<number, string>(
@@ -50,6 +50,10 @@ export function getHousingCategoryLabel(category: number): string {
 
 export function isHousingCategory(category: number): boolean {
 	return categoryLabels.has(category);
+}
+
+export function isCatalogHousingItem(category: number, hasShopMetadata: boolean): boolean {
+	return category > 0 && (category !== 10000 || hasShopMetadata);
 }
 
 export function getHousingTokenLabel(tokenType: number): string {

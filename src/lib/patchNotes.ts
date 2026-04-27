@@ -10,6 +10,16 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    version: '1.9.0',
+    date: '2026-04-27',
+    title: 'Housing Catalog',
+    changes: [
+      { type: 'added', description: 'Housing catalog with search, category, currency, buyable filters, and pagination' },
+      { type: 'added', description: 'Housing item details with category, price, buyable state, and trophy requirements' },
+      { type: 'added', description: 'Housing navigation entry with responsive overflow menu support' }
+    ]
+  },
+  {
     version: '1.8.0',
     date: '2026-04-02',
     title: 'Soundtrack Player',

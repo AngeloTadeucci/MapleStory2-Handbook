@@ -101,45 +101,60 @@
 <div class="main-container mx-4 rounded-xl px-5 pb-10 pt-2 lg:m-auto lg:w-3/4">
   <h1 class="mb-4 text-4xl font-bold">Housing</h1>
 
-  <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+  <div class="mb-4 flex items-center">
     <input
       type="text"
-      placeholder="Search"
+      placeholder="Search 🔎"
       class="input w-full bg-surface-700 px-4 py-2 text-surface-50 placeholder:text-surface-400 lg:w-1/3"
       bind:value={searchTerm}
       oninput={debouncedSearch}
     />
+  </div>
 
-    <select
-      bind:value={selectedCategory}
-      onchange={resetAndFetch}
-      class="input bg-surface-700 px-3 py-2 text-surface-50"
-    >
-      <option value="">All Categories</option>
-      {#each HOUSING_CATEGORIES as category}
-        <option value={category.value}>{category.label}</option>
-      {/each}
-    </select>
+  <div class="flex flex-col gap-3 lg:flex-row">
+    <label class="label w-full lg:w-1/4">
+      <span>Filter by category</span>
+      <select
+        bind:value={selectedCategory}
+        onchange={resetAndFetch}
+        class="select w-full bg-surface-700 px-3 py-2 text-surface-50"
+      >
+        <option value="">All Categories</option>
+        {#each HOUSING_CATEGORIES as category}
+          <option value={category.value.toString()}>{category.label}</option>
+        {/each}
+      </select>
+    </label>
 
-    <select
-      bind:value={selectedCurrency}
-      onchange={resetAndFetch}
-      class="input bg-surface-700 px-3 py-2 text-surface-50"
-    >
-      <option value="">All Currencies</option>
-      {#each HOUSING_TOKENS as token}
-        <option value={token.value}>{token.label}</option>
-      {/each}
-    </select>
+    <label class="label w-full lg:w-1/4">
+      <span>Filter by currency</span>
+      <select
+        bind:value={selectedCurrency}
+        onchange={resetAndFetch}
+        class="select w-full bg-surface-700 px-3 py-2 text-surface-50"
+      >
+        <option value="">All Currencies</option>
+        {#each HOUSING_TOKENS as token}
+          <option value={token.value.toString()}>{token.label}</option>
+        {/each}
+      </select>
+    </label>
 
-    <label class="flex items-center gap-2 text-sm text-surface-200">
-      <input type="checkbox" bind:checked={buyableOnly} onchange={resetAndFetch} />
-      Buyable
+    <label class="label flex w-full flex-col lg:w-1/4">
+      <span>&nbsp;</span>
+      <span class="flex min-h-10 items-center space-x-2">
+        <input
+          class="checkbox bg-surface-700 border-surface-500 checked:bg-primary-500 checked:border-primary-500"
+          type="checkbox"
+          bind:checked={buyableOnly}
+          onchange={resetAndFetch}
+        />
+        <span>Only show buyable</span>
+      </span>
     </label>
   </div>
 
-  <div class="mt-6 flex items-center justify-between gap-3">
-    <p class="text-sm text-surface-400">{totalItems} item{totalItems === 1 ? '' : 's'}</p>
+  <div class="mt-6 flex justify-center">
     <PaginationWrapper
       count={totalItems}
       {pageSize}
