@@ -51,6 +51,11 @@ export default interface Item {
   item_type: number;
   represent_option: number;
   additional_effects: string;
+  story_book_id: number;
+  housing_category: number;
+  housing_trophy_id: number;
+  housing_trophy_level: number;
+  furnishing_shop?: FurnishingShop | null;
 }
 
 export interface SetInfo {
@@ -102,6 +107,22 @@ export type SearchItem = Pick<
   | 'tooltip_description'
   | 'is_outfit'
 >;
+
+export interface FurnishingShop {
+  item_id: number;
+  buyable: number;
+  token_type: number;
+  price: number;
+}
+
+export interface HousingSearchItem extends SearchItem {
+  housing_category: number;
+  housing_trophy_id: number;
+  housing_trophy_level: number;
+  buyable: number | null;
+  token_type: number | null;
+  price: number | null;
+}
 
 export interface AdditionalEffectDescription {
   id: number;

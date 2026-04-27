@@ -2,6 +2,7 @@
 
   let menus = [
     { name: 'Items', path: '/items', extraClass: 'hidden md:flex' },
+    { name: 'Housing', path: '/housing', extraClass: 'hidden md:flex' },
     { name: 'NPCs', path: '/npcs', extraClass: 'hidden md:flex' },
     { name: 'Maps', path: '/maps', extraClass: 'hidden min-[800px]:flex' },
     { name: 'Quests', path: '/quests', extraClass: 'hidden min-[900px]:flex' },
