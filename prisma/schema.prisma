@@ -264,3 +264,34 @@ model furnishing_shop {
   @@index([buyable], map: "idx_furnishing_shop_buyable")
   @@index([token_type], map: "idx_furnishing_shop_token_type")
 }
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model drop_box_items {
+  drop_box_id     Int
+  group_id        Int
+  item_id         Int
+  item_id2        Int @default(0)
+  min_count       Int @default(1)
+  max_count       Int @default(1)
+  weight          Int @default(0)
+  rarity          Int @default(1) @db.TinyInt
+  smart_drop_rate Int @default(0)
+  enchant_level   Int @default(0)
+
+  @@index([drop_box_id], map: "idx_drop_box_items_drop_box_id")
+  @@index([item_id], map: "idx_drop_box_items_item_id")
+  @@index([item_id2], map: "idx_drop_box_items_item_id2")
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model npc_drop_boxes {
+  npc_id      Int
+  drop_box_id Int
+  drop_type   Int @default(0) @db.TinyInt
+
+  @@index([drop_box_id], map: "idx_npc_drop_boxes_drop_box_id")
+  @@index([npc_id, drop_type], map: "idx_npc_drop_boxes_npc_drop_type")
+  @@index([npc_id], map: "idx_npc_drop_boxes_npc_id")
+  @@ignore
+}
