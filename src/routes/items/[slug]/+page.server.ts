@@ -67,33 +67,21 @@ export const load = (async ({ params }) => {
         })
       : null;
 
-  const droppedByRaw = await prisma.$queryRaw<Array<{
-    id: number;
-    name: string;
-    portrait: string;
-    is_boss: number;
-    level: number;
-    drop_type: number | bigint;
-  }>>`
-    SELECT n.id, n.name, n.portrait, n.is_boss, n.level,
-           MIN(ndb.drop_type) AS drop_type
+  const droppedBy = await prisma.$queryRaw<DroppedByEntry[]>`
+    SELECT DISTINCT
+        n.id,
+        n.name,
+        n.portrait,
+        n.is_boss,
+        n.level,
+        ndb.drop_type
     FROM drop_box_items dbi
-    JOIN npc_drop_boxes ndb ON ndb.drop_box_id = dbi.drop_box_id
-    JOIN npcs n ON n.id = ndb.npc_id
+    INNER JOIN npc_drop_boxes ndb ON ndb.drop_box_id = dbi.drop_box_id
+    INNER JOIN npcs n ON n.id = ndb.npc_id
     WHERE dbi.item_id = ${item.id} OR dbi.item_id2 = ${item.id}
-    GROUP BY n.id, n.name, n.portrait, n.is_boss, n.level
     ORDER BY n.is_boss DESC, n.level ASC, n.name ASC
     LIMIT 200
   `;
-
-  const droppedBy: DroppedByEntry[] = droppedByRaw.map((row) => ({
-    id: row.id,
-    name: row.name,
-    portrait: row.portrait,
-    is_boss: row.is_boss,
-    level: row.level,
-    drop_type: Number(row.drop_type),
-  }));
 
   const result: Item = item as unknown as Item;
   result.is_outfit = item.is_outfit === 1;
