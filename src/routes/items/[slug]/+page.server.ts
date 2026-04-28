@@ -3,6 +3,7 @@ import DBClient from '$lib/prismaClient';
 import { redirect } from '@sveltejs/kit';
 import type Item from '$lib/types/Item';
 import type { DroppedByEntry } from '$lib/types/Item';
+import { getRequiredByQuests, getRewardedByQuests } from '$lib/server/questLinks';
 const prisma = DBClient.getInstance().prisma;
 
 export const load = (async ({ params }) => {
@@ -83,6 +84,11 @@ export const load = (async ({ params }) => {
     LIMIT 200
   `;
 
+  const [requiredByQuests, rewardedByQuests] = await Promise.all([
+    getRequiredByQuests(prisma, item.id),
+    getRewardedByQuests(prisma, item.id)
+  ]);
+
   const result: Item = item as unknown as Item;
   result.is_outfit = item.is_outfit === 1;
   result.furnishing_shop = furnishingShop;
@@ -93,7 +99,9 @@ export const load = (async ({ params }) => {
       boxContent,
       additionalEffectDescriptions,
       furnishingShop,
-      droppedBy
+      droppedBy,
+      requiredByQuests,
+      rewardedByQuests
     }
   };
 }) satisfies PageServerLoad;

@@ -2,6 +2,8 @@
   import ItemDetails from '$lib/components/item/ItemDetails.svelte';
   import ItemBoxContent from '$lib/components/item/ItemBoxContent.svelte';
   import ItemDroppedBy from '$lib/components/item/ItemDroppedBy.svelte';
+  import ItemRequiredByQuests from '$lib/components/item/ItemRequiredByQuests.svelte';
+  import ItemRewardedByQuests from '$lib/components/item/ItemRewardedByQuests.svelte';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import CopyId from '$lib/components/CopyId.svelte';
@@ -32,6 +34,8 @@
     data.props.additionalEffectDescriptions as unknown as AdditionalEffectDescription[]
   );
   const droppedBy = $derived(data.props.droppedBy);
+  const requiredByQuests = $derived(data.props.requiredByQuests);
+  const rewardedByQuests = $derived(data.props.rewardedByQuests);
 
   let gltfExists: boolean = $state(false);
 
@@ -117,7 +121,18 @@
   <div class="main-container grid-image mx-4 mt-3 rounded-xl p-6 pb-40">
     <h1>{item.name}</h1>
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
-      <ItemDetails {item} {descriptions} />
+      <div class="flex flex-col gap-2">
+        <ItemDetails {item} {descriptions} />
+        {#if droppedBy.length > 0}
+          <ItemDroppedBy {droppedBy} />
+        {/if}
+        {#if requiredByQuests.length > 0}
+          <ItemRequiredByQuests quests={requiredByQuests} />
+        {/if}
+        {#if rewardedByQuests.length > 0}
+          <ItemRewardedByQuests quests={rewardedByQuests} />
+        {/if}
+      </div>
       {#if item.kfms.length > 0 && gltfExists}
         <div class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-199.75 lg:w-143.75">
           <ItemRenderer {item} />
@@ -130,9 +145,6 @@
       {/if}
       {#if boxContent.length > 0}
         <ItemBoxContent {boxContent} />
-      {/if}
-      {#if droppedBy.length > 0}
-        <ItemDroppedBy {droppedBy} />
       {/if}
     </div>
     <SupportNotice />

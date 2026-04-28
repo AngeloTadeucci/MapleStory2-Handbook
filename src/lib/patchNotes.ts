@@ -10,6 +10,16 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    version: '1.10.0',
+    date: '2026-04-28',
+    title: 'Item Drops',
+    changes: [
+      { type: 'added', description: 'Item pages now show which NPCs drop the item, and NPC pages now list their item drops' },
+      { type: 'changed', description: 'Drop lists now use a cleaner compact layout with item names, quantities, and drop type details when relevant' },
+      { type: 'added', description: 'Added quest requirement and reward links to item, NPC, and quest pages' }
+    ]
+  },
+  {
     version: '1.9.0',
     date: '2026-04-27',
     title: 'Housing Catalog',

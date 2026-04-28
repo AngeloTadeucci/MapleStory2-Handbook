@@ -11,7 +11,7 @@
   let { droppedBy }: Props = $props();
 </script>
 
-<ItemListContainer gap={3}>
+<ItemListContainer gap={3} width={430}>
   <p class="font-semibold text-green">Dropped By</p>
   <div class="flex flex-col gap-2">
     {#each droppedBy as npc (npc.id + '-' + npc.drop_type)}

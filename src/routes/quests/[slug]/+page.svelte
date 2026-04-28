@@ -8,6 +8,7 @@
   import Link from '$lib/components/Link.svelte';
   import { closeMissingTags, unescapeHtml } from '$lib/helpers/htmlParser';
   import Rewards from '$lib/components/quest/Rewards.svelte';
+  import QuestObjectives from '$lib/components/quest/QuestObjectives.svelte';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
 
   interface Props {
@@ -18,6 +19,7 @@
 
   const quest = $derived(data.props.quest as unknown as Quest);
   const questMaps = $derived(data.props.questMaps as Array<{ id: number; name: string }>);
+  const objectives = $derived(data.props.objectives);
 
   async function incrementViewCount() {
     await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
@@ -119,6 +121,10 @@
         {/if}
         {#if quest.completeDescription}
           <p>{@html closeMissingTags(unescapeHtml(quest.completeDescription), true)}</p>
+        {/if}
+        {#if objectives.length > 0}
+          <hr class="splitline" />
+          <QuestObjectives {objectives} />
         {/if}
         <hr class="splitline" />
         {#if quest.startRewards}

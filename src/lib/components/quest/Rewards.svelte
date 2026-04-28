@@ -48,9 +48,13 @@
       </p>
     {/if}
     {#if reward.EssentialItem.length > 0}
-      <div class="flex mt-2 gap-2">
+      <div class="mt-2 flex flex-wrap gap-2">
         {#each reward.EssentialItem as item}
-          <a href={`/items/${item.Id}`} target="_blank">
+          <a
+            href={`/items/${item.Id}`}
+            target="_blank"
+            class="unstyled flex max-w-64 items-center gap-2 rounded p-1 transition-colors hover:bg-surface-600"
+          >
             <ItemImage
               iconPath={item.IconPath ?? ''}
               rarity={item.Rarity ?? ''}
@@ -58,14 +62,19 @@
               minCount={item.Amount}
               isOutfit={item.IsOutfit}
             />
+            <p class="min-w-0 text-sm font-semibold">{item.Name ?? item.Id}</p>
           </a>
         {/each}
       </div>
     {/if}
     {#if reward.EssentialJobItem.length > 0}
-      <div class="flex mt-2 gap-2">
+      <div class="mt-2 flex flex-wrap gap-2">
         {#each reward.EssentialJobItem as item}
-          <a href={`/items/${item.Id}`} target="_blank">
+          <a
+            href={`/items/${item.Id}`}
+            target="_blank"
+            class="unstyled flex max-w-64 items-center gap-2 rounded p-1 transition-colors hover:bg-surface-600"
+          >
             <ItemImage
               iconPath={item.IconPath ?? ''}
               rarity={item.Rarity ?? ''}
@@ -73,6 +82,7 @@
               minCount={item.Amount}
               isOutfit={item.IsOutfit}
             />
+            <p class="min-w-0 text-sm font-semibold">{item.Name ?? item.Id}</p>
           </a>
         {/each}
       </div>

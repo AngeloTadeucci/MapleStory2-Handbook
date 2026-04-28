@@ -64,6 +64,46 @@ export interface QuestItem {
 
 export type SearchQuest = Pick<Quest, 'id' | 'name'>;
 
+export interface QuestLink {
+  id: number;
+  name: string;
+  questType: number;
+  requiredLevel: number;
+}
+
+export interface QuestRewardLink extends QuestLink {
+  reward_kind: 'start' | 'complete';
+  count: number;
+}
+
+export interface QuestObjective {
+  id: number;
+  quest_id: number;
+  sequence: number;
+  condition_type: string;
+  required_value: number;
+  codes: Array<string | number>;
+  targets: Array<string | number>;
+  party_count: number | null;
+  guild_party_count: number | null;
+  items: QuestObjectiveItem[];
+  npcs: QuestObjectiveNpc[];
+}
+
+export interface QuestObjectiveItem {
+  id: number;
+  name: string;
+  icon_path: string;
+  rarity: number;
+  is_outfit: number;
+}
+
+export interface QuestObjectiveNpc {
+  id: number;
+  name: string;
+  portrait: string;
+}
+
 export function getQuestTypeName(questType: number): string {
   switch (questType) {
     case QuestType.EpicQuest:

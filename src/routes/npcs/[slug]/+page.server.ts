@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import DBClient from '$lib/prismaClient';
 import { redirect } from '@sveltejs/kit';
 import type { NpcDropEntry } from '$lib/types/Npc';
+import { getRequiredForQuests } from '$lib/server/questLinks';
 const prisma = DBClient.getInstance().prisma;
 
 export const load = (async ({ params }) => {
@@ -66,11 +67,14 @@ export const load = (async ({ params }) => {
     max_count: Number(row.max_count),
   }));
 
+  const requiredForQuests = await getRequiredForQuests(prisma, npc.id);
+
   return {
     props: {
       npc,
       npcMaps,
-      npcDrops
+      npcDrops,
+      requiredForQuests
     }
   };
 }) satisfies PageServerLoad;

@@ -2,6 +2,7 @@
   import CopyId from '$lib/components/CopyId.svelte';
   import NpcDetails from '$lib/components/npc/NpcDetails.svelte';
   import NpcDrops from '$lib/components/npc/NpcDrops.svelte';
+  import NpcRequiredForQuests from '$lib/components/npc/NpcRequiredForQuests.svelte';
   import type { Npc } from '$lib/types/Npc';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
@@ -18,6 +19,7 @@
   const npc = $derived(data.props.npc as unknown as Npc);
   const npcMaps = $derived(data.props.npcMaps as Array<{ id: number; name: string }>);
   const npcDrops = $derived(data.props.npcDrops);
+  const requiredForQuests = $derived(data.props.requiredForQuests);
 
   let gltfExists: boolean = $state(false);
 
@@ -77,10 +79,15 @@
   <div class="main-container grid-image mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
     <h1>{npc.title ?? npc.title} {npc.name}</h1>
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
-      <NpcDetails {npc} {npcMaps} />
-      {#if npcDrops.length > 0}
-        <NpcDrops drops={npcDrops} />
-      {/if}
+      <div class="flex flex-col gap-8">
+        <NpcDetails {npc} {npcMaps} />
+        {#if npcDrops.length > 0}
+          <NpcDrops drops={npcDrops} />
+        {/if}
+        {#if requiredForQuests.length > 0}
+          <NpcRequiredForQuests quests={requiredForQuests} />
+        {/if}
+      </div>
       {#if npc.kfm.length > 0 && gltfExists}
         <div>
           <!-- Desktop: with background image -->

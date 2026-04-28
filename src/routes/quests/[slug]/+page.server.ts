@@ -2,6 +2,7 @@ import type { PageServerLoad } from './$types';
 import DBClient from '$lib/prismaClient';
 import { redirect } from '@sveltejs/kit';
 import type { QuestItem, Quest } from '$lib/types/Quest';
+import { getQuestObjectives } from '$lib/server/questLinks';
 const prisma = DBClient.getInstance().prisma;
 
 export const load = (async ({ params }) => {
@@ -125,10 +126,13 @@ export const load = (async ({ params }) => {
     if (selectableQuests.length > 0) result.selectableQuest = selectableQuests;
   }
 
+  const objectives = await getQuestObjectives(prisma, quest.id);
+
   return {
     props: {
       quest: result,
-      questMaps
+      questMaps,
+      objectives
     }
   };
 }) satisfies PageServerLoad;

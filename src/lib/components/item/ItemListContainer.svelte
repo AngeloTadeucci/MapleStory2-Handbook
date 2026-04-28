@@ -4,12 +4,13 @@
   type Props = {
     gap?: number;
     classname?: string;
+    width?: number;
     children: Snippet;
   };
-  let { gap = 1, classname, children }: Props = $props();
+  let { gap = 1, classname, width = 575, children }: Props = $props();
 </script>
 
-<div class={classname ? classname : 'lg:mt-7'}>
+<div class={classname ? classname : 'lg:mt-7'} style="--box-width: {width}px;">
   <!-- Desktop version with images -->
   <div class="hidden sm:block">
     <div class="box__top"></div>
@@ -29,7 +30,8 @@
   .box__top {
     position: relative;
     background-image: url('/item/item_box_top.png');
-    width: 575px;
+    background-size: 100% 100%;
+    width: var(--box-width, 575px);
     height: 12px;
   }
 
@@ -37,13 +39,15 @@
     position: relative;
     background-image: url('/item/item_box_middle.png');
     background-repeat: repeat-y;
-    width: 575px;
+    background-size: 100% auto;
+    width: var(--box-width, 575px);
   }
 
   .box__bot {
     position: relative;
     background-image: url('/item/item_box_bot.png');
-    width: 575px;
+    background-size: 100% 100%;
+    width: var(--box-width, 575px);
     height: 14px;
   }
 </style>
