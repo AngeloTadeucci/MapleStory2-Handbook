@@ -7,7 +7,7 @@
   import CopyId from '$lib/components/CopyId.svelte';
   import type { ItemBox } from '$lib/types/ItemBox';
   import type Item from '$lib/types/Item';
-  import type { AdditionalEffectDescription, DroppedByEntry } from '$lib/types/Item';
+  import type { AdditionalEffectDescription } from '$lib/types/Item';
   import ItemRenderer from '$lib/components/item/ItemRenderer.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
@@ -31,7 +31,7 @@
   const descriptions = $derived(
     data.props.additionalEffectDescriptions as unknown as AdditionalEffectDescription[]
   );
-  const droppedBy = $derived(data.props.droppedBy as DroppedByEntry[]);
+  const droppedBy = $derived(data.props.droppedBy);
 
   let gltfExists: boolean = $state(false);
 
