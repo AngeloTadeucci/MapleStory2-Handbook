@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import DBClient from '$lib/prismaClient';
 import { redirect } from '@sveltejs/kit';
+import type { NpcDropEntry } from '$lib/types/Npc';
 const prisma = DBClient.getInstance().prisma;
 
 export const load = (async ({ params }) => {
@@ -31,10 +32,45 @@ export const load = (async ({ params }) => {
     ORDER BY m.name ASC
   `;
 
+  const npcDropsRaw = await prisma.$queryRaw<Array<{
+    id: number;
+    name: string;
+    icon_path: string;
+    rarity: number;
+    is_outfit: number;
+    drop_type: number | bigint;
+    min_count: number | bigint;
+    max_count: number | bigint;
+  }>>`
+    SELECT i.id, i.name, i.icon_path, i.rarity, i.is_outfit,
+           MIN(ndb.drop_type) AS drop_type,
+           MIN(dbi.min_count) AS min_count,
+           MAX(dbi.max_count) AS max_count
+    FROM npc_drop_boxes ndb
+    JOIN drop_box_items dbi ON dbi.drop_box_id = ndb.drop_box_id
+    JOIN items i ON i.id = dbi.item_id
+    WHERE ndb.npc_id = ${npc.id} AND dbi.item_id > 0
+    GROUP BY i.id, i.name, i.icon_path, i.rarity, i.is_outfit
+    ORDER BY i.rarity DESC, i.name ASC
+    LIMIT 500
+  `;
+
+  const npcDrops: NpcDropEntry[] = npcDropsRaw.map((row) => ({
+    id: row.id,
+    name: row.name,
+    icon_path: row.icon_path,
+    rarity: row.rarity,
+    is_outfit: row.is_outfit,
+    drop_type: Number(row.drop_type),
+    min_count: Number(row.min_count),
+    max_count: Number(row.max_count),
+  }));
+
   return {
     props: {
       npc,
-      npcMaps
+      npcMaps,
+      npcDrops
     }
   };
 }) satisfies PageServerLoad;
