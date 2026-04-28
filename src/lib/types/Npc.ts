@@ -210,3 +210,14 @@ export function toReadableStat(stat: string): string {
 }
 
 export type SearchNpc = Pick<Npc, 'id' | 'name' | 'portrait' | 'title'>;
+
+export interface NpcDropEntry {
+  id: number;
+  name: string;
+  icon_path: string;
+  rarity: number;
+  is_outfit: number;
+  drop_type: number;
+  min_count: number;
+  max_count: number;
+}

@@ -131,3 +131,12 @@ export interface AdditionalEffectDescription {
   description: string;
   levels: Prisma.JsonValue;
 }
+
+export interface DroppedByEntry {
+  id: number;
+  name: string;
+  portrait: string;
+  is_boss: number;
+  level: number;
+  drop_type: number;
+}
