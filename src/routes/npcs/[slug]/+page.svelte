@@ -2,7 +2,7 @@
   import CopyId from '$lib/components/CopyId.svelte';
   import NpcDetails from '$lib/components/npc/NpcDetails.svelte';
   import NpcDrops from '$lib/components/npc/NpcDrops.svelte';
-  import type { Npc, NpcDropEntry } from '$lib/types/Npc';
+  import type { Npc } from '$lib/types/Npc';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import NpcRenderer from '$lib/components/npc/NpcRenderer.svelte';
@@ -17,7 +17,7 @@
 
   const npc = $derived(data.props.npc as unknown as Npc);
   const npcMaps = $derived(data.props.npcMaps as Array<{ id: number; name: string }>);
-  const npcDrops = $derived(data.props.npcDrops as NpcDropEntry[]);
+  const npcDrops = $derived(data.props.npcDrops);
 
   let gltfExists: boolean = $state(false);
 
