@@ -1,12 +1,13 @@
 <script lang="ts">
   import ItemDetails from '$lib/components/item/ItemDetails.svelte';
   import ItemBoxContent from '$lib/components/item/ItemBoxContent.svelte';
+  import ItemDroppedBy from '$lib/components/item/ItemDroppedBy.svelte';
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import CopyId from '$lib/components/CopyId.svelte';
   import type { ItemBox } from '$lib/types/ItemBox';
   import type Item from '$lib/types/Item';
-  import type { AdditionalEffectDescription } from '$lib/types/Item';
+  import type { AdditionalEffectDescription, DroppedByEntry } from '$lib/types/Item';
   import ItemRenderer from '$lib/components/item/ItemRenderer.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
@@ -30,6 +31,7 @@
   const descriptions = $derived(
     data.props.additionalEffectDescriptions as unknown as AdditionalEffectDescription[]
   );
+  const droppedBy = $derived(data.props.droppedBy as DroppedByEntry[]);
 
   let gltfExists: boolean = $state(false);
 
@@ -128,6 +130,9 @@
       {/if}
       {#if boxContent.length > 0}
         <ItemBoxContent {boxContent} />
+      {/if}
+      {#if droppedBy.length > 0}
+        <ItemDroppedBy {droppedBy} />
       {/if}
     </div>
     <SupportNotice />
