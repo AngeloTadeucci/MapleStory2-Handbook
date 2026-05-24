@@ -50,12 +50,21 @@ export const load = (async ({ params }) => {
     ORDER BY m.name ASC
   `;
 
-  // Fetch quests on this map
+  // Fetch quests on this map (excluding Field Missions, which are shown separately)
   const mapQuests = await prisma.$queryRaw<QuestMap[]>`
     SELECT qm.*, q.name as quest_name, q.questLevel as quest_level, q.requiredLevel as required_level
     FROM quest_maps qm
     JOIN quests q ON qm.quest_id = q.id
-    WHERE qm.map_id = ${mapId}
+    WHERE qm.map_id = ${mapId} AND q.questType <> 4
+    ORDER BY q.questLevel ASC, q.name ASC
+  `;
+
+  // Fetch Field Missions on this map (questType = 4)
+  const fieldMissions = await prisma.$queryRaw<QuestMap[]>`
+    SELECT qm.*, q.name as quest_name, q.questLevel as quest_level, q.requiredLevel as required_level
+    FROM quest_maps qm
+    JOIN quests q ON qm.quest_id = q.id
+    WHERE qm.map_id = ${mapId} AND q.questType = 4
     ORDER BY q.questLevel ASC, q.name ASC
   `;
 
@@ -96,6 +105,7 @@ export const load = (async ({ params }) => {
       mapMobs,
       mapPortals,
       mapQuests,
+      fieldMissions,
       revivalReturnMap,
       enterReturnMap,
       bgmTrack

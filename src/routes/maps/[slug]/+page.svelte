@@ -23,6 +23,7 @@
   const mapMobs = $derived(data.props.mapMobs as MapMob[]);
   const mapPortals = $derived(data.props.mapPortals as MapPortal[]);
   const mapQuests = $derived(data.props.mapQuests as QuestMap[]);
+  const fieldMissions = $derived(data.props.fieldMissions as QuestMap[]);
   const revivalReturnMap = $derived(
     data.props.revivalReturnMap as { id: number; name: string } | null
   );
@@ -216,6 +217,24 @@
                 </a>
               </p>
             {/if}
+          {/if}
+
+          {#if fieldMissions.length > 0}
+            <div class="mb-2">
+              <span class="font-semibold">Field Missions:</span>
+              <ul class="list-disc list-inside mt-1">
+                {#each fieldMissions as mission}
+                  <li>
+                    <a
+                      href={`/quests/${mission.quest_id}`}
+                      class="unstyled underline hover:text-primary-400"
+                    >
+                      {mission.quest_name ?? `Quest #${mission.quest_id}`}
+                    </a>
+                  </li>
+                {/each}
+              </ul>
+            </div>
           {/if}
 
           <!-- Features badges -->
