@@ -10,6 +10,17 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    version: '1.11.0',
+    date: '2026-08-08',
+    title: 'KMS2 Data Update',
+    changes: [
+      { type: 'changed', description: 'Rebuilt the entire database from the latest KMS2 client data' },
+      { type: 'added', description: 'Added 555 new 3D models, along with their animations' },
+      { type: 'fixed', description: 'NPC animations that failed to load because the animation was stored under a different name' },
+      { type: 'fixed', description: 'NPC portraits that pointed at an image that was never shipped, such as Blue Rook and Della Rosa' }
+    ]
+  },
+  {
     version: '1.10.0',
     date: '2026-04-28',
     title: 'Item Drops',
