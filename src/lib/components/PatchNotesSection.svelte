@@ -21,10 +21,13 @@
         <div class="flex items-center justify-between mb-2">
           <span class="font-semibold">{note.title}</span>
           <div class="flex items-center gap-3 text-sm opacity-70">
+            <!-- A date-only string parses as UTC midnight, so formatting it in
+                 the reader's zone shows the day before anywhere west of UTC. -->
             <span>{new Date(note.date).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',
-              day: 'numeric'
+              day: 'numeric',
+              timeZone: 'UTC'
             })}</span>
           </div>
         </div>

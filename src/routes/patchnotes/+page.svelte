@@ -21,10 +21,13 @@
               <span class="bg-surface-700 px-2 py-0.5 rounded text-sm">v{note.version}</span>
             </div>
             <time class="text-sm opacity-70">
+              <!-- A date-only string parses as UTC midnight, so formatting it in
+                   the reader's zone shows the day before anywhere west of UTC. -->
               {new Date(note.date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
+                timeZone: 'UTC'
               })}
             </time>
           </header>
