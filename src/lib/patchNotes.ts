@@ -10,6 +10,17 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    version: '1.12.0',
+    date: '2026-08-11',
+    title: 'Quest Chains',
+    changes: [
+      { type: 'added', description: 'Quest chains browser showing how quests unlock each other, either a whole chapter at a time or the chain around a single quest' },
+      { type: 'added', description: 'Chapter shading behind the chain, so it is clear where one chapter hands over to the next. Every chapter keeps the same colour in every view' },
+      { type: 'added', description: 'Links into the chain view from the quest list and from each quest page' },
+      { type: 'added', description: 'Table view of a chain, used automatically for chains too large to draw' }
+    ]
+  },
+  {
     version: '1.11.0',
     date: '2026-08-08',
     title: 'KMS2 Data Update',

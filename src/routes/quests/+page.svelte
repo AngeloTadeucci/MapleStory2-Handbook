@@ -284,7 +284,10 @@
 
 <div class="mt-8 h-px"></div>
 <div class="main-container mx-4 rounded-xl px-5 pb-10 pt-2 lg:m-auto lg:w-3/4">
-  <h1 class="mb-4 text-4xl font-bold">Quests</h1>
+  <div class="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+    <h1 class="text-4xl font-bold">Quests</h1>
+    <a href="/quests/chains" class="unstyled underline">Browse quest chains</a>
+  </div>
   <div class="mb-4 flex items-center justify-between">
     <input
       type="text"

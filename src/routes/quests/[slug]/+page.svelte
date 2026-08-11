@@ -53,10 +53,13 @@
 </svelte:head>
 
 <div class="mt-5 grid justify-center">
-  <div class="ml-4 flex items-center gap-1">
+  <div class="ml-4 flex flex-wrap items-center gap-1">
     <a href="/quests" class="unstyled underline">Quests</a>
     &gt;
     <CopyId id={quest.id} />
+    <a href={`/quests/chains?quest=${quest.id}`} class="unstyled ml-3 underline">
+      View this quest's chain
+    </a>
   </div>
   <div class="main-container grid-image mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
