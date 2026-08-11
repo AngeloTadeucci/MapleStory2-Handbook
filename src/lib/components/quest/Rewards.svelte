@@ -1,7 +1,7 @@
 <script lang="ts">
   import ItemImage from '$lib/components/item/ItemImage.svelte';
   import { getImageUrl } from '$lib/getImageUrl';
-  import type { Rewards } from '$lib/types/Quest';
+  import type { QuestItem, Rewards } from '$lib/types/Quest';
   import { ExpType } from '$lib/Enums';
 
   interface Props {
@@ -48,47 +48,36 @@
       </p>
     {/if}
     {#if reward.EssentialItem.length > 0}
-      <div class="mt-2 flex flex-wrap gap-2">
-        {#each reward.EssentialItem as item}
-          <a
-            href={`/items/${item.Id}`}
-            target="_blank"
-            class="unstyled flex max-w-64 items-center gap-2 rounded p-1 transition-colors hover:bg-surface-600"
-          >
-            <ItemImage
-              iconPath={item.IconPath ?? ''}
-              rarity={item.Rarity ?? ''}
-              name={item.Name ?? ''}
-              minCount={item.Amount}
-              isOutfit={item.IsOutfit}
-            />
-            <p class="min-w-0 text-sm font-semibold">{item.Name ?? item.Id}</p>
-          </a>
-        {/each}
-      </div>
+      {@render itemGrid(reward.EssentialItem)}
     {/if}
     {#if reward.EssentialJobItem.length > 0}
-      <div class="mt-2 flex flex-wrap gap-2">
-        {#each reward.EssentialJobItem as item}
-          <a
-            href={`/items/${item.Id}`}
-            target="_blank"
-            class="unstyled flex max-w-64 items-center gap-2 rounded p-1 transition-colors hover:bg-surface-600"
-          >
-            <ItemImage
-              iconPath={item.IconPath ?? ''}
-              rarity={item.Rarity ?? ''}
-              name={item.Name ?? ''}
-              minCount={item.Amount}
-              isOutfit={item.IsOutfit}
-            />
-            <p class="min-w-0 text-sm font-semibold">{item.Name ?? item.Id}</p>
-          </a>
-        {/each}
-      </div>
+      {@render itemGrid(reward.EssentialJobItem)}
     {/if}
   </div>
 {/if}
+
+{#snippet itemGrid(items: QuestItem[])}
+  <div class="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-2">
+    {#each items as item}
+      <a
+        href={`/items/${item.Id}`}
+        target="_blank"
+        class="unstyled flex min-w-0 items-center gap-2 rounded p-1 transition-colors hover:bg-surface-600"
+      >
+        <div class="shrink-0">
+          <ItemImage
+            iconPath={item.IconPath ?? ''}
+            rarity={item.Rarity}
+            name={item.Name ?? ''}
+            minCount={item.Amount}
+            isOutfit={item.IsOutfit}
+          />
+        </div>
+        <p class="min-w-0 text-sm font-semibold">{item.Name ?? item.Id}</p>
+      </a>
+    {/each}
+  </div>
+{/snippet}
 
 <style>
   .experience {
