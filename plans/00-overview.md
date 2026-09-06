@@ -11,6 +11,17 @@ Plans for the code-deliverable milestones from the Young Frog Appreciation Meter
 | 5 | Drop Tables (500k) | Implemented | [05-drop-tables.md](05-drop-tables.md) |
 | 6 | Roll Simulator (750k) | High, frontend + backend | [06-roll-simulator.md](06-roll-simulator.md) |
 | 7 | NPC Dialogs (1M) | High, frontend + backend | [07-npc-dialogs.md](07-npc-dialogs.md) |
+| 8 | Outfit Simulator | Foundation implemented; completion follows plan 10 | [08-outfit-simulator.md](08-outfit-simulator.md) |
+| 9 | NIF to glTF converter | Native foundation implemented; wider replacement incomplete | [09-nif-to-gltf-converter.md](09-nif-to-gltf-converter.md) |
+| 10 | Clothing simulator completion | Current priority, frontend + backend | [10-outfit-simulator-completion.md](10-outfit-simulator-completion.md) |
+
+## Current Simulator Priority
+
+Follow [Plan 10](10-outfit-simulator-completion.md): catalog and supported library,
+equipment rules, hair/face customization, backgrounds and visual acceptance,
+then publishing. Individual missing clothes, poses and effects are acceptable.
+Effects and particle simulation remain excluded. Complete NPC/map conversion and
+a global Noesis replacement are not simulator release gates.
 
 ## Suggested Implementation Order
 1. **Plan 1** (Frog logo) — Quick win, frontend only
