@@ -11,6 +11,7 @@
   import CreateGifModal from './CreateGifModal.svelte';
   import LoadingSpinner from './LoadingSpinner.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
+  import { findNativeAsset, type NativeAsset, type ModelViewerElement } from '$lib/nativeAssets';
 
   type RendererProps = {
     npc: Npc;
@@ -22,6 +23,7 @@
   let gifModalOpen = $state(false);
 
   const gltfUrl = getGltfUrl();
+  let nativeAsset: NativeAsset | undefined = $state();
   const iconPath = $derived(`/${npc.portrait.split('/').slice(2).join('/')}`);
 
   let validAnimations: string[] = $state([]);
@@ -41,7 +43,7 @@
 
   // Update animationItems when validAnimations changes
   $effect(() => {
-    const defaultOption = { label: 'Default', value: npc.kfm };
+    const defaultOption = { label: 'Default', value: nativeAsset ? '' : npc.kfm };
     const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
     animationItems = [defaultOption, ...animOptions];
   });
@@ -53,7 +55,7 @@
   };
 
   const handleAnimationInputChange = (details: { inputValue: string }) => {
-    const defaultOption = { label: 'Default', value: npc.kfm };
+    const defaultOption = { label: 'Default', value: nativeAsset ? '' : npc.kfm };
     const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
     const allOptions = [defaultOption, ...animOptions];
 
@@ -64,7 +66,7 @@
   };
 
   const handleAnimationOpenChange = () => {
-    const defaultOption = { label: 'Default', value: npc.kfm };
+    const defaultOption = { label: 'Default', value: nativeAsset ? '' : npc.kfm };
     const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
     animationItems = [defaultOption, ...animOptions];
   };
@@ -77,6 +79,17 @@
   onMount(async () => {
     orientation = '0deg -90deg 0deg';
     selectedAnimation = npc.kfm;
+    nativeAsset = await findNativeAsset(npc.kfm);
+    if (nativeAsset) {
+      orientation = '0deg 0deg 0deg';
+      validAnimations = nativeAsset.clips;
+      selectedAnimation =
+        nativeAsset.clips.find((name) => name.toLowerCase() === 'idle_a') ??
+        nativeAsset.clips[0] ??
+        '';
+      loadingGltf = false;
+      return;
+    }
 
     try {
       const response = await fetch(`${gltfUrl}${npc.kfm}/${npc.kfm}.gltf`, {
@@ -123,7 +136,7 @@
     loadingGltf = false;
   });
 
-  let modelViewer: any = $state();
+  let modelViewer: ModelViewerElement | undefined = $state();
   $effect(() => {
     if (modelViewer) {
       modelViewer.timeScale = animationSpeed;
@@ -214,7 +227,7 @@
   });
 
   const openGifModal = async () => {
-    if (selectedAnimation == npc.kfm) {
+    if (nativeAsset ? !selectedAnimation : selectedAnimation == npc.kfm) {
       confirmDialogOpen = true;
       return;
     }
@@ -222,6 +235,7 @@
   };
 
   const handleScreenshot = () => {
+    if (!modelViewer) return;
     const blob = modelViewer.toDataURL();
     const a = document.createElement('a');
     a.href = blob;
@@ -258,8 +272,13 @@
   <div class="block min-h-screen flex-row md:flex">
     <div class="flex h-[40vh] items-center justify-center bg-surface-600 md:h-auto md:w-[70%]">
       <model-viewer
+        loading={nativeAsset ? 'eager' : 'auto'}
         bind:this={modelViewer}
-        src="{gltfUrl}{npc.kfm}/{selectedAnimation}.gltf"
+        src={nativeAsset?.url ?? `${gltfUrl}${npc.kfm}/${selectedAnimation}.gltf`}
+        animation-name={selectedAnimation}
+        onload={() => {
+          if (nativeAsset && modelViewer) validAnimations = [...modelViewer.availableAnimations];
+        }}
         alt={npc.name}
         camera-controls
         {...{ cameraTarget, customOrbit, orientation }}

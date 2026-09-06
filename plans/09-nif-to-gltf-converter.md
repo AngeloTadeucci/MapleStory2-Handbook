@@ -1,5 +1,16 @@
 # Plan 09: Native NIF-to-glTF conversion
 
+## Accepted implementation checkpoint, 2026-09-06
+
+The catalog, equipment/customization workflows and local release-02 candidate
+are implemented. Both bodies have recorded visual checks. The user accepted
+Gelo's saved-appearance preview for now despite remaining shader differences
+and authorized source commits and plan updates. Shader parity and the explicitly
+omitted Gelo items remain follow-up work. Generated assets remain local and
+ignored. Publishing requires separate authorization. Read backend STATUS.md
+for exact evidence; earlier requirements below describe scope, not undone phases.
+
+
 Updated 2026-09-06. Complete Noesis replacement remains unfinished. Simulator
 completion now takes priority and may ship with individual assets unavailable.
 

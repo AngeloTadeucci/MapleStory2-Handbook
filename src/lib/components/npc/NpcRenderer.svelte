@@ -1,5 +1,6 @@
 <script lang="ts">
   import getGltfUrl from '$lib/getGltfUrl';
+  import { findNativeAsset, type NativeAsset, type ModelViewerElement } from '$lib/nativeAssets';
   import type { Npc } from '$lib/types/Npc';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import { Combobox, Portal, useListCollection } from '@skeletonlabs/skeleton-svelte';
@@ -13,6 +14,7 @@
   let { npc, customStyle, advancedControls = false }: RendererProps = $props();
 
   const gltfUrl = getGltfUrl();
+  let nativeAsset: NativeAsset | undefined = $state();
   const iconPath = $derived(`/${npc.portrait.split('/').slice(2).join('/')}`);
 
   let validAnimations: string[] = $state([]);
@@ -35,7 +37,7 @@
 
   // Update animationItems when validAnimations changes
   $effect(() => {
-    const defaultOption = { label: 'Default', value: npc.kfm };
+    const defaultOption = { label: 'Default', value: nativeAsset ? '' : npc.kfm };
     const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
     animationItems = [defaultOption, ...animOptions];
   });
@@ -47,7 +49,7 @@
   };
 
   const handleAnimationInputChange = (details: { inputValue: string }) => {
-    const defaultOption = { label: 'Default', value: npc.kfm };
+    const defaultOption = { label: 'Default', value: nativeAsset ? '' : npc.kfm };
     const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
     const allOptions = [defaultOption, ...animOptions];
 
@@ -58,7 +60,7 @@
   };
 
   const handleAnimationOpenChange = () => {
-    const defaultOption = { label: 'Default', value: npc.kfm };
+    const defaultOption = { label: 'Default', value: nativeAsset ? '' : npc.kfm };
     const animOptions = validAnimations.map((anim) => ({ label: anim, value: anim }));
     animationItems = [defaultOption, ...animOptions];
   };
@@ -66,6 +68,17 @@
   onMount(async () => {
     orientation = '0deg -90deg 0deg';
     selectedAnimation = npc.kfm;
+    nativeAsset = await findNativeAsset(npc.kfm);
+    if (nativeAsset) {
+      orientation = '0deg 0deg 0deg';
+      validAnimations = nativeAsset.clips;
+      selectedAnimation =
+        nativeAsset.clips.find((name) => name.toLowerCase() === 'idle_a') ??
+        nativeAsset.clips[0] ??
+        '';
+      loadingGltf = false;
+      return;
+    }
 
     try {
       const response = await fetch(`${gltfUrl}${npc.kfm}/${npc.kfm}.gltf`, {
@@ -112,6 +125,7 @@
     loadingGltf = false;
   });
 
+  let modelViewer: ModelViewerElement | undefined = $state();
   export const ssr = false;
 </script>
 
@@ -172,7 +186,10 @@
   </div>
   <div class="model-container">
     <model-viewer
-      src="{gltfUrl}{npc.kfm}/{selectedAnimation}.gltf"
+      loading={nativeAsset ? 'eager' : 'auto'}
+      bind:this={modelViewer}
+      src={nativeAsset?.url ?? `${gltfUrl}${npc.kfm}/${selectedAnimation}.gltf`}
+      animation-name={selectedAnimation}
       alt={npc.name}
       camera-controls
       {...{ cameraTarget, customOrbit, orientation }}

@@ -3,6 +3,7 @@
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import type Item from '$lib/types/Item';
   import getGltfUrl from '$lib/getGltfUrl';
+  import { findNativeAsset, type NativeAsset } from '$lib/nativeAssets';
 
   type RendererProps = {
     item: Item;
@@ -13,11 +14,18 @@
   const iconPath = $derived(`/${item.icon_path.split('/').slice(2).join('/')}`);
 
   let loadingGltf = $state(true);
-  let orientation = '0deg 0deg 90deg';
+  let orientation = $state('0deg 0deg 90deg');
+  let nativeAsset: NativeAsset | undefined = $state();
   let cameraTarget = '';
   let customOrbit = '';
 
   onMount(async () => {
+    nativeAsset = await findNativeAsset(item.kfms[0]);
+    if (nativeAsset) {
+      orientation = '0deg 0deg 0deg';
+      loadingGltf = false;
+      return;
+    }
     try {
       const response = await fetch(`${gltfUrl}${item.kfms[0]}/${item.kfms[0]}.gltf`, {
         method: 'HEAD'
@@ -46,7 +54,8 @@
 {:else}
   <div class="model-container">
     <model-viewer
-      src="{gltfUrl}{item.kfms[0]}/{item.kfms[0]}.gltf"
+      loading={nativeAsset ? 'eager' : 'auto'}
+      src={nativeAsset?.url ?? `${gltfUrl}${item.kfms[0]}/${item.kfms[0]}.gltf`}
       alt={item.name}
       camera-controls
       {...{ cameraTarget, customOrbit, orientation }}

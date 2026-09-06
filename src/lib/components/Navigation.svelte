@@ -15,7 +15,8 @@
     { name: 'Trophies', path: '/trophies' },
     { name: 'Dyes', path: '/dyes' },
     { name: 'Story Books', path: '/storybooks' },
-    { name: 'Soundtrack', path: '/music' }
+    { name: 'Soundtrack', path: '/music' },
+    { name: 'Outfits', path: '/outfits' }
     // { name: 'Dungeons', path: '/dungeons' },
     // { name: 'Skills', path: '/skills' },
   ];
@@ -103,36 +104,44 @@
     {/each}
 
     {#if overflowMenus.length > 0}
-    <div class="relative flex shrink-0 items-center">
-      <button
-        type="button"
-        class="unstyled px-2 py-2 font-sans font-bold"
-        onmouseenter={() => (moreOpen = true)}
-        onclick={() => (moreOpen = !moreOpen)}
-      >
-        More
-      </button>
-      {#if moreOpen}
-        <div
-          role="menu"
-          tabindex="-1"
-          class="absolute left-0 top-full z-30 min-w-40 rounded border border-gray2 bg-surface-700 py-2 shadow-lg"
+      <div class="relative flex shrink-0 items-center">
+        <button
+          type="button"
+          class="unstyled px-2 py-2 font-sans font-bold"
           onmouseenter={() => (moreOpen = true)}
-          onmouseleave={() => (moreOpen = false)}
+          onclick={() => (moreOpen = !moreOpen)}
         >
-          {#each overflowMenus as menu}
-            <a href={menu.path} role="menuitem" class="unstyled block px-4 py-2 font-sans font-bold hover:bg-surface-600">
-              {menu.name}
-            </a>
-          {/each}
-        </div>
-      {/if}
-      <div class="mx-3 h-14 w-px border-l border-gray2"></div>
-    </div>
+          More
+        </button>
+        {#if moreOpen}
+          <div
+            role="menu"
+            tabindex="-1"
+            class="absolute left-0 top-full z-30 min-w-40 rounded border border-gray2 bg-surface-700 py-2 shadow-lg"
+            onmouseenter={() => (moreOpen = true)}
+            onmouseleave={() => (moreOpen = false)}
+          >
+            {#each overflowMenus as menu}
+              <a
+                href={menu.path}
+                role="menuitem"
+                class="unstyled block px-4 py-2 font-sans font-bold hover:bg-surface-600"
+              >
+                {menu.name}
+              </a>
+            {/each}
+          </div>
+        {/if}
+        <div class="mx-3 h-14 w-px border-l border-gray2"></div>
+      </div>
     {/if}
   </div>
 
-  <div class="pointer-events-none invisible fixed -left-[9999px] top-0 flex" aria-hidden="true" bind:this={measureContainer}>
+  <div
+    class="pointer-events-none invisible fixed -left-[9999px] top-0 flex"
+    aria-hidden="true"
+    bind:this={measureContainer}
+  >
     {#each menus as menu}
       <div class="flex shrink-0 items-center">
         <a href={menu.path} class="unstyled px-2 py-2 font-sans font-bold">{menu.name}</a>
@@ -140,7 +149,11 @@
       </div>
     {/each}
   </div>
-  <div class="pointer-events-none invisible fixed -left-[9999px] top-0 flex" aria-hidden="true" bind:this={moreMeasure}>
+  <div
+    class="pointer-events-none invisible fixed -left-[9999px] top-0 flex"
+    aria-hidden="true"
+    bind:this={moreMeasure}
+  >
     <div class="relative flex shrink-0 items-center">
       <button type="button" class="unstyled px-2 py-2 font-sans font-bold">More</button>
       <div class="mx-3 h-14 w-px border-l border-gray2"></div>
@@ -197,10 +210,8 @@
     </div>
     <div class="mt-5 flex h-4/5 flex-col items-center">
       {#each menus as menu, index}
-        <a
-          href={menu.path}
-          class="unstyled px-2 font-sans font-bold"
-          onclick={() => (open = false)}>{menu.name}</a
+        <a href={menu.path} class="unstyled px-2 font-sans font-bold" onclick={() => (open = false)}
+          >{menu.name}</a
         >
         {#if index !== menus.length - 1}
           <div class="h-px w-full border-t border-gray2 my-4"></div>

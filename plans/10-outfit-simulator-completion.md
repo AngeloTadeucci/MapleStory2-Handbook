@@ -1,10 +1,22 @@
 # Plan 10: Clothing simulator completion
 
+## Accepted implementation checkpoint, 2026-09-06
+
+The catalog, equipment/customization workflows and local release-02 candidate
+are implemented. Both bodies have recorded visual checks. The user accepted
+Gelo's saved-appearance preview for now despite remaining shader differences
+and authorized source commits and plan updates. Shader parity and the explicitly
+omitted Gelo items remain follow-up work. Generated assets remain local and
+ignored. Publishing requires separate authorization. Read backend STATUS.md
+for exact evidence; earlier requirements below describe scope, not undone phases.
+
+
 Updated 2026-09-06.
 
 The canonical, detailed implementation plan is
 [SIMULATOR-PLAN.md in the backend](../../MapleStory2-Handbook-BackEnd/NifToGltf/Native/SIMULATOR-PLAN.md).
-It lives there because this frontend plans directory is ignored by Git.
+The backend owns the detailed cross-repository acceptance evidence. These
+frontend summaries are tracked even though the plans directory has an ignore rule.
 
 Implement in this order:
 

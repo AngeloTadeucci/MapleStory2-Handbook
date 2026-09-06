@@ -1,7 +1,10 @@
 # Plan 08: Outfit simulator
 
-Updated 2026-09-06. The native preview foundation exists; the remaining work is
-product completion and supported clothing coverage across backend and frontend.
+Updated 2026-09-06. The searchable catalog, core equipment workflows on both
+bodies, customization and local release candidate are implemented and verified
+for the combinations recorded in backend STATUS.md. Gelo's local saved-appearance
+preview was reviewed by the user and accepted for now despite shader differences.
+Shader parity remains unresolved. Source commits are authorized; deployment is not.
 
 ## Current implementation plan
 
@@ -23,16 +26,18 @@ Complete conversion of every NPC/map asset is not a prerequisite.
 
 ## What exists
 
-`/outfits` loads native bodies and equipment onto a shared skeleton. It supports
-six curated body clips, orbit controls, playback, source-driven CL replacement,
-shared skin colors, garment recoloring/reset and PNG capture. Acceptance-06
-contains two bodies and eight equipment variants, plus one NPC and one map object.
-These fixtures establish specific behaviors; they are not a finished catalog.
+`/outfits` provides a searchable catalog, transactional equipment slots, body
+cutting, shared skeletons, authored hair/hat forms, faces and expressions, dyes,
+backgrounds, six baseline clips and PNG capture. The local release-02 library
+contains 124 models, with 46 reviewed item/body entries, 54 previews and 12
+unavailable entries. Both bodies have recorded complete-outfit visual checks.
 
-Recent fixes preserved the hoodie's exposed-skin mesh and synchronized its skin
-palette with the body. The incompatible staged male shirt was replaced as an
-acceptance sample, not repaired. Complete outfits and the broader library still
-need compatibility checks. See [backend status](../../MapleStory2-Handbook-BackEnd/NifToGltf/Native/STATUS.md).
+The development-only `/outfits?preview=gelo-01` loads eight appearance items
+and saved colors from local `tria-game-server`. Back sign, blush, paired Fire
+Prism Stars and effects are explicitly omitted. Generated libraries and the
+saved character snapshot remain local ignored artifacts, outside source commits.
+See [backend status](../../MapleStory2-Handbook-BackEnd/NifToGltf/Native/STATUS.md)
+for exact IDs, evidence and limitations. Publishing requires separate approval.
 
 ## Reference research
 
@@ -42,7 +47,6 @@ It contains earlier reference-site and bundle observations, not current acceptan
 criteria. Claims that the frontend only needs bookkeeping or that no further
 material work is needed are superseded by the completion plan.
 
-Recent clothing fixes used client XML/NIF/HLSL, our local T3 preview and numerical
-regressions. They were not verified through a fresh live reference-site comparison.
-The completion plan calls for targeted reference checks of unresolved hair/hat,
-full-outfit, expression and dye behavior, with exact item/body state recorded.
+Targeted live reference checks covered hair/hat state, robe conflicts and saved
+dyes. Reference canvas and expression verification remained inconclusive. Backend
+STATUS.md separates those limitations from own-client data and T3 evidence.
