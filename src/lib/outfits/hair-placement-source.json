@@ -1,0 +1,1953 @@
+{
+  "sourceSha256": "8db65b944ad4253bc716ee25ae60e52acdfefd2b24e41df9d772820fd4698dba",
+  "items": {
+    "10200008": [
+      {
+        "source": "00200008_f_flowerup",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              53.5778,
+              -18.4662,
+              -15.8204
+            ],
+            "rotation": [
+              40.7849,
+              -51.5446,
+              3.73448
+            ]
+          },
+          {
+            "position": [
+              38.3593,
+              -15.3433,
+              -25.7962
+            ],
+            "rotation": [
+              21.8718,
+              -77.5584,
+              3.08228
+            ]
+          },
+          {
+            "position": [
+              22.5156,
+              -21.4642,
+              -23.1572
+            ],
+            "rotation": [
+              -132.999,
+              -76.5774,
+              170.407
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "posz": "-105",
+            "zero": "-72",
+            "negz": "-10"
+          },
+          {
+            "name": "UConstraint02",
+            "posz": "-18",
+            "zero": "3",
+            "negz": "5.5"
+          },
+          {
+            "name": "UConstraint03",
+            "posz": "1",
+            "zero": "14",
+            "negz": "25"
+          }
+        ]
+      }
+    ],
+    "10200010": [
+      {
+        "source": "00200010_f_pipi_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              55.85,
+              -4.04907,
+              -18.9015
+            ],
+            "rotation": [
+              -8.05629,
+              -40.7486,
+              1.04149
+            ]
+          },
+          {
+            "position": [
+              34.4591,
+              -11.7025,
+              -28.2191
+            ],
+            "rotation": [
+              8.43184,
+              -82.5856,
+              5.82673
+            ]
+          },
+          {
+            "position": [
+              18.348,
+              -22.6555,
+              -21.6986
+            ],
+            "rotation": [
+              -138.176,
+              -68.9606,
+              -179.197
+            ]
+          }
+        ],
+        "jointAngles": []
+      },
+      {
+        "source": "00200010_f_pipi_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              54.6429,
+              -4.64381,
+              21.3994
+            ],
+            "rotation": [
+              -173.23,
+              -44.1481,
+              -1.64264
+            ]
+          },
+          {
+            "position": [
+              36.0881,
+              -11.9242,
+              25.9314
+            ],
+            "rotation": [
+              173.847,
+              -79.1763,
+              -8.60017
+            ]
+          },
+          {
+            "position": [
+              19.4293,
+              -22.7659,
+              20.7662
+            ],
+            "rotation": [
+              -47.7935,
+              -71.031,
+              -174.789
+            ]
+          }
+        ],
+        "jointAngles": []
+      }
+    ],
+    "10200011": [
+      {
+        "source": "00200011_f_puretwintail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              53.5778,
+              -18.4662,
+              -15.8204
+            ],
+            "rotation": [
+              40.7849,
+              -51.5446,
+              3.73448
+            ]
+          },
+          {
+            "position": [
+              38.3593,
+              -15.3433,
+              -25.7962
+            ],
+            "rotation": [
+              21.8718,
+              -77.5584,
+              3.08228
+            ]
+          },
+          {
+            "position": [
+              22.5156,
+              -21.4642,
+              -23.1572
+            ],
+            "rotation": [
+              -132.999,
+              -76.5774,
+              170.407
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.5",
+            "posz": "166",
+            "zero": "-14",
+            "negz": "107"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.2",
+            "posz": "-150",
+            "zero": "-82",
+            "negz": "49"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-44",
+            "zero": "-94",
+            "negz": "-73"
+          }
+        ]
+      },
+      {
+        "source": "00200011_f_puretwintail_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              52.224,
+              -19.0406,
+              18.4497
+            ],
+            "rotation": [
+              133.112,
+              -54.8085,
+              1.50323
+            ]
+          },
+          {
+            "position": [
+              38.3589,
+              -15.7229,
+              25.4152
+            ],
+            "rotation": [
+              157.292,
+              -77.5591,
+              -3.0911
+            ]
+          },
+          {
+            "position": [
+              20.698,
+              -22.2447,
+              23.2048
+            ],
+            "rotation": [
+              -37.6932,
+              -73.2472,
+              177.968
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.5",
+            "posz": "-180",
+            "zero": "-13",
+            "negz": "78"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.2",
+            "posz": "-150",
+            "zero": "-82",
+            "negz": "93"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-44",
+            "zero": "-94",
+            "negz": "-51"
+          }
+        ]
+      }
+    ],
+    "10200012": [
+      {
+        "source": "00200012_f_cutetwintail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              53.5778,
+              -18.4662,
+              -15.8204
+            ],
+            "rotation": [
+              40.7849,
+              -51.5446,
+              3.73448
+            ]
+          },
+          {
+            "position": [
+              38.3593,
+              -15.3433,
+              -25.7962
+            ],
+            "rotation": [
+              21.8718,
+              -77.5584,
+              3.08228
+            ]
+          },
+          {
+            "position": [
+              22.5156,
+              -21.4642,
+              -23.1572
+            ],
+            "rotation": [
+              -132.999,
+              -76.5774,
+              170.407
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "posz": "-105",
+            "zero": "-72",
+            "negz": "-10"
+          },
+          {
+            "name": "UConstraint02",
+            "posz": "-18",
+            "zero": "3",
+            "negz": "5.5"
+          },
+          {
+            "name": "UConstraint03",
+            "posz": "1",
+            "zero": "14",
+            "negz": "25"
+          }
+        ]
+      },
+      {
+        "source": "00200012_f_cutetwintail_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              52.224,
+              -19.0406,
+              18.4497
+            ],
+            "rotation": [
+              133.112,
+              -54.8085,
+              1.50323
+            ]
+          },
+          {
+            "position": [
+              38.3589,
+              -15.7229,
+              25.4152
+            ],
+            "rotation": [
+              157.292,
+              -77.5591,
+              -3.0911
+            ]
+          },
+          {
+            "position": [
+              20.698,
+              -22.2447,
+              23.2048
+            ],
+            "rotation": [
+              -37.6932,
+              -73.2472,
+              177.968
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "posz": "-105",
+            "zero": "-72",
+            "negz": "-10"
+          },
+          {
+            "name": "UConstraint02",
+            "posz": "-18",
+            "zero": "3",
+            "negz": "5.5"
+          },
+          {
+            "name": "UConstraint03",
+            "posz": "1",
+            "zero": "14",
+            "negz": "25"
+          }
+        ]
+      }
+    ],
+    "10200016": [
+      {
+        "source": "00200016_m_samurai_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              35.0,
+              -30.0,
+              0.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": []
+      }
+    ],
+    "10200031": [
+      {
+        "source": "10200031_f_ironrollhair_p",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              49.6,
+              -26.02,
+              -14.46
+            ],
+            "rotation": [
+              55.64,
+              -58.09,
+              0.84
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.5",
+            "posz": "-105",
+            "zero": "-5",
+            "negz": "22"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.2",
+            "posz": "-104",
+            "zero": "-26",
+            "negz": "14"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-24",
+            "zero": "-88",
+            "negz": "-44"
+          }
+        ]
+      },
+      {
+        "source": "10200031_f_ironrollhair_p2",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              49.58,
+              -26.24,
+              13.98
+            ],
+            "rotation": [
+              123.37,
+              -58.14,
+              -0.71
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.5",
+            "posz": "-74",
+            "zero": "-9",
+            "negz": "-15"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.2",
+            "posz": "-84",
+            "zero": "-36",
+            "negz": "4"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-88",
+            "zero": "-56",
+            "negz": "-36"
+          }
+        ]
+      }
+    ],
+    "10200038": [
+      {
+        "source": "10200037_m_clearmoon_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              30.0,
+              -35.0,
+              0.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": []
+      }
+    ],
+    "10200052": [
+      {
+        "source": "10200052_m_classicwave_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              40.0,
+              -35.0,
+              0.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": []
+      }
+    ],
+    "10200055": [
+      {
+        "source": "10200055_f_bigponytail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              45.0,
+              -25.0,
+              10.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.5",
+            "posz": "-81",
+            "negz": "7"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.5",
+            "posz": "86",
+            "zero": "-83",
+            "negz": "180"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-56",
+            "zero": "-69",
+            "negz": "-8"
+          }
+        ]
+      }
+    ],
+    "10200058": [
+      {
+        "source": "10200058_f_fairyponytail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              50.0,
+              -25.0,
+              0.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-71",
+            "zero": "165",
+            "negz": "15"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.1",
+            "posz": "178",
+            "zero": "-56",
+            "negz": "70"
+          }
+        ]
+      }
+    ],
+    "10200064": [
+      {
+        "source": "10200064_f_livelyponytail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              50.0,
+              -29.0,
+              0.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": []
+      }
+    ],
+    "10200070": [
+      {
+        "source": "10200070_f_rollingponytail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              48.0,
+              -15.0,
+              24.0
+            ],
+            "rotation": [
+              140.0,
+              -80.0,
+              30.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.3",
+            "posz": "-100",
+            "negz": "7"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "86",
+            "zero": "-83",
+            "negz": "180"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.3",
+            "posz": "-56",
+            "zero": "-69",
+            "negz": "-8"
+          }
+        ]
+      }
+    ],
+    "10200074": [
+      {
+        "source": "10200074_m_warriorhair_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              58.0,
+              -25.0,
+              0.0
+            ],
+            "rotation": [
+              90.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "posz": "-90",
+            "zero": "-37",
+            "negz": "5"
+          },
+          {
+            "name": "UConstraint02",
+            "posz": "-159",
+            "zero": "-100",
+            "negz": "55"
+          },
+          {
+            "name": "UConstraint03",
+            "posz": "-179",
+            "zero": "-91",
+            "negz": "101"
+          }
+        ]
+      }
+    ],
+    "10200083": [
+      {
+        "source": "10200083_f_pureponytail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              50.0,
+              -25.0,
+              0.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.14",
+            "posz": "83",
+            "zero": "14",
+            "negz": "164"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.19",
+            "posz": "-81",
+            "zero": "-94",
+            "negz": "-5"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.17",
+            "posz": "-100",
+            "zero": "-118",
+            "negz": "16"
+          }
+        ]
+      }
+    ],
+    "10200095": [
+      {
+        "source": "10200095_f_livelytwintail_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              42.0,
+              -11.0,
+              -21.0
+            ],
+            "rotation": [
+              -147.0,
+              -87.0,
+              150.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.3",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.4",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200095_f_livelytwintail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              42.0,
+              -11.0,
+              21.0
+            ],
+            "rotation": [
+              -147.0,
+              -87.0,
+              -30.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.3",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.4",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200097": [
+      {
+        "source": "10200097_m_lionhair_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              55.0,
+              -20.0,
+              4.0
+            ],
+            "rotation": [
+              0.0,
+              -11.0,
+              20.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.25",
+            "posz": "-90",
+            "zero": "180"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.2",
+            "posz": "-146",
+            "zero": "-90",
+            "negz": "37"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.36",
+            "zero": "-60",
+            "negz": "-90"
+          }
+        ]
+      }
+    ],
+    "10200110": [
+      {
+        "source": "10200110_f_longsettingtwintail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              42.0,
+              -11.0,
+              -21.0
+            ],
+            "rotation": [
+              -147.0,
+              -87.0,
+              150.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.1",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200110_f_longsettingtwintail_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              42.0,
+              -11.0,
+              21.0
+            ],
+            "rotation": [
+              -147.0,
+              -87.0,
+              -30.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.1",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200111": [
+      {
+        "source": "10200111_f_dualspirithair_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              52.0,
+              -11.0,
+              -21.0
+            ],
+            "rotation": [
+              -147.0,
+              -87.0,
+              150.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200111_f_dualspirithair_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              52.0,
+              -11.0,
+              21.0
+            ],
+            "rotation": [
+              -147.0,
+              -87.0,
+              -30.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200125": [
+      {
+        "source": "10200125_m_highlightponytailhair_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              50.0,
+              -25.0,
+              0.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.19",
+            "posz": "66",
+            "zero": "-97",
+            "negz": "-180"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.25",
+            "posz": "-106",
+            "zero": "-68"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.34",
+            "posz": "-91",
+            "zero": "11",
+            "negz": "2"
+          }
+        ]
+      }
+    ],
+    "10200126": [
+      {
+        "source": "10200126_f_highlightponytailhair_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              50.0,
+              -25.0,
+              0.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.19",
+            "posz": "66",
+            "zero": "-97",
+            "negz": "-180"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.25",
+            "posz": "-106",
+            "zero": "-68"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.34",
+            "posz": "-91",
+            "zero": "11",
+            "negz": "2"
+          }
+        ]
+      }
+    ],
+    "10200137": [
+      {
+        "source": "10200137_f_flowerprincesshair_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              25.0,
+              -10.0,
+              25.0
+            ],
+            "rotation": [
+              0.0,
+              -100.0,
+              180.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90",
+            "zero": "-78",
+            "negz": "-15"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.1",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200137_f_flowerprincesshair_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              25.0,
+              -10.0,
+              -25.0
+            ],
+            "rotation": [
+              0.0,
+              -80.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90",
+            "zero": "-78",
+            "negz": "15"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.1",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200138": [
+      {
+        "source": "10200138_f_ribbontwintail_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              45.7354,
+              1.7041,
+              -24.3069
+            ],
+            "rotation": [
+              5.35241,
+              -80.1801,
+              1.6798
+            ]
+          },
+          {
+            "position": [
+              30.9155,
+              -4.38718,
+              -28.6077
+            ],
+            "rotation": [
+              -48.5758,
+              -98.5046,
+              47.9513
+            ]
+          },
+          {
+            "position": [
+              11.1975,
+              -21.8113,
+              19.2424
+            ],
+            "rotation": [
+              -41.5651,
+              -58.3484,
+              179.885
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200138_f_ribbontwintail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              47.3489,
+              3.67852,
+              22.7798
+            ],
+            "rotation": [
+              -180.417,
+              -80.7981,
+              -1.66512
+            ]
+          },
+          {
+            "position": [
+              28.8647,
+              -5.32047,
+              29.7484
+            ],
+            "rotation": [
+              -19.4683,
+              -86.7085,
+              -161.745
+            ]
+          },
+          {
+            "position": [
+              11.9741,
+              -21.3307,
+              -19.7966
+            ],
+            "rotation": [
+              -137.317,
+              -60.0187,
+              177.151
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200147": [
+      {
+        "source": "10200147_f_wavyhightwintail_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              52.0,
+              -11.0,
+              -21.0
+            ],
+            "rotation": [
+              -147.0,
+              -87.0,
+              150.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200147_f_wavyhightwintail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              52.0,
+              -11.0,
+              21.0
+            ],
+            "rotation": [
+              -147.0,
+              -87.0,
+              -30.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200156": [
+      {
+        "source": "10200156_f_floratwintail_p2_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              38.3593,
+              -7.34326,
+              -25.7962
+            ],
+            "rotation": [
+              -7.87184,
+              -95.5584,
+              18.0823
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200156_f_floratwintail_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              38.3593,
+              -7.34326,
+              25.7962
+            ],
+            "rotation": [
+              180.292,
+              -95.5591,
+              -10.0911
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200157": [
+      {
+        "source": "10200157_f_unbalancelongponytail_p",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              53.5778,
+              -18.4662,
+              -15.8204
+            ],
+            "rotation": [
+              45.7849,
+              -80.5446,
+              3.73448
+            ]
+          }
+        ],
+        "jointAngles": []
+      }
+    ],
+    "10200180": [
+      {
+        "source": "10200180_f_newyearhair02_p2",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              29.26,
+              -8.21,
+              -27.18
+            ],
+            "rotation": [
+              -150.44,
+              -76.55,
+              145.36
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.3",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.35",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.28",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200180_f_newyearhair02_p",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              29.26,
+              -8.21,
+              27.18
+            ],
+            "rotation": [
+              -150.44,
+              -76.55,
+              -34.64
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.25",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.36",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.33",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200221": [
+      {
+        "source": "10200221_f_freeconcept008_p2",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              43.0,
+              -6.0,
+              -24.0
+            ],
+            "rotation": [
+              -1.52,
+              -69.29,
+              -177.96
+            ]
+          },
+          {
+            "position": [
+              33.76,
+              0.32,
+              -26.91
+            ],
+            "rotation": [
+              -15.91,
+              -82.55,
+              -173.99
+            ]
+          },
+          {
+            "position": [
+              21.47,
+              -12.46,
+              -25.71
+            ],
+            "rotation": [
+              -173.39,
+              -72.32,
+              -1.83
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.3",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200221_f_freeconcept008_p",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              43.0,
+              -6.0,
+              24.0
+            ],
+            "rotation": [
+              -178.98,
+              -67.17,
+              -1.91
+            ]
+          },
+          {
+            "position": [
+              34.3,
+              0.06,
+              25.85
+            ],
+            "rotation": [
+              -166.77,
+              -81.41,
+              -3.88
+            ]
+          },
+          {
+            "position": [
+              22.15,
+              -12.67,
+              25.11
+            ],
+            "rotation": [
+              -7.71,
+              -73.82,
+              -177.52
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0.3",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200244": [
+      {
+        "source": "10200244_f_housekeeper13_p2",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              42.0,
+              -9.0,
+              -26.0
+            ],
+            "rotation": [
+              -16.0,
+              -83.0,
+              -174.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint03",
+            "soft": "0.6",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.4",
+            "posz": "-90",
+            "zero": "-117"
+          },
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-94"
+          }
+        ]
+      },
+      {
+        "source": "10200244_f_housekeeper13_p",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              42.0,
+              -9.0,
+              26.0
+            ],
+            "rotation": [
+              -167.0,
+              -81.0,
+              -4.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint03",
+            "soft": "0.6",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.4",
+            "posz": "-90",
+            "zero": "-117"
+          },
+          {
+            "name": "UConstraint01",
+            "soft": "0.1",
+            "posz": "-94"
+          }
+        ]
+      }
+    ],
+    "10200259": [
+      {
+        "source": "10200259_f_hair_p2",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              54.0,
+              -9.0,
+              -14.0
+            ],
+            "rotation": [
+              -10.0,
+              -88.0,
+              -1.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.1",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      },
+      {
+        "source": "10200259_f_hair_p",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              54.0,
+              -9.0,
+              14.0
+            ],
+            "rotation": [
+              -170.0,
+              -88.0,
+              -1.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint01",
+            "soft": "0",
+            "posz": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.1",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint03",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          }
+        ]
+      }
+    ],
+    "10200265": [
+      {
+        "source": "10200265_f_hair_p_a",
+        "selfNode": "Point01",
+        "targetNode": "Bip01 Head",
+        "presets": [
+          {
+            "position": [
+              49.0,
+              -25.0,
+              0.0
+            ],
+            "rotation": [
+              180.0,
+              -90.0,
+              0.0
+            ]
+          }
+        ],
+        "jointAngles": [
+          {
+            "name": "UConstraint03",
+            "soft": "0.4",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint02",
+            "soft": "0.3",
+            "posz": "-90",
+            "zero": "-90"
+          },
+          {
+            "name": "UConstraint01",
+            "soft": "0.2",
+            "posz": "-90",
+            "zero": "-187"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -103,6 +103,33 @@ export const catalogSchema = z
       if (keys.has(key)) ctx.addIssue({ code: 'custom', message: `Duplicate item/body ${key}` });
       keys.add(key);
     }
+  })
+  .transform((catalog) => {
+    // KMS2 itemdata/122.xml: 12220364 explicitly selects itemPreset 12220360.
+    // Release 14 has both dress parts but omitted this inventory alias. Keep the
+    // immutable catalog bytes and any future explicit entry unchanged.
+    if (catalog.items.some((item) => item.itemId === 12220364 && item.bodyVariant === 'female'))
+      return catalog;
+    const preset = catalog.items.find(
+      (item) =>
+        item.itemId === 12220360 &&
+        item.bodyVariant === 'female' &&
+        item.parts.some(
+          (part) => part.slot === 'CL' && part.assetId === 'wardrobe-dc4bf9cb8925ea8c81d262a5'
+        ) &&
+        item.parts.some(
+          (part) => part.slot === 'PA' && part.assetId === 'wardrobe-81b92384f7a2271d331682a9'
+        )
+    );
+    if (!preset) return catalog;
+    const alias = libraryItemSchema.parse({
+      ...preset,
+      itemId: 12220364,
+      presetId: 12220360,
+      sourceName: 'Romantic Wedding Dress (F)',
+      isOutfit: 1
+    });
+    return { ...catalog, items: [...catalog.items, alias] };
   });
 export type LibraryItem = z.infer<typeof libraryItemSchema>;
 export type CatalogItem = {

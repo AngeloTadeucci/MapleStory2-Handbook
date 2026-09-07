@@ -43,6 +43,13 @@ import { FaceDecal } from './faceDecal';
 import { applyCharacterMaterials } from './characterMaterials';
 import { CosmeticEffect } from './cosmeticEffect';
 import { captureHairDefault, hairLengthControl } from './hairLengthControls';
+import { sharedHairColor } from './hairColors';
+import { fitMovableHat, hatPlacementSource, needsHatPlacement } from './hatAttachment';
+import {
+  createHairPlacement,
+  hairPlacementSource,
+  type HairPlacementControl
+} from './hairPlacement';
 import { applyItemDefault, itemDefaultColors, ItemPaletteAnimation } from './itemDefaults';
 
 function dispose(root: Object3D) {
@@ -79,6 +86,55 @@ export class OutfitScene {
   private equipmentAssets = new Map<string, NativeAsset>();
   private bundles = new Map<string, OutfitBundle>();
   private hairLengths = new Map<string, number>();
+  private hairPlacements = new Map<string, HairPlacementControl[]>();
+  private hairPlacementValues = new Map<string, number>();
+  private hatFitSignature = '';
+  get hatAttachmentWarnings(): string[] {
+    const hair = this.equippedItems.find((bundle) => bundle.slots.includes('HR'));
+    if (hair && hatPlacementSource(hair.item.library?.presetId ?? hair.item.id)) return [];
+    return this.equippedItems
+      .filter((bundle) => bundle.parts.some(needsHatPlacement))
+      .map(
+        (bundle) =>
+          `${bundle.item.name} is hidden until you equip a hairstyle with a movable-hat placement.`
+      );
+  }
+  refreshHatAttachments(force = false) {
+    const hair = this.equippedItems.find((bundle) => bundle.slots.includes('HR'));
+    const hairGroup = hair && this.equipment.get(bundleKey(hair));
+    const placement = hair && hatPlacementSource(hair.item.library?.presetId ?? hair.item.id);
+    const hats = [...this.equipmentAssets].filter(([, asset]) => needsHatPlacement(asset));
+    if (!hats.length) {
+      this.hatFitSignature = '';
+      return;
+    }
+    const morphs: number[] = [];
+    hairGroup?.traverse((node) => {
+      if (node instanceof Mesh) morphs.push(...(node.morphTargetInfluences ?? []));
+    });
+    const signature = JSON.stringify([
+      hairGroup?.uuid,
+      hats.map(([key]) => [key, this.equipment.get(key.slice(0, key.lastIndexOf(':')))?.uuid]),
+      morphs,
+      this.hairPlacementControls.map((control) => control.value)
+    ]);
+    if (!force && signature === this.hatFitSignature) return;
+    this.hatFitSignature = signature;
+    for (const [key] of hats) {
+      const group = this.equipment.get(key.slice(0, key.lastIndexOf(':')))!;
+      // A movable cap has no meaningful default without a hairstyle to fit to.
+      group.visible = Boolean(hairGroup && placement);
+      if (hairGroup && placement) fitMovableHat(group, placement, hairGroup);
+    }
+  }
+  get hairPlacementControls() {
+    return [...this.hairPlacements.values()].flat();
+  }
+  private applyHairPlacements() {
+    for (const controls of this.hairPlacements.values())
+      for (const control of controls) control.apply();
+    this.refreshHatAttachments();
+  }
   private face?: FaceAnimation;
   private decal?: FaceDecal;
   private defaultFace?: FaceAnimation;
@@ -138,6 +194,7 @@ export class OutfitScene {
         slots: b.slots
       })),
       visible,
+      hatAttachmentWarnings: this.hatAttachmentWarnings,
       effects: [...this.cosmeticEffects].map(([key, effect]) => ({
         key,
         enabled: effect.enabled,
@@ -155,6 +212,7 @@ export class OutfitScene {
       for (const animation of animations) animation.seek(time);
     for (const group of this.equipment.values())
       for (const mixer of equipmentMixers(group)) mixer.setTime(time);
+    this.applyHairPlacements();
     this.body?.scene.updateMatrixWorld(true);
     for (const effect of this.cosmeticEffects.values()) effect.seek(time, this.camera);
     this.renderer.render(this.scene, this.camera);
@@ -286,6 +344,7 @@ export class OutfitScene {
           for (const mixer of equipmentMixers(group)) mixer.update(delta);
       }
       (this.face ?? this.defaultFace)?.update(delta);
+      this.applyHairPlacements();
       for (const effect of this.cosmeticEffects.values())
         effect.update(this.playing ? delta : 0, this.camera);
       this.controls.update();
@@ -338,6 +397,7 @@ export class OutfitScene {
     }
     for (const slot of this.equipment.keys()) this.unequip(slot);
     this.hairLengths.clear();
+    this.hairPlacementValues.clear();
     this.defaultFace?.dispose();
     this.defaultFace = defaultFace;
     this.variant = asset.bodyVariant ?? '';
@@ -407,6 +467,7 @@ export class OutfitScene {
       decal?: FaceDecal;
       effect?: CosmeticEffect;
       paletteAnimations?: ItemPaletteAnimation[];
+      placements?: HairPlacementControl[];
     }[] = [];
     try {
       for (const bundle of changes) {
@@ -421,7 +482,27 @@ export class OutfitScene {
           try {
             await applyCharacterMaterials(gear);
             entry.colors.push(...(await loadColorControls(gear)));
-            entry.group.add(shareSkeleton(gear.scene, this.bones, gear.animations));
+            const attached = shareSkeleton(gear.scene, this.bones, gear.animations);
+            entry.group.add(attached);
+            if (bundle.slots.includes('HR')) {
+              const part = hairPlacementSource(
+                bundle.item.library?.presetId ?? bundle.item.id,
+                asset
+              );
+              if (part) {
+                const key = `${bundle.item.id}:${part.source}`;
+                entry.placements ??= [];
+                entry.placements.push(
+                  createHairPlacement(
+                    attached,
+                    part,
+                    `${bundle.item.name} placement ${entry.placements.length + 1}`,
+                    this.hairPlacementValues.get(key) ?? 0,
+                    (value) => this.hairPlacementValues.set(key, value)
+                  )
+                );
+              }
+            }
           } catch (error) {
             dispose(gear.scene);
             throw error;
@@ -461,6 +542,11 @@ export class OutfitScene {
             heads[0]
           );
           entry.effect.enabled = this.effectsEnabled;
+        }
+        if (entry.placements?.length) {
+          const hair = entry.colors.filter((color) => !isSkinColor(color));
+          if (hair.length)
+            entry.colors = [...entry.colors.filter(isSkinColor), sharedHairColor(hair)];
         }
         const animatedDefaults = bundle.item.library?.customize.defaultColorIndex?.includes(',');
         if (animatedDefaults && this.customization && bundle.item.library) {
@@ -523,8 +609,18 @@ export class OutfitScene {
     for (const { bundle } of staged)
       for (const old of conflictingItems(this.equippedItems, bundle)) evicted.add(bundleKey(old));
     for (const key of evicted) this.unequip(key);
-    for (const { bundle, group, colors, face, decal, effect, paletteAnimations } of staged) {
+    for (const {
+      bundle,
+      group,
+      colors,
+      face,
+      decal,
+      effect,
+      paletteAnimations,
+      placements
+    } of staged) {
       const key = bundleKey(bundle);
+      if (placements) this.hairPlacements.set(key, placements);
       let fabric = 0;
       for (const color of colors)
         if (!isSkinColor(color)) {
@@ -550,10 +646,12 @@ export class OutfitScene {
       this.scene.add(group);
     }
     this.refreshVisibility();
+    this.refreshHatAttachments(true);
     this.renderer.render(this.scene, this.camera);
   }
 
   unequip(slot: string) {
+    this.hairPlacements.delete(slot);
     this.paletteAnimations.delete(slot);
     this.cosmeticEffects.get(slot)?.dispose();
     this.cosmeticEffects.delete(slot);

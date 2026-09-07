@@ -24,10 +24,20 @@ describe.skipIf(!existsSync('static/gltf/simulator-release-14/native-manifest.js
       expect(flower.parts).toHaveLength(2);
       expect(flower.hairForms?.c).toHaveLength(2);
       expect(flower.hairForms?.c[0]).not.toBe(flower.parts[0].assetId);
-      expect(flower.reason).toContain('Approximate hair');
+      expect(flower.reason).toContain('Authored hair placement');
       expect(updated.find((entry) => entry.itemId === 10200010)?.availability).toBe('unavailable');
       expect(catalog.items.find((entry) => entry.itemId === 10200008)?.parts).toEqual([]);
       expect(updated.filter((entry, index) => entry !== catalog.items[index])).toHaveLength(26);
+      expect(
+        updated.filter(
+          (entry, index) =>
+            entry.availability === 'preview' && catalog.items[index].availability === 'unavailable'
+        )
+      ).toHaveLength(25);
+      expect(updated.find((entry) => entry.itemId === 10200031)?.availability).toBe('unavailable');
+      expect(updated.find((entry) => entry.itemId === 10200031)?.reason).toContain(
+        'hair-direction texture'
+      );
     });
   }
 );

@@ -20,6 +20,12 @@ export function enableApproximateHair(
 ): LibraryItem[] {
   return entries.map((entry) => {
     if (!hasApproximateHair(entry)) return entry;
+    if (entry.itemId === 10200031)
+      return {
+        ...entry,
+        reason:
+          'The exported Curled Pigtails ponytail materials are missing their hair-direction texture.'
+      };
     const candidates = assets.filter(
       (asset) =>
         asset.itemId === String(entry.presetId ?? entry.itemId) &&
@@ -36,8 +42,7 @@ export function enableApproximateHair(
       if (bases.length === 1) forms[form] = [...bases, ...common].map((asset) => asset.id);
     }
     if (!forms.a) return entry;
-    const warning =
-      'Approximate hair: ponytail position and angle use exported defaults and may clip. Placement controls are unavailable.';
+    const warning = 'Authored hair placement presets available. Physics motion is not simulated.';
     return {
       ...entry,
       parts: forms.a.map((assetId) => ({ assetId, slot: 'HR' })),

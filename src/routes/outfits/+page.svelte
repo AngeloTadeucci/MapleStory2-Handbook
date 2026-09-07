@@ -41,6 +41,7 @@
   let playing = $state(false);
   let busy = $state(true);
   let error = $state('');
+  let hatWarnings = $state<string[]>([]);
   let equipped = $state<OutfitBundle[]>([]);
   const expressionOptions = $derived(
     Object.keys(
@@ -72,6 +73,8 @@
   // colorRevision rerender reads the viewer's current values instead of stale proxies.
   let colors = $state.raw<ColorControl[]>([]);
   let hairControls = $state<OutfitScene['hairControls']>([]);
+  let hairPlacements = $state.raw<OutfitScene['hairPlacementControls']>([]);
+  let placementRevision = $state(0);
   let equipmentAnimations = $state<OutfitScene['equipmentAnimationControls']>([]);
   let makeupControls = $state<OutfitScene['makeupControls']>();
   let colorRevision = $state(0);
@@ -108,8 +111,10 @@
   function refresh() {
     if (viewer) {
       equipped = viewer.equippedItems;
+      hatWarnings = viewer.hatAttachmentWarnings;
       colors = viewer.colorControls;
       hairControls = viewer.hairControls;
+      hairPlacements = viewer.hairPlacementControls;
       equipmentAnimations = viewer.equipmentAnimationControls;
       makeupControls = viewer.makeupControls;
       expression = 'default';
@@ -396,6 +401,9 @@
           >{/each}
       </div>
       {#if error}<p role="alert" class="mb-3 text-red-400">{error}</p>{/if}
+      {#each hatWarnings as warning}<p role="status" class="mb-3 text-amber-300">
+          {warning}
+        </p>{/each}
       {#if hasHairEffect}<p class="mb-2 text-sm opacity-75">
           Hair effect preview: sparkle motion and glow may differ from the game.
         </p>{/if}
@@ -408,6 +416,28 @@
         {busy ? 'Loading character…' : 'Drag to rotate. Scroll to zoom.'}
       </p>
       <h2 class="mt-4 font-bold">Equipped</h2>
+      {#key placementRevision}{#each hairPlacements as control}
+          <label
+            >{control.label}
+            <select
+              value={control.value}
+              disabled={busy}
+              onchange={(event) => {
+                control.set(Number(event.currentTarget.value));
+                placementRevision++;
+              }}
+            >
+              {#each control.values as value}<option {value}>Position {value + 1}</option>{/each}
+            </select>
+          </label>
+          <button
+            disabled={busy}
+            onclick={() => {
+              control.reset();
+              placementRevision++;
+            }}>Reset {control.label}</button
+          >
+        {/each}{/key}
       {#each hairControls as control}<label
           >{control.label}
           <select
