@@ -68,7 +68,9 @@
       busy = false;
     }
   }
-  let colors = $state<ColorControl[]>([]);
+  // Viewer controls mutate their color arrays outside Svelte. Keep them raw so a
+  // colorRevision rerender reads the viewer's current values instead of stale proxies.
+  let colors = $state.raw<ColorControl[]>([]);
   let hairControls = $state<OutfitScene['hairControls']>([]);
   let equipmentAnimations = $state<OutfitScene['equipmentAnimationControls']>([]);
   let makeupControls = $state<OutfitScene['makeupControls']>();
