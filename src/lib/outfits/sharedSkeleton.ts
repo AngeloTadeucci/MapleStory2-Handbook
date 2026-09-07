@@ -10,6 +10,8 @@ import {
   SkinnedMesh
 } from 'three';
 
+import { defaultEquipmentClip } from './equipmentPlayback';
+
 // GLTFLoader sanitizes Object3D.name for animation binding. userData.name retains
 // the exact glTF name, including spaces and legitimate helper bone names.
 export function sourceName(node: Object3D): string {
@@ -22,6 +24,29 @@ export type BodySkeleton = Map<string, { bone: Bone; restWorld: Matrix4 }>;
 class EquipmentGroup extends Group {
   readonly attachedRoots: Bone[] = [];
   mixer?: AnimationMixer;
+  clips: AnimationClip[] = [];
+  current = '';
+}
+
+export function equipmentAnimationControls(root: Object3D) {
+  const controls: { names: string[]; current: string; set: (name: string) => void }[] = [];
+  root.traverse((node) => {
+    if (!(node instanceof EquipmentGroup) || !node.mixer || node.clips.length < 2) return;
+    controls.push({
+      names: node.clips.map((clip) => clip.name),
+      get current() {
+        return node.current;
+      },
+      set(name) {
+        const clip = node.clips.find((clip) => clip.name === name);
+        if (!clip) throw new Error('Unknown equipment animation');
+        node.mixer!.stopAllAction();
+        node.mixer!.clipAction(clip).reset().play();
+        node.current = name;
+      }
+    });
+  });
+  return controls;
 }
 
 export function equipmentMixers(root: Object3D): AnimationMixer[] {
@@ -154,7 +179,7 @@ export function shareSkeleton(
         })
       )
   );
-  if (animations.length > 1) throw new Error('Equipment requires an explicit animation selection');
+  const initialClip = defaultEquipmentClip(animations.map((clip) => clip.name));
   const result = new EquipmentGroup();
   for (const { bone, parent } of attachments) {
     parent.add(bone);
@@ -172,7 +197,9 @@ export function shareSkeleton(
     let root: Object3D = attachments[0].parent;
     while (root.parent) root = root.parent;
     result.mixer = new AnimationMixer(root);
-    result.mixer.clipAction(animations[0]).play();
+    result.clips = animations;
+    result.current = initialClip!;
+    result.mixer.clipAction(animations.find((clip) => clip.name === initialClip)!).play();
   }
   return result;
 }

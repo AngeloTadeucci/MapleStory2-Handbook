@@ -1,5 +1,59 @@
 # Plan 10: Clothing simulator completion
 
+Current handoff, 2026-09-07: the user authorized committing and pushing candidate
+14 on the existing feature branches. Oracle preview servers on ports 4000, 4002
+and 4003 are stopped. No deployment is authorized. See backend STATUS.md for
+current testing instructions; server-running and no-commit statements below are
+historical checkpoints superseded by this handoff.
+
+## Implemented wardrobe candidate 14, 2026-09-07
+
+The source inventory owns identity, eligibility, slots and pagination; DB rows
+supply labels through SELECT reads only. All 19,268 scoped IDs and 33,170 eligible
+body pairs are searchable, including 118 IDs absent from the DB, 535 blank DB names
+and 746 explicitly nonvisual pairs. Unusable names have numeric fallbacks and
+missing icons use placeholders. Actual model slots include previously omitted
+FH/EY/PD/RI/BE/ER. Shared models retain every item identity.
+
+The selected simulator-release-14 contains 9,329 assets and 7,078 usable bundle
+families. Labels remain 80 inherited reviewed, 27,788 preview and 5,302 unavailable.
+Authored palette defaults/cycles/reset, face expressions, makeup masks/placement/
+size, source hair forms, equipment clip selection and source attachment repairs
+are implemented. Fixed source hair scales do not expose adjustable controls, and
+adjustable hair lengths have a native-default reset. Existing shader and hair-twinkle effects are preserved. Source
+failures and limitations remain visible. No new visual acceptance was granted.
+
+Candidate 14 passes 115 logic/source tests, all 9,327 equipment asset cases,
+and 9,329 glTF validators with zero errors or warnings. Typecheck reports zero
+errors and warnings. Final build-14c and compiled public UI workflows pass on
+both bodies, including native hair-length reset. The detailed development workflow
+passes 17 states, including private Gelo. Contact sheets covering 42 outfit cases
+and 77 distinct item/body pairs were inspected. New visual acceptance remains zero.
+Read backend STATUS.md and Diagnostics/wardrobe-release-report.json for exact IDs,
+source evidence, counts, commands and remaining blockers.
+
+The compiled candidate runs at http://127.0.0.1:4003/outfits. Its 12,146 packaged
+files match release hashes. It packages only simulator-release-14; actual private
+Gelo and baseline release URLs return 404. Development preview 127.0.0.1:4002 is
+separate from the untouched 4000 review build. Release-05 and Gelo-07 have 1,273
+unchanged file hashes. T3 has no automation host here; Oracle Playwright workflows
+passed. No commit, push, merge, deploy or database write is authorized or performed.
+Preserve the preparation notes and test fixes below as historical setup evidence.
+Historical publishing authorization below is superseded by the current request.
+
+## Oracle workspace checkpoint, 2026-09-07
+
+The feature branch is prepared at `/home/ubuntu/repos/MapleStory2-Handbook`,
+alongside the backend. Source the backend's NifToGltf/obj/oracle-prep/env.sh.
+The loopback review build serves 127.0.0.1:4000; it does not hot reload. All 249
+frontend tests pass with the transferred asset fixtures. The existing nested
+unescapeHtml test suite was corrected. Complete nine-item outfits on both bodies
+were exercised in Oracle Chromium and their screenshots inspected. The private
+Gelo snapshot is staged but requires the development-only preview route.
+Read backend STATUS.md for exact items, verified files, database read-only
+restrictions, cross-platform export differences and the known /icon0.png 404.
+Preparation does not implement the wardrobe expansion or authorize publishing.
+
 ## Next priority: full wardrobe coverage, 2026-09-07
 
 The user requested a plan for all clothing and wearable decorations before

@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { AnimationMixer, SkinnedMesh, Vector3 } from 'three';
+import { AnimationMixer, Mesh, SkinnedMesh, Vector3, type Object3D } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   captureBodySkeleton,
   shareSkeleton,
   equipmentMixers,
+  equipmentAnimationControls,
   releaseEquipmentBones
 } from '../src/lib/outfits/sharedSkeleton';
 
@@ -15,6 +16,27 @@ const manifest: { assets: { id: string; uri: string; bodyVariant: string; skelet
   directory
     ? JSON.parse(readFileSync(resolve(directory, 'native-manifest.json'), 'utf8'))
     : { assets: [] };
+const sourceCatalog: {
+  items: {
+    availability: string;
+    parts: { assetId: string }[];
+    handParts?: Record<string, string[]>;
+    hairForms?: Record<string, string[]>;
+    stowedParts?: string[];
+  }[];
+} = directory
+  ? JSON.parse(readFileSync(resolve(directory, 'simulator-catalog.json'), 'utf8'))
+  : { items: [] };
+const availableAssets = new Set(
+  sourceCatalog.items
+    .filter((i) => i.availability !== 'unavailable')
+    .flatMap((i) => [
+      ...i.parts.map((p) => p.assetId),
+      ...Object.values(i.handParts ?? {}).flat(),
+      ...Object.values(i.hairForms ?? {}).flat(),
+      ...(i.stowedParts ?? [])
+    ])
+);
 async function load(file: string) {
   const data = JSON.parse(readFileSync(resolve(directory!, file), 'utf8')) as {
     materials?: unknown[];
@@ -28,6 +50,16 @@ async function load(file: string) {
   for (const mesh of data.meshes) for (const part of mesh.primitives) delete part.material;
   return new GLTFLoader().parseAsync(JSON.stringify(data), '');
 }
+function release(root: Object3D) {
+  releaseEquipmentBones(root);
+  root.traverse((node) => {
+    if (node instanceof Mesh) node.geometry.dispose();
+  });
+  root.clear();
+}
+const firstAsset = Number(process.env.SIMULATOR_ASSET_START ?? 0);
+const assetLimit = Number(process.env.SIMULATOR_ASSET_LIMIT ?? manifest.assets.length);
+
 describe.skipIf(!directory)('candidate library body binding', () => {
   beforeAll(() => vi.stubGlobal('ProgressEvent', class extends Event {}));
   afterAll(() => vi.unstubAllGlobals());
@@ -70,43 +102,63 @@ describe.skipIf(!directory)('candidate library body binding', () => {
     releaseEquipmentBones(shared);
     expect(equipmentMixers(shared)).toHaveLength(0);
   });
-  for (const asset of manifest.assets.filter((a) => a.skeleton)) {
+  for (const asset of manifest.assets
+    .filter((a) => a.skeleton)
+    .slice(firstAsset, firstAsset + assetLimit)) {
     it(`${asset.id} preserves deformation on the selected body through idle and run`, async () => {
       const [body, gear, independent] = await Promise.all([
         load(`${asset.bodyVariant}/body.gltf`),
         load(asset.uri),
         load(asset.uri)
       ]);
-      const shared = shareSkeleton(gear.scene, captureBodySkeleton(body.scene));
+      const sourceClips = availableAssets.has(asset.id) ? gear.animations : [];
+      const shared = shareSkeleton(gear.scene, captureBodySkeleton(body.scene), sourceClips);
       const reference: SkinnedMesh[] = [];
       independent.scene.traverse((node) => {
         if (node instanceof SkinnedMesh) reference.push(node);
       });
-      for (const name of ['fitting_idle_a', 'run_a']) {
-        const clip = body.animations.find((c) => c.name === name)!;
-        const bodyMixer = new AnimationMixer(body.scene),
-          gearMixer = new AnimationMixer(independent.scene);
-        bodyMixer.clipAction(clip).play();
-        gearMixer.clipAction(clip).play();
-        for (const time of [0, 0.3, 0.75]) {
-          bodyMixer.setTime(time);
-          gearMixer.setTime(time);
-          body.scene.updateMatrixWorld(true);
-          independent.scene.updateMatrixWorld(true);
-          shared.updateMatrixWorld(true);
-          for (const [index, node] of shared.children.entries()) {
-            const mesh = node as SkinnedMesh;
-            for (let vertex = 0; vertex < mesh.geometry.attributes.position.count; vertex += 17) {
-              const actual = mesh.getVertexPosition(vertex, new Vector3());
-              expect(
-                actual.distanceTo(reference[index].getVertexPosition(vertex, new Vector3()))
-              ).toBeLessThan(1e-5);
+      for (const effectName of sourceClips.length ? sourceClips.map((c) => c.name) : [undefined]) {
+        if (effectName)
+          for (const control of equipmentAnimationControls(shared)) control.set(effectName);
+        for (const name of ['fitting_idle_a', 'run_a']) {
+          const clip = body.animations.find((c) => c.name === name)!;
+          const bodyMixer = new AnimationMixer(body.scene),
+            gearMixer = new AnimationMixer(independent.scene);
+          bodyMixer.clipAction(clip).play();
+          gearMixer.clipAction(clip).play();
+          if (effectName)
+            gearMixer.clipAction(independent.animations.find((c) => c.name === effectName)!).play();
+          for (const time of [0, 0.3, 0.75]) {
+            bodyMixer.setTime(time);
+            gearMixer.setTime(time);
+            for (const mixer of equipmentMixers(shared)) mixer.setTime(time);
+            body.scene.updateMatrixWorld(true);
+            independent.scene.updateMatrixWorld(true);
+            shared.updateMatrixWorld(true);
+            for (const [index, node] of shared.children.entries()) {
+              const mesh = node as SkinnedMesh;
+              for (let vertex = 0; vertex < mesh.geometry.attributes.position.count; vertex += 17) {
+                const actual = mesh.getVertexPosition(vertex, new Vector3());
+                const distance = actual.distanceTo(
+                  reference[index].getVertexPosition(vertex, new Vector3())
+                );
+                expect(
+                  distance,
+                  `${asset.id} ${name}/${time} ${mesh.name} vertex ${vertex}`
+                ).toBeLessThan(1e-5);
+              }
             }
           }
+          bodyMixer.stopAllAction();
+          gearMixer.stopAllAction();
+          bodyMixer.uncacheRoot(body.scene);
+          gearMixer.uncacheRoot(independent.scene);
         }
-        bodyMixer.stopAllAction();
-        gearMixer.stopAllAction();
       }
+      release(shared);
+      release(body.scene);
+      release(gear.scene);
+      release(independent.scene);
     });
   }
 });

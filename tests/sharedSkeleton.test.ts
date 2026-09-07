@@ -17,7 +17,8 @@ import {
   captureBodySkeleton,
   shareSkeleton,
   releaseEquipmentBones,
-  equipmentMixers
+  equipmentMixers,
+  equipmentAnimationControls
 } from '../src/lib/outfits/sharedSkeleton';
 
 function fixture() {
@@ -63,6 +64,34 @@ describe('shared equipment skeleton', () => {
     releaseEquipmentBones(shared);
     expect(animated.parent).toBeNull();
     expect(equipmentMixers(shared)).toHaveLength(0);
+  });
+  it('selects source idle and switches only that equipment instance to its attack clip', () => {
+    const body = fixture(),
+      gear = fixture();
+    const joint = new Bone();
+    joint.name = 'wing';
+    joint.userData.equipmentBone = true;
+    gear.bone.add(joint);
+    const idle = new AnimationClip('Idle_A', 2, [
+      new NumberKeyframeTrack('wing.position', [0, 2], [0, 0, 0, 2, 0, 0])
+    ]);
+    const attack = new AnimationClip('Attack_Idle_A', 2, [
+      new NumberKeyframeTrack('wing.position', [0, 2], [0, 0, 0, 4, 0, 0])
+    ]);
+    const shared = shareSkeleton(gear.root, captureBodySkeleton(body.root), [attack, idle]);
+    const [control] = equipmentAnimationControls(shared),
+      [mixer] = equipmentMixers(shared);
+    expect(control.current).toBe('Idle_A');
+    mixer.setTime(1);
+    expect(body.bone.children[0].position.x).toBeCloseTo(1);
+    control.set('Attack_Idle_A');
+    mixer.setTime(1);
+    expect(control.current).toBe('Attack_Idle_A');
+    expect(body.bone.children[0].position.x).toBeCloseTo(2);
+    expect(body.bone.position.x).toBe(0);
+    expect(() => control.set('Missing')).toThrow('Unknown');
+    releaseEquipmentBones(shared);
+    expect(body.bone.children).toHaveLength(0);
   });
   it('rejects an equipment track aimed at the body before changing bindings', () => {
     const body = fixture(),

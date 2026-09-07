@@ -13,7 +13,14 @@ const config = {
     // adapter-auto only supports some environments, see https://kit.svelte.dev/docs/adapter-auto for a list.
     // If your environment is not supported or you settled on a specific environment, switch out the adapter.
     // See https://kit.svelte.dev/docs/adapters for more information about adapters.
-    adapter: simulatorAdapter(adapter(), simulatorRelease.directory)
+    outDir: process.env.HANDBOOK_KIT_DIR || '.svelte-kit',
+    ...(process.env.HANDBOOK_STATIC_DIR
+      ? { files: { assets: process.env.HANDBOOK_STATIC_DIR } }
+      : {}),
+    adapter: simulatorAdapter(
+      adapter({ out: process.env.HANDBOOK_BUILD_DIR || 'build' }),
+      simulatorRelease.directory
+    )
   }
 };
 

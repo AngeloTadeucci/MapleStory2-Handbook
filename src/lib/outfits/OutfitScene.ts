@@ -22,6 +22,7 @@ import {
   shareSkeleton,
   releaseEquipmentBones,
   equipmentMixers,
+  equipmentAnimationControls,
   sourceName,
   type BodySkeleton
 } from './sharedSkeleton';
@@ -41,6 +42,8 @@ import { FaceAnimation, type Customization } from './faceAnimation';
 import { FaceDecal } from './faceDecal';
 import { applyCharacterMaterials } from './characterMaterials';
 import { CosmeticEffect } from './cosmeticEffect';
+import { captureHairDefault, hairLengthControl } from './hairLengthControls';
+import { applyItemDefault, itemDefaultColors, ItemPaletteAnimation } from './itemDefaults';
 
 function dispose(root: Object3D) {
   releaseEquipmentBones(root);
@@ -87,6 +90,7 @@ export class OutfitScene {
   private bodyColors: ColorControl[] = [];
   private skinColors?: SkinColors;
   private equipmentColors = new Map<string, ColorControl[]>();
+  private paletteAnimations = new Map<string, ItemPaletteAnimation[]>();
   private bodyVisibility = new Map<Object3D, boolean>();
   private request = 0;
   private alive = true;
@@ -97,6 +101,17 @@ export class OutfitScene {
 
   get equippedItems(): OutfitBundle[] {
     return [...this.bundles.values()];
+  }
+  get equipmentAnimationControls() {
+    return [...this.equipment].flatMap(([key, group]) =>
+      equipmentAnimationControls(group).map((control, index) => ({
+        ...control,
+        label: `${this.bundles.get(key)?.item.name ?? key} animation${index ? ` ${index + 1}` : ''}`
+      }))
+    );
+  }
+  get makeupControls() {
+    return this.decal?.controls;
   }
   setCustomization(data: Customization, base = libraryBase) {
     this.customization = data;
@@ -136,6 +151,8 @@ export class OutfitScene {
   seek(time: number) {
     this.playing = false;
     this.mixer?.setTime(time);
+    for (const animations of this.paletteAnimations.values())
+      for (const animation of animations) animation.seek(time);
     for (const group of this.equipment.values())
       for (const mixer of equipmentMixers(group)) mixer.setTime(time);
     this.body?.scene.updateMatrixWorld(true);
@@ -158,12 +175,14 @@ export class OutfitScene {
     values: number[];
     value: number;
     set: (value: number) => void;
+    reset: () => void;
   }[] {
     const controls: {
       label: string;
       values: number[];
       value: number;
       set: (value: number) => void;
+      reset: () => void;
     }[] = [];
     for (const [key, bundle] of this.bundles) {
       const scales = bundle.item.library?.hairScales;
@@ -174,16 +193,13 @@ export class OutfitScene {
           index = /^HR(\d+)/.exec(name)?.[1] ?? '0';
         const values = scales[Number(index)];
         if (!values?.length) return;
-        controls.push({
-          label: `${bundle.item.name} length ${Number(index) + 1}`,
+        const control = hairLengthControl(
+          node,
+          `${bundle.item.name} length ${Number(index) + 1}`,
           values,
-          value: node.morphTargetInfluences[0],
-          set: (value) => {
-            if (!values.includes(value)) throw new Error('Unsupported hair length');
-            node.morphTargetInfluences![0] = value;
-            this.hairLengths.set(`${bundle.item.id}:${name}`, value);
-          }
-        });
+          (value) => this.hairLengths.set(`${bundle.item.id}:${name}`, value)
+        );
+        if (control) controls.push(control);
       });
     }
     return controls;
@@ -264,6 +280,8 @@ export class OutfitScene {
       this.previous = time;
       if (this.playing) {
         this.mixer?.update(delta);
+        for (const animations of this.paletteAnimations.values())
+          for (const animation of animations) animation.update(delta);
         for (const group of this.equipment.values())
           for (const mixer of equipmentMixers(group)) mixer.update(delta);
       }
@@ -388,6 +406,7 @@ export class OutfitScene {
       face?: FaceAnimation;
       decal?: FaceDecal;
       effect?: CosmeticEffect;
+      paletteAnimations?: ItemPaletteAnimation[];
     }[] = [];
     try {
       for (const bundle of changes) {
@@ -424,8 +443,10 @@ export class OutfitScene {
           entry.decal = await FaceDecal.load(
             bundle.item.library.decal,
             this.customizationBase,
-            this.body.scene
+            this.body.scene,
+            this.customization?.palettes[bundle.item.library.customize.colorPalette]?.[0]?.colors
           );
+          if (entry.decal.control) entry.colors.push(entry.decal.control);
         }
         if (bundle.item.library?.cosmeticEffect) {
           if (!bundle.slots.includes('HR')) throw new Error('Only hair effects are supported');
@@ -440,6 +461,28 @@ export class OutfitScene {
             heads[0]
           );
           entry.effect.enabled = this.effectsEnabled;
+        }
+        const animatedDefaults = bundle.item.library?.customize.defaultColorIndex?.includes(',');
+        if (animatedDefaults && this.customization && bundle.item.library) {
+          entry.paletteAnimations = entry.colors
+            .filter((color) => !isSkinColor(color))
+            .map(
+              (control) =>
+                new ItemPaletteAnimation(
+                  control,
+                  bundle.item.library!.customize,
+                  this.customization!.palettes
+                )
+            );
+        }
+        const defaults =
+          !animatedDefaults &&
+          this.customization &&
+          bundle.item.library &&
+          itemDefaultColors(bundle.item.library.customize, this.customization.palettes);
+        if (defaults) {
+          for (const control of entry.colors.filter((color) => !isSkinColor(color)))
+            applyItemDefault(control, defaults);
         }
         // A cap changes the same hairstyle's authored geometry, preserving its dye.
         if (
@@ -456,6 +499,7 @@ export class OutfitScene {
         if (bundle.slots.includes('HR'))
           entry.group.traverse((node) => {
             if (!(node instanceof Mesh) || node.morphTargetInfluences?.length !== 1) return;
+            captureHairDefault(node);
             const length = this.hairLengths.get(`${bundle.item.id}:${sourceName(node)}`);
             if (length !== undefined) node.morphTargetInfluences[0] = length;
           });
@@ -479,7 +523,7 @@ export class OutfitScene {
     for (const { bundle } of staged)
       for (const old of conflictingItems(this.equippedItems, bundle)) evicted.add(bundleKey(old));
     for (const key of evicted) this.unequip(key);
-    for (const { bundle, group, colors, face, decal, effect } of staged) {
+    for (const { bundle, group, colors, face, decal, effect, paletteAnimations } of staged) {
       const key = bundleKey(bundle);
       let fabric = 0;
       for (const color of colors)
@@ -489,6 +533,7 @@ export class OutfitScene {
         }
       this.equipment.set(key, group);
       this.equipmentColors.set(key, colors);
+      if (paletteAnimations) this.paletteAnimations.set(key, paletteAnimations);
       this.bundles.set(key, bundle);
       if (effect) {
         this.cosmeticEffects.set(key, effect);
@@ -509,6 +554,7 @@ export class OutfitScene {
   }
 
   unequip(slot: string) {
+    this.paletteAnimations.delete(slot);
     this.cosmeticEffects.get(slot)?.dispose();
     this.cosmeticEffects.delete(slot);
     if (this.bundles.get(slot)?.slots.includes('FD')) {

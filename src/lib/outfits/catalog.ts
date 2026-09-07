@@ -16,6 +16,14 @@ export const slotNames: Record<string, string> = {
   SH: 'Shoes',
   MT: 'Back',
   EA: 'Earrings',
+  FH: 'Face accessories',
+  EY: 'Eyewear',
+  PD: 'Pendants',
+  RI: 'Rings',
+  BE: 'Belts',
+  ER: 'Ears',
+  BH: 'Both hands',
+  RHLH: 'Both hands',
   OH: 'Either hand',
   RH: 'Right hand',
   LH: 'Left hand'
@@ -33,6 +41,14 @@ export const slotNumbers: Record<string, number> = {
   GL: 10,
   SH: 11,
   EA: 14,
+  FH: 12,
+  EY: 13,
+  PD: 15,
+  RI: 16,
+  BE: 17,
+  ER: 18,
+  BH: 20,
+  RHLH: 20,
   OH: 19
 };
 export const libraryBase = `${(dev ? '/gltf/' : getGltfUrl()).replace(/\/?$/, '/')}${simulatorRelease.directory}/`;
@@ -43,6 +59,11 @@ export function characterPreviewBase(name: string): string {
 export const libraryItemSchema = z
   .object({
     itemId: z.number().int().positive(),
+    sourceName: z.string().optional(),
+    sourceIcon: z.string().nullable().optional(),
+    isOutfit: z.number().int().optional(),
+    classification: z.enum(['visual', 'nonvisual']).optional(),
+    limitations: z.array(z.string()).optional(),
     bodyVariant: z.enum(['male', 'female']),
     slots: z.array(z.string()).min(1),
     parts: z.array(z.object({ assetId: z.string(), slot: z.string() })),
@@ -54,7 +75,8 @@ export const libraryItemSchema = z
     stowedParts: z.array(z.string()).min(1).optional(),
     customize: z.record(z.string(), z.string()),
     cutting: z.array(z.string()),
-    hairScales: z.array(z.array(z.number().min(0).max(1))).optional(),
+    // Client presets 10200008/10/12/38 include authored weights above one.
+    hairScales: z.array(z.array(z.number().finite().min(0))).optional(),
     hairForms: z.record(z.string(), z.array(z.string())).optional(),
     hatHairForm: z.enum(['a', 'c', 'd']).optional(),
     availability: z.enum(['preview', 'verified', 'unavailable']),
@@ -62,7 +84,9 @@ export const libraryItemSchema = z
   })
   .refine(
     (item) =>
-      item.parts.length > 0 || (item.slots.length === 1 && item.slots[0] === 'FD' && item.decal),
+      item.availability === 'unavailable' ||
+      item.parts.length > 0 ||
+      (item.slots.length === 1 && item.slots[0] === 'FD' && item.decal),
     'Item requires geometry or a face decal'
   );
 export const catalogSchema = z
@@ -199,7 +223,7 @@ export const searchSchema = z.object({
     .string()
     .refine((value) => value === '' || value === 'full' || value in slotNames)
     .default(''),
-  availability: z.enum(['all', 'preview', 'verified']).default('verified'),
+  availability: z.enum(['all', 'preview', 'verified']).default('all'),
   outfit: z.enum(['all', 'true', 'false']).default('all'),
   page: z.coerce.number().int().min(0).max(100000).default(0),
   limit: z.coerce.number().int().min(1).max(48).default(12)

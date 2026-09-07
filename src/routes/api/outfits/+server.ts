@@ -1,13 +1,17 @@
-import { json, type RequestHandler } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 import DBClient from '$lib/prismaClient';
 import {
   catalogSchema,
   characterPreviewBase,
   libraryBase,
-  searchSchema,
-  slotNumbers
+  searchSchema
 } from '$lib/outfits/catalog';
-import type { Prisma } from '$lib/generated/prisma/client';
+import { joinCatalog, searchCatalog, type ItemLabel } from '$lib/outfits/search';
+
+// Metadata only. Geometry stays lazy. Cache avoids a full SELECT and schema
+// parse on every keystroke. Private preview indexes remain separate.
+const cache = new Map<string, { expires: number; items: ReturnType<typeof joinCatalog> }>();
 
 export const GET: RequestHandler = async ({ url, fetch }) => {
   const parsed = searchSchema.safeParse(Object.fromEntries(url.searchParams));
@@ -15,97 +19,34 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
   const query = parsed.data;
   try {
     const base = query.preview ? characterPreviewBase(query.preview) : libraryBase;
-    const response = await fetch(`${base}simulator-catalog.json`);
-    if (!response.ok) throw new Error('Model catalog is unavailable');
-    const catalog = catalogSchema.parse(await response.json());
-    const entries = catalog.items.filter((item) => item.bodyVariant === query.body);
-    const eligible = entries.filter(
-      (item) =>
-        (query.availability === 'all' ||
-          (query.availability === 'verified'
-            ? item.availability === 'verified'
-            : item.availability !== 'unavailable')) &&
-        (!query.slot ||
-          (query.slot === 'full'
-            ? item.slots.includes('CL') && item.slots.includes('PA')
-            : item.slots.includes(query.slot) ||
-              (query.slot === 'RH' && item.slots.includes('OH')) ||
-              (item.handParts && (query.slot === 'RH' || query.slot === 'LH'))))
-    );
-    const restrictIds = query.availability !== 'all' || query.slot === 'full';
-    const where: Prisma.itemsWhereInput = {
-      name: { not: '' },
-      ...(restrictIds
-        ? { id: { in: eligible.map((item) => item.itemId) } }
-        : {
-            AND: [
-              {
-                OR: [
-                  // Full outfits can have database slot 0. Their exact source
-                  // bundle remains eligible when browsing all items.
-                  { id: { in: eligible.map((item) => item.itemId) } },
-                  {
-                    slot: {
-                      in: query.slot
-                        ? [
-                            slotNumbers[query.slot],
-                            ...(['RH', 'LH'].includes(query.slot) ? [slotNumbers.OH] : [])
-                          ]
-                        : Object.values(slotNumbers)
-                    }
-                  },
-                  ...(!query.slot || query.slot === 'HR'
-                    ? [{ id: { gte: 10200000, lt: 10300000 } }]
-                    : []),
-                  ...(!query.slot || query.slot === 'FA'
-                    ? [{ id: { gte: 10300000, lt: 10400000 } }]
-                    : [])
-                ]
-              }
-            ]
-          }),
-      gender: { in: [query.body === 'male' ? 0 : 1, 2] },
-      ...(query.outfit !== 'all' ? { is_outfit: query.outfit === 'true' ? 1 : 0 } : {}),
-      ...(query.search
-        ? {
-            OR: [
-              { name: { contains: query.search } },
-              ...(/^\d+$/.test(query.search) && Number.isSafeInteger(Number(query.search))
-                ? [{ id: Number(query.search) }]
-                : [])
-            ]
+    let cached = cache.get(base);
+    if (!cached || cached.expires <= Date.now()) {
+      const response = await fetch(`${base}simulator-catalog.json`);
+      if (!response.ok) throw new Error('Model catalog is unavailable');
+      const catalog = catalogSchema.parse(await response.json());
+      let labels: ItemLabel[] = [];
+      try {
+        // SELECT only. Missing database records and names do not remove source IDs.
+        labels = await DBClient.getInstance().prisma.items.findMany({
+          select: {
+            id: true,
+            name: true,
+            icon_path: true,
+            gender: true,
+            slot: true,
+            is_outfit: true,
+            dyeable: true,
+            kfms: true
           }
-        : {})
-    };
-    const prisma = DBClient.getInstance().prisma;
-    const [items, total] = await Promise.all([
-      prisma.items.findMany({
-        where,
-        orderBy: { id: 'asc' },
-        skip: query.page * query.limit,
-        take: query.limit,
-        select: {
-          id: true,
-          name: true,
-          icon_path: true,
-          gender: true,
-          slot: true,
-          is_outfit: true,
-          dyeable: true,
-          kfms: true
-        }
-      }),
-      prisma.items.count({ where })
-    ]);
-    return json({
-      items: items.map((item) => ({
-        ...item,
-        library: entries.find((entry) => entry.itemId === item.id) ?? null
-      })),
-      total,
-      page: query.page,
-      limit: query.limit
-    });
+        });
+      } catch {
+        console.warn('Outfit labels unavailable; using client source labels');
+      }
+      cached = { expires: Date.now() + 60_000, items: joinCatalog(catalog.items, labels) };
+      if (cache.size >= 3) cache.delete(cache.keys().next().value!);
+      cache.set(base, cached);
+    }
+    return json(searchCatalog(cached.items, query));
   } catch (cause) {
     console.error(
       'Outfit catalog query failed',

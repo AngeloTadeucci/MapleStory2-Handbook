@@ -1,20 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 vi.mock('$app/environment', () => ({ dev: true }));
 vi.mock('$lib/getGltfUrl', () => ({ default: () => '/gltf/' }));
-const database = vi.hoisted(() => ({
-  findMany: vi.fn(async () => []),
-  count: vi.fn(async () => 0)
-}));
+const database = vi.hoisted(() => ({ findMany: vi.fn(async () => []) }));
 vi.mock('$lib/prismaClient', () => ({
   default: { getInstance: () => ({ prisma: { items: database } }) }
 }));
 import { GET } from '../src/routes/api/outfits/+server';
-import type { RequestEvent } from '@sveltejs/kit';
+type OutfitRequest = Parameters<typeof GET>[0];
 
-describe('outfit API slot filtering', () => {
-  it('includes a known full outfit with database slot zero in all-item and top searches', async () => {
+describe('source-owned outfit API', () => {
+  it('finds a DB-missing full outfit in all, top and pants searches', async () => {
     for (const slot of ['', 'CL', 'PA']) {
-      const event = {
+      const response = await GET({
         url: new URL(
           `http://localhost/api/outfits?availability=all&body=female&slot=${slot}&search=12200001`
         ),
@@ -26,25 +23,35 @@ describe('outfit API slot filtering', () => {
               {
                 itemId: 12200001,
                 bodyVariant: 'female',
+                sourceName: '',
                 slots: ['CL', 'PA'],
-                parts: [{ assetId: 'robe', slot: 'CL' }],
+                parts: [],
                 customize: {},
                 cutting: [],
-                availability: 'verified',
-                reason: ''
+                availability: 'unavailable',
+                reason: 'Missing source'
               }
             ]
           })
-      } as unknown as RequestEvent;
-      const response = await GET(event);
+      } as unknown as OutfitRequest);
       expect(response.status).toBe(200);
-      expect(database.findMany).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            AND: [{ OR: expect.arrayContaining([{ id: { in: [12200001] } }]) }]
-          })
-        })
-      );
+      const result = await response.json();
+      expect(result.total).toBe(1);
+      expect(result.items[0]).toMatchObject({
+        id: 12200001,
+        name: 'Item 12200001',
+        library: { reason: 'Missing source' }
+      });
     }
+    expect(database.findMany).toHaveBeenCalledTimes(1);
+  });
+  it('rejects invalid filters before reading any source', async () => {
+    const fetch = vi.fn();
+    const response = await GET({
+      url: new URL('http://localhost/api/outfits?limit=999'),
+      fetch
+    } as unknown as OutfitRequest);
+    expect(response.status).toBe(400);
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

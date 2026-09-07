@@ -1,7 +1,7 @@
 import { unescapeHtml } from '$lib/helpers/htmlParser';
-import { test, expect } from 'vitest';
+import { describe, test, expect } from 'vitest';
 
-test('unescapeHtml', () => {
+describe('unescapeHtml', () => {
   test('should replace &nbsp; with a space', () => {
     const input = 'Hello&nbsp;world';
     const expected = 'Hello world';

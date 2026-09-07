@@ -70,10 +70,12 @@
   }
   let colors = $state<ColorControl[]>([]);
   let hairControls = $state<OutfitScene['hairControls']>([]);
+  let equipmentAnimations = $state<OutfitScene['equipmentAnimationControls']>([]);
+  let makeupControls = $state<OutfitScene['makeupControls']>();
   let colorRevision = $state(0);
   let search = $state('');
   let slot = $state('');
-  let availability = $state('verified');
+  let availability = $state('all');
   let outfit = $state('all');
   let page = $state(0);
   let items = $state<CatalogItem[]>([]);
@@ -106,6 +108,8 @@
       equipped = viewer.equippedItems;
       colors = viewer.colorControls;
       hairControls = viewer.hairControls;
+      equipmentAnimations = viewer.equipmentAnimationControls;
+      makeupControls = viewer.makeupControls;
       expression = 'default';
       viewer.selectExpression(expression);
     }
@@ -294,8 +298,8 @@
       </ul>
     </aside>{/if}
   <p class="mb-4 text-sm opacity-75">
-    Dress your character, customize colors and save an image. The catalog starts with reviewed
-    models. Preview models may have appearance issues.
+    Dress your character, customize colors and save an image. The catalog includes every eligible
+    client item. Preview models may have appearance issues; unavailable items show the reason.
   </p>
   <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_390px]">
     <section class="min-w-0" aria-label="Character">
@@ -350,6 +354,20 @@
             onclick={() => placeWeapons('stowed')}>Stow weapons</button
           >
         {/if}
+        {#each equipmentAnimations as control}
+          <label
+            >{control.label}<select
+              value={control.current}
+              disabled={busy}
+              onchange={(event) => {
+                control.set(event.currentTarget.value);
+                refresh();
+              }}
+            >
+              {#each control.names as name}<option value={name}>{name}</option>{/each}
+            </select></label
+          >
+        {/each}
         <label
           >Expression <select
             disabled={busy}
@@ -400,7 +418,52 @@
             ><option value={control.value} disabled>Current: {control.value}</option
             >{#each control.values as value}<option {value}>{value}</option>{/each}</select
           ></label
-        >{/each}
+        >
+        <button
+          aria-label={`Reset ${control.label}`}
+          onclick={() => {
+            control.reset();
+            hairControls = viewer?.hairControls ?? [];
+          }}>Reset length</button
+        >
+      {/each}
+      {#if makeupControls}
+        <div class="flex flex-wrap items-center gap-2">
+          <label
+            >Makeup placement <select
+              disabled={busy}
+              onchange={(event) => {
+                makeupControls?.place(Number(event.currentTarget.value));
+                makeupControls = viewer?.makeupControls;
+              }}
+              >{#each makeupControls.placements as _, index}<option value={index}
+                  >Position {index + 1}</option
+                >{/each}</select
+            ></label
+          >
+          {#if makeupControls.scaleRange[0] !== makeupControls.scaleRange[1]}
+            <label
+              >Makeup size <input
+                type="range"
+                min={makeupControls.scaleRange[0]}
+                max={makeupControls.scaleRange[1]}
+                step="0.001"
+                value={makeupControls.value[3]}
+                oninput={(event) => {
+                  makeupControls?.scale(Number(event.currentTarget.value));
+                  makeupControls = viewer?.makeupControls;
+                }}
+              /></label
+            >
+          {/if}
+          <button
+            onclick={() => {
+              makeupControls?.reset();
+              makeupControls = viewer?.makeupControls;
+            }}>Reset makeup</button
+          >
+        </div>
+      {/if}
       {#if !equipped.length}<p class="text-sm opacity-70">Choose clothing from the catalog.</p>{/if}
       <div class="mt-2 flex flex-wrap gap-2">
         {#each equipped as bundle (bundleKey(bundle))}<button
@@ -523,13 +586,23 @@
                 onclick={() => equip(item)}
                 aria-label={`Equip ${item.name}${item.library?.handParts ? ' in right hand' : ''}`}
               >
-                <img
-                  src={dev
-                    ? item.icon_path.replace('./data/', '/')
-                    : getImageUrl(item.icon_path.replace('./data/', '/'))}
-                  alt=""
-                  class="h-10 w-10 object-contain"
-                />
+                {#if item.icon_path && !item.icon_path.toLowerCase().endsWith('icon0.png')}<img
+                    src={dev
+                      ? item.icon_path.replace('./data/', '/')
+                      : getImageUrl(item.icon_path.replace('./data/', '/'))}
+                    alt=""
+                    class="h-10 w-10 object-contain"
+                    onerror={(event) => {
+                      if (event.currentTarget instanceof HTMLImageElement) {
+                        event.currentTarget.hidden = true;
+                        event.currentTarget.nextElementSibling?.removeAttribute('hidden');
+                      }
+                    }}
+                  /><span hidden class="text-xs" aria-label="No item icon">?</span>
+                {:else}<span
+                    class="flex h-10 w-10 items-center justify-center rounded bg-surface-500/20 text-xs"
+                    aria-label="No item icon">?</span
+                  >{/if}
                 <span class="text-sm font-semibold">{item.name}</span><span
                   class="text-xs opacity-70">{item.id}</span
                 ><span class="text-xs"
@@ -539,6 +612,10 @@
                       : 'Preview'
                     : 'Unavailable'}</span
                 >
+                {#if !available}<span class="text-xs">{item.library?.reason}</span>{/if}
+                {#each item.library?.limitations ?? [] as limitation}<span class="text-xs"
+                    >{limitation}</span
+                  >{/each}
                 {#if item.library?.handParts}<span class="text-xs">Equip right hand</span>{/if}
               </button>
               {#if item.library?.handParts}<button
