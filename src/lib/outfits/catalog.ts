@@ -2,10 +2,13 @@ import { z } from 'zod';
 import { dev } from '$app/environment';
 import getGltfUrl from '$lib/getGltfUrl';
 import type { NativeAsset } from '$lib/nativeAssets';
+import { decalSchema } from './faceDecal';
+import simulatorRelease from './simulator-release.json';
 
 export const slotNames: Record<string, string> = {
   HR: 'Hair',
   FA: 'Face',
+  FD: 'Makeup',
   CP: 'Hats',
   CL: 'Tops',
   PA: 'Pants',
@@ -13,13 +16,14 @@ export const slotNames: Record<string, string> = {
   SH: 'Shoes',
   MT: 'Back',
   EA: 'Earrings',
-  OH: 'Off hand',
+  OH: 'Either hand',
   RH: 'Right hand',
   LH: 'Left hand'
 };
 export const slotNumbers: Record<string, number> = {
   HR: 1,
   FA: 2,
+  FD: 3,
   LH: 4,
   RH: 5,
   CP: 6,
@@ -31,24 +35,35 @@ export const slotNumbers: Record<string, number> = {
   EA: 14,
   OH: 19
 };
-export const libraryBase = `${(dev ? '/gltf/' : getGltfUrl()).replace(/\/?$/, '/')}simulator-release-02/`;
+export const libraryBase = `${(dev ? '/gltf/' : getGltfUrl()).replace(/\/?$/, '/')}${simulatorRelease.directory}/`;
 export function characterPreviewBase(name: string): string {
   if (!dev || !/^[a-z0-9-]{1,40}$/.test(name)) throw new Error('Invalid local character preview');
   return `/gltf/character-previews/${name}/`;
 }
-export const libraryItemSchema = z.object({
-  itemId: z.number().int().positive(),
-  bodyVariant: z.enum(['male', 'female']),
-  slots: z.array(z.string()).min(1),
-  parts: z.array(z.object({ assetId: z.string(), slot: z.string() })).min(1),
-  customize: z.record(z.string(), z.string()),
-  cutting: z.array(z.string()),
-  hairScales: z.array(z.array(z.number().min(0).max(1))).optional(),
-  hairForms: z.record(z.string(), z.array(z.string())).optional(),
-  hatHairForm: z.enum(['a', 'c', 'd']).optional(),
-  availability: z.enum(['preview', 'verified', 'unavailable']),
-  reason: z.string()
-});
+export const libraryItemSchema = z
+  .object({
+    itemId: z.number().int().positive(),
+    bodyVariant: z.enum(['male', 'female']),
+    slots: z.array(z.string()).min(1),
+    parts: z.array(z.object({ assetId: z.string(), slot: z.string() })),
+    decal: decalSchema.optional(),
+    handParts: z
+      .object({ RH: z.array(z.string()).min(1), LH: z.array(z.string()).min(1) })
+      .optional(),
+    stowedParts: z.array(z.string()).min(1).optional(),
+    customize: z.record(z.string(), z.string()),
+    cutting: z.array(z.string()),
+    hairScales: z.array(z.array(z.number().min(0).max(1))).optional(),
+    hairForms: z.record(z.string(), z.array(z.string())).optional(),
+    hatHairForm: z.enum(['a', 'c', 'd']).optional(),
+    availability: z.enum(['preview', 'verified', 'unavailable']),
+    reason: z.string()
+  })
+  .refine(
+    (item) =>
+      item.parts.length > 0 || (item.slots.length === 1 && item.slots[0] === 'FD' && item.decal),
+    'Item requires geometry or a face decal'
+  );
 export const catalogSchema = z
   .object({
     version: z.literal(1),
@@ -81,16 +96,50 @@ export type OutfitBundle = {
   slots: string[];
   hairForm?: string;
   forms?: Record<string, NativeAsset[]>;
+  hand?: 'RH' | 'LH';
+  weaponPlacement?: 'drawn' | 'stowed';
+  weaponForms?: { drawn: NativeAsset[]; stowed?: NativeAsset[] };
 };
+
+export function bundleKey(bundle: OutfitBundle): string {
+  return `${bundle.item.id}${bundle.hand ? ':' + bundle.hand : ''}`;
+}
 
 export function resolveBundle(
   item: CatalogItem,
   assets: NativeAsset[],
-  variant: string
+  variant: string,
+  hand?: 'RH' | 'LH'
 ): OutfitBundle {
   const library = item.library;
   if (!library || library.bodyVariant !== variant || library.availability === 'unavailable')
     throw new Error('This item is not available for the selected body');
+  if (library.handParts) {
+    const selected = hand ?? 'RH';
+    const parts = library.handParts[selected].map((id) => {
+      const matches = assets.filter(
+        (a) => a.id === id && a.bodyVariant === variant && a.slot === selected
+      );
+      if (matches.length !== 1) throw new Error('Selected hand model is unavailable');
+      return matches[0];
+    });
+    const stowed = library.stowedParts?.map((id) => {
+      const matches = assets.filter(
+        (a) => a.id === id && a.bodyVariant === variant && a.slot === 'OH'
+      );
+      if (matches.length !== 1) throw new Error('Stowed weapon model is unavailable');
+      return matches[0];
+    });
+    return {
+      item,
+      parts,
+      slots: [selected],
+      hand: selected,
+      weaponPlacement: 'drawn',
+      weaponForms: { drawn: parts, stowed }
+    };
+  }
+  if (hand) throw new Error('This item has no supported hand selection');
   const parts = library.parts.map((part) => {
     const matches = assets.filter(
       (a) => a.id === part.assetId && a.bodyVariant === variant && a.slot === part.slot
@@ -109,9 +158,19 @@ export function resolveBundle(
   return {
     item,
     parts,
-    slots: library.slots,
+    // OH is an item category, not an extra equipment slot. Older single-model
+    // entries occupy the default right hand until a left variant is exported.
+    slots: library.slots.map((slot) => (slot === 'OH' ? 'RH' : slot)),
+    ...(library.slots.includes('OH') ? { hand: 'RH' as const } : {}),
     ...(library.slots.includes('HR') ? { hairForm: 'a', forms: { a: parts, ...forms } } : {})
   };
+}
+
+export function placeWeapon(bundle: OutfitBundle, placement: 'drawn' | 'stowed'): OutfitBundle {
+  const parts = bundle.weaponForms?.[placement];
+  if (!parts?.length)
+    throw new Error(`${bundle.item.name} has no supported ${placement} placement`);
+  return { ...bundle, parts, weaponPlacement: placement };
 }
 
 export function fitHair(bundle: OutfitBundle, form: string): OutfitBundle {

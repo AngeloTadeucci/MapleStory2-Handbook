@@ -3,8 +3,10 @@ vi.mock('$app/environment', () => ({ dev: true }));
 vi.mock('$lib/getGltfUrl', () => ({ default: () => '/gltf/' }));
 import {
   catalogSchema,
+  bundleKey,
   conflictingItems,
   fitHair,
+  placeWeapon,
   resolveBundle,
   searchSchema,
   type CatalogItem,
@@ -51,6 +53,43 @@ const bundle = (id: number, slots: string[]): OutfitBundle => ({
 });
 
 describe('outfit catalog and equipment rules', () => {
+  it('changes weapon geometry without changing hand identity or occupied slots', () => {
+    const star = item(13400306, ['OH']);
+    star.library!.handParts = { RH: ['right'], LH: ['left'] };
+    star.library!.stowedParts = ['back'];
+    const source = [part('right', 'RH'), part('left', 'LH'), part('back', 'OH')];
+    const left = resolveBundle(star, source, 'female', 'LH');
+    const back = placeWeapon(left, 'stowed');
+    expect(bundleKey(back)).toBe(bundleKey(left));
+    expect(back.slots).toEqual(['LH']);
+    expect(back.parts[0].id).toBe('back');
+    expect(placeWeapon(back, 'drawn').parts).toEqual(left.parts);
+    expect(() => placeWeapon(bundle(1, ['RH']), 'stowed')).toThrow('no supported');
+  });
+  it('assigns older single-model OH entries to the right hand instead of a third weapon slot', () => {
+    const dagger = item(13100068, ['OH']);
+    const equipped = resolveBundle(dagger, [part('13100068-0', 'OH')], 'female');
+    expect(equipped.slots).toEqual(['RH']);
+    expect(conflictingItems([bundle(13400306, ['RH'])], equipped)).toHaveLength(1);
+    expect(conflictingItems([bundle(13400306, ['LH'])], equipped)).toEqual([]);
+    expect(() => resolveBundle(dagger, [part('13100068-0', 'OH')], 'female', 'LH')).toThrow(
+      'hand selection'
+    );
+  });
+  it('keeps two copies of one OH weapon independent and evicts them with a two-handed weapon', () => {
+    const star = item(13400306, ['OH']);
+    star.library!.handParts = { LH: ['left'], RH: ['right'] };
+    const assets = [part('left', 'LH'), part('right', 'RH')];
+    const left = resolveBundle(star, assets, 'female', 'LH');
+    const right = resolveBundle(star, assets, 'female', 'RH');
+    expect(bundleKey(left)).not.toBe(bundleKey(right));
+    expect(left.parts[0].id).toBe('left');
+    expect(right.parts[0].id).toBe('right');
+    expect(conflictingItems([left], right)).toEqual([]);
+    expect(conflictingItems([left, right], left)).toEqual([left]);
+    expect(conflictingItems([left, right], bundle(15500002, ['RH', 'LH']))).toEqual([left, right]);
+    expect(() => resolveBundle(star, assets.slice(0, 1), 'female', 'RH')).toThrow('hand model');
+  });
   it('fits only the same hair item and fails when the required authored form is missing', () => {
     const hair = {
       ...bundle(10200224, ['HR']),

@@ -3,7 +3,12 @@ import { resolve } from 'node:path';
 import { AnimationMixer, SkinnedMesh, Vector3 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { captureBodySkeleton, shareSkeleton } from '../src/lib/outfits/sharedSkeleton';
+import {
+  captureBodySkeleton,
+  shareSkeleton,
+  equipmentMixers,
+  releaseEquipmentBones
+} from '../src/lib/outfits/sharedSkeleton';
 
 const directory = process.env.SIMULATOR_LIBRARY_DIR;
 const manifest: { assets: { id: string; uri: string; bodyVariant: string; skeleton?: string }[] } =
@@ -26,6 +31,45 @@ async function load(file: string) {
 describe.skipIf(!directory)('candidate library body binding', () => {
   beforeAll(() => vi.stubGlobal('ProgressEvent', class extends Event {}));
   afterAll(() => vi.unstubAllGlobals());
+  it('preserves the neon KF deformation on private joints while the body runs', async () => {
+    const asset = manifest.assets.find((a) => a.id === '11820024-female-0');
+    if (!asset) return;
+    const [body, gear, reference] = await Promise.all([
+      load('female/body.gltf'),
+      load(asset.uri),
+      load(asset.uri)
+    ]);
+    if (!gear.animations.length) return;
+    const shared = shareSkeleton(gear.scene, captureBodySkeleton(body.scene), gear.animations);
+    const bodyMixer = new AnimationMixer(body.scene);
+    const referenceMixer = new AnimationMixer(reference.scene);
+    const run = body.animations.find((a) => a.name === 'run_a')!;
+    bodyMixer.clipAction(run).play();
+    referenceMixer.clipAction(run).play();
+    referenceMixer.clipAction(reference.animations[0]).play();
+    const meshes: SkinnedMesh[] = [];
+    reference.scene.traverse((node) => {
+      if (node instanceof SkinnedMesh) meshes.push(node);
+    });
+    for (const time of [0, 0.5, 1, 2, 3, 4]) {
+      bodyMixer.setTime(time);
+      for (const mixer of equipmentMixers(shared)) mixer.setTime(time);
+      referenceMixer.setTime(time);
+      body.scene.updateMatrixWorld(true);
+      reference.scene.updateMatrixWorld(true);
+      for (const [index, node] of shared.children.entries()) {
+        const mesh = node as SkinnedMesh;
+        for (let vertex = 0; vertex < mesh.geometry.attributes.position.count; vertex += 17)
+          expect(
+            mesh
+              .getVertexPosition(vertex, new Vector3())
+              .distanceTo(meshes[index].getVertexPosition(vertex, new Vector3()))
+          ).toBeLessThan(1e-5);
+      }
+    }
+    releaseEquipmentBones(shared);
+    expect(equipmentMixers(shared)).toHaveLength(0);
+  });
   for (const asset of manifest.assets.filter((a) => a.skeleton)) {
     it(`${asset.id} preserves deformation on the selected body through idle and run`, async () => {
       const [body, gear, independent] = await Promise.all([

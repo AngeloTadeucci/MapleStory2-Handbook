@@ -10,9 +10,11 @@ export const characterPreviewSchema = z.object({
   items: z.array(
     z.object({
       id: z.number().int().positive(),
+      hand: z.enum(['RH', 'LH']).optional(),
       colors: z.array(rgb).length(3).optional(),
       hairLengths: z.array(z.number().min(0).max(1)).optional()
     })
   ),
-  omitted: z.array(z.string())
+  omitted: z.array(z.string()),
+  notes: z.array(z.string()).default([])
 });

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   Bone,
+  AnimationClip,
+  NumberKeyframeTrack,
   BufferGeometry,
   Float32BufferAttribute,
   Group,
@@ -11,7 +13,12 @@ import {
   Uint16BufferAttribute,
   Vector3
 } from 'three';
-import { captureBodySkeleton, shareSkeleton } from '../src/lib/outfits/sharedSkeleton';
+import {
+  captureBodySkeleton,
+  shareSkeleton,
+  releaseEquipmentBones,
+  equipmentMixers
+} from '../src/lib/outfits/sharedSkeleton';
 
 function fixture() {
   const root = new Group();
@@ -32,6 +39,78 @@ function fixture() {
 }
 
 describe('shared equipment skeleton', () => {
+  it('animates only the owned joint, supports seeking, and releases its mixer', () => {
+    const body = fixture(),
+      gear = fixture();
+    const joint = new Bone();
+    joint.name = 'wing';
+    joint.userData.equipmentBone = true;
+    gear.bone.add(joint);
+    const wrong = new Bone();
+    wrong.name = 'wing';
+    body.bone.add(wrong);
+    const clip = new AnimationClip('idle', 2, [
+      new NumberKeyframeTrack('wing.position', [0, 2], [0, 0, 0, 2, 0, 0])
+    ]);
+    const shared = shareSkeleton(gear.root, captureBodySkeleton(body.root), [clip]);
+    const [mixer] = equipmentMixers(shared);
+    mixer.setTime(1);
+    const animated = body.bone.children.find((b) => b !== wrong)!;
+    expect(animated.position.x).toBeCloseTo(1);
+    expect(wrong.position.x).toBe(0);
+    mixer.setTime(0.5);
+    expect(animated.position.x).toBeCloseTo(0.5);
+    releaseEquipmentBones(shared);
+    expect(animated.parent).toBeNull();
+    expect(equipmentMixers(shared)).toHaveLength(0);
+  });
+  it('rejects an equipment track aimed at the body before changing bindings', () => {
+    const body = fixture(),
+      gear = fixture();
+    const clip = new AnimationClip('bad', 1, [
+      new NumberKeyframeTrack('sanitized.position', [0, 1], [0, 0, 0, 1, 0, 0])
+    ]);
+    expect(() => shareSkeleton(gear.root, captureBodySkeleton(body.root), [clip])).toThrow(
+      'unsupported target'
+    );
+    expect(gear.mesh.skeleton.bones[0]).toBe(gear.bone);
+    expect(body.bone.children).toHaveLength(0);
+  });
+  it('preserves private joints per instance, follows the attachment and releases only owned joints', () => {
+    const body = fixture(),
+      gear = fixture();
+    const privateJoint = new Bone();
+    privateJoint.userData.name = 'MT_Heart';
+    privateJoint.userData.equipmentBone = true;
+    privateJoint.position.x = 3;
+    gear.bone.add(privateJoint);
+    gear.root.updateMatrixWorld(true);
+    gear.mesh.bind(
+      new Skeleton([privateJoint], [new Matrix4().makeTranslation(-3, -2, 0)]),
+      new Matrix4()
+    );
+    const skeleton = captureBodySkeleton(body.root);
+    const group = shareSkeleton(gear.root, skeleton);
+    const bound = gear.mesh.skeleton.bones[0];
+    expect(bound).not.toBe(privateJoint);
+    expect(bound.parent).toBe(body.bone);
+    body.bone.position.x = 4;
+    body.root.updateMatrixWorld(true);
+    expect(gear.mesh.getVertexPosition(0, new Vector3()).toArray()).toEqual([5, 0, 0]);
+    releaseEquipmentBones(group);
+    expect(bound.parent).toBeNull();
+    expect(body.bone.parent).toBe(body.root);
+  });
+  it('does not attach private joints when another mesh has an invalid binding', () => {
+    const body = fixture(),
+      gear = fixture();
+    gear.bone.userData.equipmentBone = true;
+    expect(() => shareSkeleton(gear.root, captureBodySkeleton(body.root))).toThrow(
+      'missing equipment bone'
+    );
+    expect(body.bone.children).toHaveLength(0);
+    expect(gear.mesh.skeleton.bones[0]).toBe(gear.bone);
+  });
   it('uses exact source names and follows the body without a second mixer', () => {
     const body = fixture(),
       gear = fixture();

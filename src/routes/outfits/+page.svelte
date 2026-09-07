@@ -7,6 +7,7 @@
     characterPreviewBase,
     slotNames,
     resolveBundle,
+    bundleKey,
     type CatalogItem,
     type OutfitBundle
   } from '$lib/outfits/catalog';
@@ -19,6 +20,7 @@
   let preview = $state('');
   let previewName = $state('');
   let omitted = $state<string[]>([]);
+  let previewNotes = $state<string[]>([]);
   let customization = $state<Customization>();
   let expression = $state('default');
   let background = $state('');
@@ -50,6 +52,22 @@
       ]?.sequences ?? {}
     )
   );
+  const drawnStars = $derived(
+    equipped.some((bundle) => bundle.item.id === 13400306 && bundle.weaponPlacement !== 'stowed')
+  );
+  const weapons = $derived(equipped.filter((bundle) => bundle.weaponForms));
+  async function placeWeapons(placement: 'drawn' | 'stowed') {
+    busy = true;
+    error = '';
+    try {
+      await viewer?.setWeaponPlacement(placement);
+      refresh();
+    } catch (cause) {
+      error = cause instanceof Error ? cause.message : 'Unable to move weapons';
+    } finally {
+      busy = false;
+    }
+  }
   let colors = $state<ColorControl[]>([]);
   let hairControls = $state<OutfitScene['hairControls']>([]);
   let colorRevision = $state(0);
@@ -109,12 +127,12 @@
       busy = false;
     }
   }
-  async function equip(item: CatalogItem) {
+  async function equip(item: CatalogItem, hand?: 'LH' | 'RH') {
     if (!viewer) return;
     busy = true;
     error = '';
     try {
-      await viewer.equipBundle(resolveBundle(item, assets, body));
+      await viewer.equipBundle(resolveBundle(item, assets, body, hand));
       refresh();
     } catch (cause) {
       error = cause instanceof Error ? cause.message : 'Unable to equip item';
@@ -203,6 +221,7 @@
           busy = true;
           previewName = character.name;
           omitted = [...character.omitted];
+          previewNotes = character.notes;
           viewer.colorControls.find((c) => c.label === 'Skin')?.setColors(character.skin);
           for (const saved of character.items) {
             try {
@@ -218,8 +237,9 @@
               const item = data.items.find((i) => i.id === saved.id);
               if (!item) throw new Error('Exact item is unavailable');
               if (!active) return;
-              await viewer.equipBundle(resolveBundle(item, assets, body));
-              if (saved.colors) viewer.setItemColors(saved.id, saved.colors);
+              const bundle = resolveBundle(item, assets, body, saved.hand);
+              await viewer.equipBundle(bundle);
+              if (saved.colors) viewer.setItemColors(bundleKey(bundle), saved.colors);
               if (saved.hairLengths)
                 for (const [index, control] of viewer.hairControls.entries()) {
                   const length = saved.hairLengths[index];
@@ -252,6 +272,16 @@
 <main class="mx-auto max-w-7xl p-4">
   <h1 class="mb-2 text-2xl font-bold">Outfits</h1>
   {#if previewName}<p class="mb-2">Loaded {previewName}'s saved appearance.</p>{/if}
+  {#each previewNotes as note}<p class="mb-2 text-sm opacity-75">{note}</p>{/each}
+  {#if drawnStars && clip === 'emotion_dance_t'}<p role="status" class="mb-2 text-sm">
+      Dance T intersects the drawn stars with the face. Use star attack idle for weapon review.
+    </p>{/if}
+  {#if weapons.some((bundle) => bundle.weaponPlacement === 'stowed')}
+    <p role="status" class="mb-2 text-sm">
+      Back placement uses the item's source anchor. Two stars overlap there; paired placement has
+      not been matched to the client.
+    </p>
+  {/if}
   {#if omitted.length}<aside
       class="mb-4 rounded border border-amber-600 p-3"
       aria-label="Character preview limitations"
@@ -296,6 +326,16 @@
           }}>{playing ? 'Pause' : 'Play'}</button
         >
         <button disabled={busy || !ready} onclick={download}>Save image</button>
+        {#if weapons.length}
+          <button
+            disabled={busy || weapons.every((bundle) => bundle.weaponPlacement === 'drawn')}
+            onclick={() => placeWeapons('drawn')}>Draw weapons</button
+          >
+          <button
+            disabled={busy || weapons.every((bundle) => bundle.weaponPlacement === 'stowed')}
+            onclick={() => placeWeapons('stowed')}>Stow weapons</button
+          >
+        {/if}
         <label
           >Expression <select
             disabled={busy}
@@ -346,20 +386,23 @@
         >{/each}
       {#if !equipped.length}<p class="text-sm opacity-70">Choose clothing from the catalog.</p>{/if}
       <div class="mt-2 flex flex-wrap gap-2">
-        {#each equipped as bundle (bundle.item.id)}<button
+        {#each equipped as bundle (bundleKey(bundle))}<button
             disabled={busy}
-            aria-label={`Remove ${bundle.item.name}`}
+            aria-label={`Remove ${bundle.item.name}${bundle.hand ? ' from ' + (bundle.hand === 'LH' ? 'left' : 'right') + ' hand' : ''}`}
             onclick={async () => {
               busy = true;
               try {
-                await viewer?.removeItem(String(bundle.item.id));
+                await viewer?.removeItem(bundleKey(bundle));
                 refresh();
               } catch (cause) {
                 error = cause instanceof Error ? cause.message : 'Unable to remove item';
               } finally {
                 busy = false;
               }
-            }}>{bundle.item.name} ×</button
+            }}
+            >{bundle.item.name}{bundle.hand
+              ? ' • ' + (bundle.hand === 'LH' ? 'Left' : 'Right')
+              : ''} ×</button
           >{/each}
       </div>
       {#if colors.length}<details class="mt-4 rounded border p-3">
@@ -455,30 +498,38 @@
         <div class="grid grid-cols-2 gap-2">
           {#each items as item (item.id)}{@const available =
               item.library && item.library.availability !== 'unavailable'}
-            <button
-              class="flex min-h-32 flex-col items-start gap-1 text-left"
-              disabled={busy || !available}
-              title={item.library?.reason ?? 'No model in this library'}
-              onclick={() => equip(item)}
-              aria-label={`Equip ${item.name}`}
-            >
-              <img
-                src={dev
-                  ? item.icon_path.replace('./data/', '/')
-                  : getImageUrl(item.icon_path.replace('./data/', '/'))}
-                alt=""
-                class="h-10 w-10 object-contain"
-              />
-              <span class="text-sm font-semibold">{item.name}</span><span class="text-xs opacity-70"
-                >{item.id}</span
-              ><span class="text-xs"
-                >{available
-                  ? item.library?.availability === 'verified'
-                    ? 'Verified'
-                    : 'Preview'
-                  : 'Unavailable'}</span
+            <div class="flex flex-col gap-1">
+              <button
+                class="flex min-h-32 flex-col items-start gap-1 text-left"
+                disabled={busy || !available}
+                title={item.library?.reason ?? 'No model in this library'}
+                onclick={() => equip(item)}
+                aria-label={`Equip ${item.name}${item.library?.handParts ? ' in right hand' : ''}`}
               >
-            </button>
+                <img
+                  src={dev
+                    ? item.icon_path.replace('./data/', '/')
+                    : getImageUrl(item.icon_path.replace('./data/', '/'))}
+                  alt=""
+                  class="h-10 w-10 object-contain"
+                />
+                <span class="text-sm font-semibold">{item.name}</span><span
+                  class="text-xs opacity-70">{item.id}</span
+                ><span class="text-xs"
+                  >{available
+                    ? item.library?.availability === 'verified'
+                      ? 'Verified'
+                      : 'Preview'
+                    : 'Unavailable'}</span
+                >
+                {#if item.library?.handParts}<span class="text-xs">Equip right hand</span>{/if}
+              </button>
+              {#if item.library?.handParts}<button
+                  disabled={busy || !available}
+                  onclick={() => equip(item, 'LH')}
+                  aria-label={`Equip ${item.name} in left hand`}>Equip left hand</button
+                >{/if}
+            </div>
           {/each}
         </div>
         <nav aria-label="Catalog pages" class="mt-3 flex items-center justify-between gap-2">

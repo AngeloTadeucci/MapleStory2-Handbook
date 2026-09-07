@@ -28,7 +28,9 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
         (!query.slot ||
           (query.slot === 'full'
             ? item.slots.includes('CL') && item.slots.includes('PA')
-            : item.slots.includes(query.slot)))
+            : item.slots.includes(query.slot) ||
+              (query.slot === 'RH' && item.slots.includes('OH')) ||
+              (item.handParts && (query.slot === 'RH' || query.slot === 'LH'))))
     );
     const restrictIds = query.availability !== 'all' || query.slot === 'full';
     const where: Prisma.itemsWhereInput = {
@@ -39,9 +41,17 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
             AND: [
               {
                 OR: [
+                  // Full outfits can have database slot 0. Their exact source
+                  // bundle remains eligible when browsing all items.
+                  { id: { in: eligible.map((item) => item.itemId) } },
                   {
                     slot: {
-                      in: query.slot ? [slotNumbers[query.slot]] : Object.values(slotNumbers)
+                      in: query.slot
+                        ? [
+                            slotNumbers[query.slot],
+                            ...(['RH', 'LH'].includes(query.slot) ? [slotNumbers.OH] : [])
+                          ]
+                        : Object.values(slotNumbers)
                     }
                   },
                   ...(!query.slot || query.slot === 'HR'

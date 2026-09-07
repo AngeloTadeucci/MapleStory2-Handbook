@@ -20,6 +20,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import {
   captureBodySkeleton,
   shareSkeleton,
+  releaseEquipmentBones,
+  equipmentMixers,
   sourceName,
   type BodySkeleton
 } from './sharedSkeleton';
@@ -27,10 +29,20 @@ import type { NativeAsset } from '$lib/nativeAssets';
 import { loadColorControls, type ColorControl, type Rgb } from './materialColors';
 import { hidesBodyPart } from './bodyVisibility';
 import { SkinColors, isSkinColor } from './skinColors';
-import { conflictingItems, fitHair, libraryBase, type OutfitBundle } from './catalog';
+import {
+  bundleKey,
+  conflictingItems,
+  fitHair,
+  placeWeapon,
+  libraryBase,
+  type OutfitBundle
+} from './catalog';
 import { FaceAnimation, type Customization } from './faceAnimation';
+import { FaceDecal } from './faceDecal';
+import { applyCharacterMaterials } from './characterMaterials';
 
 function dispose(root: Object3D) {
+  releaseEquipmentBones(root);
   const textures = new Set<Texture>();
   root.traverse((node) => {
     if (!(node instanceof Mesh)) return;
@@ -62,6 +74,7 @@ export class OutfitScene {
   private bundles = new Map<string, OutfitBundle>();
   private hairLengths = new Map<string, number>();
   private face?: FaceAnimation;
+  private decal?: FaceDecal;
   private defaultFace?: FaceAnimation;
   private customization?: Customization;
   private customizationBase = libraryBase;
@@ -86,7 +99,7 @@ export class OutfitScene {
     this.customization = data;
     this.customizationBase = base;
   }
-  setItemColors(id: number, colors: Rgb[]) {
+  setItemColors(id: number | string, colors: Rgb[]) {
     if (this.bundles.get(String(id))?.slots.includes('FA')) {
       this.face?.control.setColors(colors);
       return;
@@ -101,7 +114,11 @@ export class OutfitScene {
     });
     return {
       body: this.variant,
-      equipped: this.equippedItems.map((b) => ({ id: b.item.id, slots: b.slots })),
+      equipped: this.equippedItems.map((b) => ({
+        id: b.item.id,
+        key: bundleKey(b),
+        slots: b.slots
+      })),
       visible,
       memory: { ...this.renderer.info.memory },
       colors: this.colorControls.map((c) => ({ label: c.label, colors: c.colors }))
@@ -110,6 +127,8 @@ export class OutfitScene {
   seek(time: number) {
     this.playing = false;
     this.mixer?.setTime(time);
+    for (const group of this.equipment.values())
+      for (const mixer of equipmentMixers(group)) mixer.setTime(time);
     this.body?.scene.updateMatrixWorld(true);
     this.renderer.render(this.scene, this.camera);
   }
@@ -166,8 +185,10 @@ export class OutfitScene {
   view(angle: 'front' | 'side' | 'back' = 'front') {
     if (!this.body) return;
     this.body.scene.updateMatrixWorld(true);
-    const box = new Box3().setFromObject(this.body.scene);
-    for (const group of this.equipment.values()) box.union(new Box3().setFromObject(group));
+    // SkinnedMesh caches its first bounding box. Use current deformed vertices
+    // when framing a new pose so running hair, hands and back items stay in view.
+    const box = new Box3().setFromObject(this.body.scene, true);
+    for (const group of this.equipment.values()) box.union(new Box3().setFromObject(group, true));
     const center = box.getCenter(new Vector3()),
       size = box.getSize(new Vector3());
     const distance =
@@ -219,7 +240,11 @@ export class OutfitScene {
       if (!this.alive) return;
       const delta = this.previous ? Math.min((time - this.previous) / 1000, 0.1) : 0;
       this.previous = time;
-      if (this.playing) this.mixer?.update(delta);
+      if (this.playing) {
+        this.mixer?.update(delta);
+        for (const group of this.equipment.values())
+          for (const mixer of equipmentMixers(group)) mixer.update(delta);
+      }
       (this.face ?? this.defaultFace)?.update(delta);
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
@@ -234,6 +259,7 @@ export class OutfitScene {
     let defaultFace: FaceAnimation | undefined;
     let colors: ColorControl[] = [];
     try {
+      await applyCharacterMaterials(body);
       colors = await loadColorControls(body);
       const preset =
         this.customization?.faces[asset.bodyVariant === 'male' ? '10300001' : '10300003'];
@@ -315,6 +341,11 @@ export class OutfitScene {
     await this.changeEquipment(changes);
   }
 
+  async setWeaponPlacement(placement: 'drawn' | 'stowed') {
+    const weapons = this.equippedItems.filter((bundle) => bundle.weaponForms);
+    await this.changeEquipment(weapons.map((bundle) => placeWeapon(bundle, placement)));
+  }
+
   async removeItem(id: string) {
     const item = this.bundles.get(id);
     const hair = this.equippedItems.find((b) => b.slots.includes('HR'));
@@ -331,6 +362,7 @@ export class OutfitScene {
       group: Group;
       colors: ColorControl[];
       face?: FaceAnimation;
+      decal?: FaceDecal;
     }[] = [];
     try {
       for (const bundle of changes) {
@@ -343,8 +375,9 @@ export class OutfitScene {
             throw new Error('Equipment has no exported attachment');
           const gear = await this.loader.loadAsync(asset.url);
           try {
+            await applyCharacterMaterials(gear);
             entry.colors.push(...(await loadColorControls(gear)));
-            entry.group.add(shareSkeleton(gear.scene, this.bones));
+            entry.group.add(shareSkeleton(gear.scene, this.bones, gear.animations));
           } catch (error) {
             dispose(gear.scene);
             throw error;
@@ -360,10 +393,22 @@ export class OutfitScene {
           );
           entry.face.attach(entry.group);
         }
+        if (bundle.slots.includes('FD')) {
+          if (!bundle.item.library?.decal || !this.body)
+            throw new Error('Makeup metadata is unavailable');
+          entry.decal = await FaceDecal.load(
+            bundle.item.library.decal,
+            this.customizationBase,
+            this.body.scene
+          );
+        }
         // A cap changes the same hairstyle's authored geometry, preserving its dye.
-        if (bundle.slots.includes('HR') && this.bundles.has(String(bundle.item.id))) {
+        if (
+          (bundle.slots.includes('HR') || bundle.weaponForms) &&
+          this.bundles.has(bundleKey(bundle))
+        ) {
           const previous = this.equipmentColors
-            .get(String(bundle.item.id))
+            .get(bundleKey(bundle))
             ?.find((c) => !isSkinColor(c));
           if (previous)
             for (const color of entry.colors.filter((c) => !isSkinColor(c)))
@@ -383,6 +428,7 @@ export class OutfitScene {
       for (const entry of staged) {
         this.skinColors?.detach(entry.colors);
         entry.face?.dispose();
+        entry.decal?.dispose();
         for (const color of entry.colors) color.dispose();
         dispose(entry.group);
       }
@@ -391,21 +437,24 @@ export class OutfitScene {
     // Hat plus fitted hair, and every garment part, commit in one transaction.
     const evicted = new Set(remove);
     for (const { bundle } of staged)
-      for (const old of conflictingItems(this.equippedItems, bundle))
-        evicted.add(String(old.item.id));
+      for (const old of conflictingItems(this.equippedItems, bundle)) evicted.add(bundleKey(old));
     for (const key of evicted) this.unequip(key);
-    for (const { bundle, group, colors, face } of staged) {
-      const key = String(bundle.item.id);
+    for (const { bundle, group, colors, face, decal } of staged) {
+      const key = bundleKey(bundle);
       let fabric = 0;
       for (const color of colors)
         if (!isSkinColor(color)) {
-          color.label = `${bundle.item.name}${fabric++ ? ' • Detail' : ''}`;
+          color.label = `${bundle.item.name}${bundle.hand ? ' • ' + (bundle.hand === 'LH' ? 'Left hand' : 'Right hand') : ''}${fabric++ ? ' • Detail' : ''}`;
           color.paletteId = bundle.item.library?.customize.colorPalette;
         }
       this.equipment.set(key, group);
       this.equipmentColors.set(key, colors);
       this.bundles.set(key, bundle);
       if (face) this.face = face;
+      if (decal) {
+        this.decal = decal;
+        decal.attach();
+      }
       for (const [index, asset] of bundle.parts.entries())
         this.equipmentAssets.set(`${key}:${index}`, asset);
       this.scene.add(group);
@@ -415,6 +464,10 @@ export class OutfitScene {
   }
 
   unequip(slot: string) {
+    if (this.bundles.get(slot)?.slots.includes('FD')) {
+      this.decal?.dispose();
+      this.decal = undefined;
+    }
     if (this.bundles.get(slot)?.slots.includes('FA')) {
       this.face?.dispose();
       this.face = undefined;
