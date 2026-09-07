@@ -1,4 +1,6 @@
 import { json } from '@sveltejs/kit';
+import { dev } from '$app/environment';
+import { applySassyPreview, loadSassyPreview } from '$lib/outfits/sassyPreview';
 import type { RequestHandler } from './$types';
 import DBClient from '$lib/prismaClient';
 import { parseNativeManifest } from '$lib/nativeAssets';
@@ -19,44 +21,51 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
   const parsed = searchSchema.safeParse(Object.fromEntries(url.searchParams));
   if (!parsed.success) return json({ message: 'Invalid outfit search filters' }, { status: 400 });
   const query = parsed.data;
+  if (query.hairPreview && (!dev || query.preview))
+    return json({ message: 'Invalid local hair preview' }, { status: 400 });
   try {
     const base = query.preview ? characterPreviewBase(query.preview) : libraryBase;
-    let cached = cache.get(base);
+    const cacheKey = `${base}?hairPreview=${query.hairPreview}`;
+    let cached = cache.get(cacheKey);
     if (!cached || cached.expires <= Date.now()) {
       const response = await fetch(`${base}simulator-catalog.json`);
       if (!response.ok) throw new Error('Model catalog is unavailable');
       const catalog = catalogSchema.parse(await response.json());
-      if (catalog.items.some(hasApproximateHair)) {
+      if (catalog.items.some(hasApproximateHair) || query.hairPreview) {
         const manifestUrl = new URL(`${base}native-manifest.json`, url).href;
         const manifest = await fetch(manifestUrl);
         if (manifest.ok) {
-          catalog.items = enableApproximateHair(
-            catalog.items,
-            parseNativeManifest(await manifest.json(), manifestUrl)
-          );
-        }
+          let assets = parseNativeManifest(await manifest.json(), manifestUrl);
+          if (query.hairPreview) {
+            assets = [...assets, ...(await loadSassyPreview(fetch, url.href))];
+            catalog.items = applySassyPreview(catalog.items, assets);
+          }
+          catalog.items = enableApproximateHair(catalog.items, assets);
+        } else if (query.hairPreview) throw new Error('Base hair manifest is unavailable');
       }
       let labels: ItemLabel[] = [];
       try {
-        // SELECT only. Missing database records and names do not remove source IDs.
-        labels = await DBClient.getInstance().prisma.items.findMany({
-          select: {
-            id: true,
-            name: true,
-            icon_path: true,
-            gender: true,
-            slot: true,
-            is_outfit: true,
-            dyeable: true,
-            kfms: true
-          }
-        });
+        if (!query.hairPreview) {
+          // SELECT only. Missing database records and names do not remove source IDs.
+          labels = await DBClient.getInstance().prisma.items.findMany({
+            select: {
+              id: true,
+              name: true,
+              icon_path: true,
+              gender: true,
+              slot: true,
+              is_outfit: true,
+              dyeable: true,
+              kfms: true
+            }
+          });
+        }
       } catch {
         console.warn('Outfit labels unavailable; using client source labels');
       }
       cached = { expires: Date.now() + 60_000, items: joinCatalog(catalog.items, labels) };
       if (cache.size >= 3) cache.delete(cache.keys().next().value!);
-      cache.set(base, cached);
+      cache.set(cacheKey, cached);
     }
     return json(searchCatalog(cached.items, query));
   } catch (cause) {

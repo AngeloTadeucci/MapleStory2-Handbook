@@ -12,7 +12,7 @@ export const characterPreviewSchema = z.object({
       id: z.number().int().positive(),
       hand: z.enum(['RH', 'LH']).optional(),
       colors: z.array(rgb).length(3).optional(),
-      hairLengths: z.array(z.number().min(0).max(1)).optional()
+      hairLengths: z.array(z.number().finite().min(0)).max(2).optional()
     })
   ),
   omitted: z.array(z.string()),

@@ -16,8 +16,10 @@
   import type { ColorControl, Rgb } from '$lib/outfits/materialColors';
   import { customizationSchema, type Customization } from '$lib/outfits/faceAnimation';
   import { characterPreviewSchema } from '$lib/outfits/characterPreview';
+  import { loadSassyPreview } from '$lib/outfits/sassyPreview';
   let assetBase = $state(libraryBase);
   let preview = $state('');
+  let hairPreview = $state('');
   let previewName = $state('');
   let omitted = $state<string[]>([]);
   let previewNotes = $state<string[]>([]);
@@ -163,6 +165,7 @@
   $effect(() => {
     const query = new URLSearchParams({
       preview,
+      hairPreview,
       search,
       slot,
       availability,
@@ -206,6 +209,9 @@
     void (async () => {
       try {
         preview = dev ? (new URLSearchParams(location.search).get('preview') ?? '') : '';
+        hairPreview = dev ? (new URLSearchParams(location.search).get('hairPreview') ?? '') : '';
+        if (hairPreview && (hairPreview !== 'sassy' || preview))
+          throw new Error('Invalid local hair preview');
         if (preview) assetBase = characterPreviewBase(preview);
         const url = new URL(`${assetBase}native-manifest.json`, location.href).href;
         const [{ OutfitScene }, response] = await Promise.all([
@@ -219,7 +225,9 @@
         if (!customResponse.ok) throw new Error('Customization library is unavailable');
         customization = customizationSchema.parse(await customResponse.json());
         if (!active) return;
-        assets = manifest;
+        assets = hairPreview
+          ? [...manifest, ...(await loadSassyPreview(fetch, location.href))]
+          : manifest;
         viewer = new OutfitScene(container);
         viewer.setCustomization(customization, assetBase);
         if (dev) Object.assign(container, { outfitViewer: viewer });
@@ -253,11 +261,8 @@
               const bundle = resolveBundle(item, assets, body, saved.hand);
               await viewer.equipBundle(bundle);
               if (saved.colors) viewer.setItemColors(bundleKey(bundle), saved.colors);
-              if (saved.hairLengths)
-                for (const [index, control] of viewer.hairControls.entries()) {
-                  const length = saved.hairLengths[index];
-                  if (length !== undefined && control.values.includes(length)) control.set(length);
-                }
+              if (saved.hairLengths && bundle.slots.includes('HR'))
+                viewer.setHairLengths(saved.hairLengths);
             } catch (cause) {
               omitted.push(
                 `${saved.id}: ${cause instanceof Error ? cause.message : 'Unable to load item'}`
@@ -440,16 +445,32 @@
         {/each}{/key}
       {#each hairControls as control}<label
           >{control.label}
-          <select
-            value={control.value}
-            disabled={busy}
-            onchange={(e) => {
-              control.set(Number(e.currentTarget.value));
-              hairControls = viewer?.hairControls ?? [];
-            }}
-            ><option value={control.value} disabled>Current: {control.value}</option
-            >{#each control.values as value}<option {value}>{value}</option>{/each}</select
-          ></label
+          {#if control.range}
+            <span class="tabular-nums">{Number(control.value.toFixed(4))}</span>
+            <input
+              type="range"
+              min={control.range.min}
+              max={control.range.max}
+              step="0.01"
+              value={control.value}
+              disabled={busy}
+              oninput={(event) => {
+                control.set(event.currentTarget.valueAsNumber);
+                hairControls = viewer?.hairControls ?? [];
+              }}
+            />
+          {:else}
+            <select
+              value={control.value}
+              disabled={busy}
+              onchange={(e) => {
+                control.set(Number(e.currentTarget.value));
+                hairControls = viewer?.hairControls ?? [];
+              }}
+              ><option value={control.value} disabled>Current: {control.value}</option
+              >{#each control.values as value}<option {value}>{value}</option>{/each}</select
+            >
+          {/if}</label
         >
         <button
           aria-label={`Reset ${control.label}`}

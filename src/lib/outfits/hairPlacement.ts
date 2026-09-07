@@ -24,10 +24,10 @@ export function clientHairRotation(angles: number[]) {
 }
 
 export function hairPlacementSource(presetId: number, asset: NativeAsset) {
-  const name = asset.input
+  const name = (asset.attachmentSource ?? asset.input)
     .split('/')
     .at(-1)!
-    .replace(/\.nif$/i, '')
+    .replace(/\.(nif|kfm)$/i, '')
     .toLowerCase();
   return items[String(presetId)]?.find((part) => part.source === name);
 }
@@ -37,7 +37,8 @@ export function createHairPlacement(
   part: PlacementPart,
   label: string,
   initial: number,
-  remember: (value: number) => void
+  remember: (value: number) => void,
+  initialScale = 1
 ) {
   const roots = new Set<Object3D>();
   group.traverse((node) => {
@@ -56,6 +57,7 @@ export function createHairPlacement(
   if (roots.size !== 1) throw new Error(`Hair placement needs one ${part.selfNode} attachment`);
   const root = [...roots][0];
   let value = initial;
+  let scale = initialScale;
   const rotations = part.presets.map((preset) => clientHairRotation(preset.rotation));
   const apply = () => {
     const preset = part.presets[value];
@@ -63,6 +65,7 @@ export function createHairPlacement(
     // single glTF conversion root. Do not convert these coordinates again.
     root.position.fromArray(preset.position);
     root.quaternion.copy(rotations[value]);
+    root.scale.setScalar(scale);
     root.updateWorldMatrix(true, true);
   };
   const set = (next: number) => {
@@ -81,6 +84,14 @@ export function createHairPlacement(
     },
     set,
     reset: () => set(0),
+    get scale() {
+      return scale;
+    },
+    setScale(next: number) {
+      if (!Number.isFinite(next) || next < 0) throw new Error('Invalid hair attachment scale');
+      scale = next;
+      apply();
+    },
     apply
   };
 }

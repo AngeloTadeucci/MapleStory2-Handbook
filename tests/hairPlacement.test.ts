@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { Bone, Group, Skeleton, SkinnedMesh, Vector3 } from 'three';
 vi.mock('$app/environment', () => ({ dev: true }));
 vi.mock('$lib/getGltfUrl', () => ({ default: () => '/gltf/' }));
-import { createHairPlacement, clientHairRotation } from '../src/lib/outfits/hairPlacement';
+import {
+  createHairPlacement,
+  clientHairRotation,
+  hairPlacementSource
+} from '../src/lib/outfits/hairPlacement';
+import { parseNativeManifest } from '../src/lib/nativeAssets';
 
 function fixture() {
   const head = new Bone();
@@ -39,6 +44,45 @@ function fixture() {
 }
 
 describe('authored hair placement', () => {
+  it('keeps distinct XML placements when two KFM identities reference the same NIF', () => {
+    const assets = parseNativeManifest(
+      {
+        version: 1,
+        coordinateSystem: 'gltf-y-up-meters',
+        assets: ['00200010_F_PiPi_P_A', '00200010_F_PiPi_P2_A'].map((name) => ({
+          id: name,
+          input: 'Item/0/02/00200010_f_pipi_p_a.nif',
+          attachmentSource: `Item/0/02/${name}.kfm`,
+          uri: `${name}.gltf`,
+          clips: []
+        }))
+      },
+      'http://localhost/native-manifest.json'
+    );
+    const first = hairPlacementSource(10200010, assets[0]);
+    const second = hairPlacementSource(10200010, assets[1]);
+    expect(first?.presets[0].position).toEqual([55.85, -4.04907, -18.9015]);
+    expect(second?.presets[0].position).toEqual([54.6429, -4.64381, 21.3994]);
+    expect(first).not.toBe(second);
+    const { attachmentSource: _source, ...legacy } = assets[0];
+    expect(hairPlacementSource(10200010, legacy)).toBe(first);
+    expect(
+      hairPlacementSource(10200010, { ...assets[1], attachmentSource: 'unknown.kfm' })
+    ).toBeUndefined();
+  });
+  it('scales the attachment uniformly and preserves size through placement and animation', () => {
+    const { root, head, control } = fixture();
+    control.setScale(0.8);
+    control.set(1);
+    root.scale.setScalar(1);
+    control.apply();
+    expect(root.scale.toArray()).toEqual([0.8, 0.8, 0.8]);
+    expect(head.scale.toArray()).toEqual([1, 1, 1]);
+    control.reset();
+    expect(control.scale).toBe(0.8);
+    expect(() => control.setScale(NaN)).toThrow();
+    expect(control.scale).toBe(0.8);
+  });
   it('uses XYZ multiplication for mixed source angles', () => {
     const actual = new Vector3(2, 3, 5).applyQuaternion(clientHairRotation([30, 45, 60]));
     const expected = new Vector3(2, 3, 5)

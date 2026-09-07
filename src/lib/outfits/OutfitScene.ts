@@ -42,7 +42,16 @@ import { FaceAnimation, type Customization } from './faceAnimation';
 import { FaceDecal } from './faceDecal';
 import { applyCharacterMaterials } from './characterMaterials';
 import { CosmeticEffect } from './cosmeticEffect';
-import { captureHairDefault, hairLengthControl } from './hairLengthControls';
+import {
+  captureHairDefault,
+  hairLengthControl,
+  hairLengthIndex,
+  applySavedHairLength,
+  hairScaleRange,
+  hairScaleUiValue,
+  validHairScale,
+  type HairScaleRange
+} from './hairLengthControls';
 import { sharedHairColor } from './hairColors';
 import { fitMovableHat, hatPlacementSource, needsHatPlacement } from './hatAttachment';
 import {
@@ -51,6 +60,7 @@ import {
   type HairPlacementControl
 } from './hairPlacement';
 import { applyItemDefault, itemDefaultColors, ItemPaletteAnimation } from './itemDefaults';
+import { viewDistance } from './viewFraming';
 
 function dispose(root: Object3D) {
   releaseEquipmentBones(root);
@@ -231,6 +241,7 @@ export class OutfitScene {
   get hairControls(): {
     label: string;
     values: number[];
+    range?: HairScaleRange;
     value: number;
     set: (value: number) => void;
     reset: () => void;
@@ -238,29 +249,79 @@ export class OutfitScene {
     const controls: {
       label: string;
       values: number[];
+      range?: HairScaleRange;
       value: number;
       set: (value: number) => void;
       reset: () => void;
     }[] = [];
     for (const [key, bundle] of this.bundles) {
       const scales = bundle.item.library?.hairScales;
-      if (!scales?.length) continue;
+      if (!scales?.length || bundle.item.library?.customize.scale !== '1') continue;
+      const presetId = bundle.item.library.presetId ?? bundle.item.id;
+      const tailRange = hairScaleRange(presetId, 0, scales[0]);
+      const placements = this.hairPlacements.get(key);
+      if (placements?.length && (tailRange || new Set(scales[0]).size > 1)) {
+        const set = (value: number) => {
+          this.hairLengths.set(`${bundle.item.id}:attachment`, value);
+          for (const placement of placements) placement.setScale(value);
+        };
+        controls.push({
+          label: `${bundle.item.name} tail size`,
+          values: scales[0],
+          range: tailRange,
+          value: hairScaleUiValue(placements[0].scale, tailRange),
+          set(value) {
+            if (!validHairScale(value, scales[0], tailRange))
+              throw new Error('Unsupported hair size');
+            const stored = hairScaleUiValue(value, tailRange);
+            set(tailRange ? Math.min(tailRange.max, Math.max(tailRange.min, stored)) : stored);
+          },
+          reset: () => set(1)
+        });
+      }
       this.equipment.get(key)?.traverse((node) => {
         if (!(node instanceof Mesh) || node.morphTargetInfluences?.length !== 1) return;
-        const name = sourceName(node),
-          index = /^HR(\d+)/.exec(name)?.[1] ?? '0';
-        const values = scales[Number(index)];
+        const index = hairLengthIndex(sourceName(node));
+        if (index === undefined) return;
+        const values = scales[index];
         if (!values?.length) return;
         const control = hairLengthControl(
           node,
           `${bundle.item.name} length ${Number(index) + 1}`,
           values,
-          (value) => this.hairLengths.set(`${bundle.item.id}:${name}`, value)
+          (value) => this.hairLengths.set(`${bundle.item.id}:${index}`, value),
+          hairScaleRange(presetId, index, values)
         );
         if (control) controls.push(control);
       });
     }
     return controls;
+  }
+  setHairLengths(lengths: readonly number[]) {
+    if (lengths.some((value) => !Number.isFinite(value) || value < 0))
+      throw new Error('Invalid saved hair length');
+    const applied: { target: string; index: number; value: number }[] = [];
+    for (const [key, bundle] of this.bundles) {
+      if (!bundle.slots.includes('HR')) continue;
+      lengths.forEach((value, index) => this.hairLengths.set(`${bundle.item.id}:${index}`, value));
+      this.equipment.get(key)?.traverse((node) => {
+        if (!(node instanceof Mesh)) return;
+        const target = sourceName(node);
+        const index = hairLengthIndex(target);
+        if (index === undefined || lengths[index] === undefined) return;
+        if (applySavedHairLength(node, lengths[index]))
+          applied.push({ target, index, value: lengths[index] });
+      });
+      // CPonyTailController applies the back length to both attachment pieces.
+      if (lengths[0] !== undefined) {
+        this.hairLengths.set(`${bundle.item.id}:attachment`, lengths[0]);
+        for (const placement of this.hairPlacements.get(key) ?? []) {
+          placement.setScale(lengths[0]);
+          applied.push({ target: placement.label, index: 0, value: lengths[0] });
+        }
+      }
+    }
+    return applied;
   }
   async setBackground(url: string | null) {
     const request = ++this.backgroundRequest;
@@ -285,10 +346,7 @@ export class OutfitScene {
       if (effect.enabled) box.union(effect.framingBounds());
     const center = box.getCenter(new Vector3()),
       size = box.getSize(new Vector3());
-    const distance =
-      (Math.max(size.y, size.x / this.camera.aspect) /
-        (2 * Math.tan((this.camera.fov * Math.PI) / 360))) *
-      1.2;
+    const distance = viewDistance(size, this.camera.aspect, this.camera.fov, angle);
     this.controls.target.copy(center);
     const direction =
       angle === 'side' ? new Vector3(1, 0, 0) : new Vector3(0, 0, angle === 'back' ? -1 : 1);
@@ -498,7 +556,8 @@ export class OutfitScene {
                     part,
                     `${bundle.item.name} placement ${entry.placements.length + 1}`,
                     this.hairPlacementValues.get(key) ?? 0,
-                    (value) => this.hairPlacementValues.set(key, value)
+                    (value) => this.hairPlacementValues.set(key, value),
+                    this.hairLengths.get(`${bundle.item.id}:attachment`) ?? 1
                   )
                 );
               }
@@ -586,7 +645,9 @@ export class OutfitScene {
           entry.group.traverse((node) => {
             if (!(node instanceof Mesh) || node.morphTargetInfluences?.length !== 1) return;
             captureHairDefault(node);
-            const length = this.hairLengths.get(`${bundle.item.id}:${sourceName(node)}`);
+            const index = hairLengthIndex(sourceName(node));
+            const length =
+              index === undefined ? undefined : this.hairLengths.get(`${bundle.item.id}:${index}`);
             if (length !== undefined) node.morphTargetInfluences[0] = length;
           });
         this.skinColors?.attach(entry.colors);

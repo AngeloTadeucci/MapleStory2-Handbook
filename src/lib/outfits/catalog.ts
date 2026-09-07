@@ -219,7 +219,7 @@ export function resolveBundle(
     forms[form] = ids.map((id) => {
       const matches = assets.filter((a) => a.id === id && a.bodyVariant === variant);
       if (matches.length !== 1) throw new Error('Hair fitting model is unavailable');
-      return { ...matches[0], attachment: parts[0].attachment };
+      return { ...matches[0], attachment: matches[0].attachment ?? parts[0].attachment };
     });
   }
   return {
@@ -255,6 +255,7 @@ export function conflictingItems(equipped: OutfitBundle[], next: OutfitBundle): 
 }
 
 export const searchSchema = z.object({
+  hairPreview: z.enum(['', 'sassy']).default(''),
   preview: z
     .string()
     .regex(/^[a-z0-9-]{0,40}$/)

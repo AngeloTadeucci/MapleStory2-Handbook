@@ -25,6 +25,16 @@ it('preserves exact normalized DB colors and rejects malformed character appeara
     omitted: []
   };
   expect(characterPreviewSchema.parse(preset).items[0].colors).toEqual(colors);
+  expect(
+    characterPreviewSchema.parse({ ...preset, items: [{ id: 10200008, hairLengths: [1.2, 0] }] })
+      .items[0].hairLengths
+  ).toEqual([1.2, 0]);
+  expect(
+    characterPreviewSchema.safeParse({
+      ...preset,
+      items: [{ id: 10200008, hairLengths: [1, 1, 1] }]
+    }).success
+  ).toBe(false);
   expect(characterPreviewSchema.safeParse({ ...preset, skin: [[242, 137, 186]] }).success).toBe(
     false
   );
