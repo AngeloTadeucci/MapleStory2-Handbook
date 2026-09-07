@@ -4,6 +4,7 @@ import getGltfUrl from '$lib/getGltfUrl';
 import type { NativeAsset } from '$lib/nativeAssets';
 import { decalSchema } from './faceDecal';
 import simulatorRelease from './simulator-release.json';
+import catalogAliases from './catalog-aliases.json';
 
 export const slotNames: Record<string, string> = {
   HR: 'Hair',
@@ -105,31 +106,44 @@ export const catalogSchema = z
     }
   })
   .transform((catalog) => {
-    // KMS2 itemdata/122.xml: 12220364 explicitly selects itemPreset 12220360.
-    // Release 14 has both dress parts but omitted this inventory alias. Keep the
-    // immutable catalog bytes and any future explicit entry unchanged.
-    if (catalog.items.some((item) => item.itemId === 12220364 && item.bodyVariant === 'female'))
-      return catalog;
-    const preset = catalog.items.find(
-      (item) =>
-        item.itemId === 12220360 &&
-        item.bodyVariant === 'female' &&
-        item.parts.some(
-          (part) => part.slot === 'CL' && part.assetId === 'wardrobe-dc4bf9cb8925ea8c81d262a5'
-        ) &&
-        item.parts.some(
-          (part) => part.slot === 'PA' && part.assetId === 'wardrobe-81b92384f7a2271d331682a9'
+    // Explicit KMS2 itemPreset mappings audited against release-14 bundles.
+    // See backend Native/CATALOG-ALIASES.md. Never infer aliases from names or
+    // originID, and never replace an explicit entry, even an unavailable one.
+    const items = [...catalog.items];
+    for (const mapping of catalogAliases) {
+      if (
+        items.some(
+          (item) => item.itemId === mapping.itemId && item.bodyVariant === mapping.bodyVariant
         )
-    );
-    if (!preset) return catalog;
-    const alias = libraryItemSchema.parse({
-      ...preset,
-      itemId: 12220364,
-      presetId: 12220360,
-      sourceName: 'Romantic Wedding Dress (F)',
-      isOutfit: 1
-    });
-    return { ...catalog, items: [...catalog.items, alias] };
+      )
+        continue;
+      const preset = catalog.items.find(
+        (item) => item.itemId === mapping.presetId && item.bodyVariant === mapping.bodyVariant
+      );
+      if (
+        !preset ||
+        preset.availability !== mapping.availability ||
+        preset.slots.length !== mapping.slots.length ||
+        !mapping.slots.every((slot) => preset.slots.includes(slot)) ||
+        preset.parts.length !== mapping.parts.length ||
+        !mapping.parts.every((part) =>
+          preset.parts.some(
+            (candidate) => candidate.slot === part.slot && candidate.assetId === part.assetId
+          )
+        )
+      )
+        continue;
+      items.push(
+        libraryItemSchema.parse({
+          ...preset,
+          itemId: mapping.itemId,
+          presetId: mapping.presetId,
+          sourceName: mapping.sourceName,
+          isOutfit: mapping.isOutfit
+        })
+      );
+    }
+    return { ...catalog, items };
   });
 export type LibraryItem = z.infer<typeof libraryItemSchema>;
 export type CatalogItem = {

@@ -1,0 +1,166 @@
+[
+  {
+    "itemId": 11120062,
+    "presetId": 11150037,
+    "bodyVariant": "female",
+    "sourceName": "Shiny Star Decoration (F)",
+    "isOutfit": 1,
+    "slots": ["EY"],
+    "parts": [
+      {
+        "assetId": "wardrobe-939a2cadef5f4d877907ab4e",
+        "slot": "EY"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 11250113,
+    "presetId": 11250040,
+    "bodyVariant": "female",
+    "sourceName": "Merry Holiday Earrings (F)",
+    "isOutfit": 1,
+    "slots": ["EA"],
+    "parts": [
+      {
+        "assetId": "wardrobe-7a4e4eab620f41695585a919",
+        "slot": "EA"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 11320455,
+    "presetId": 11320360,
+    "bodyVariant": "female",
+    "sourceName": "Romantic Wedding Tiara (F)",
+    "isOutfit": 1,
+    "slots": ["CP"],
+    "parts": [
+      {
+        "assetId": "wardrobe-d8b1cdf7b1e6bc1d6e6d2a1f",
+        "slot": "CP"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 11320621,
+    "presetId": 11301544,
+    "bodyVariant": "female",
+    "sourceName": "Hipster Cat Baseball Cap (F)",
+    "isOutfit": 1,
+    "slots": ["CP"],
+    "parts": [
+      {
+        "assetId": "wardrobe-f723d6b0c452408afbcf8231",
+        "slot": "CP"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 11620364,
+    "presetId": 11620360,
+    "bodyVariant": "female",
+    "sourceName": "Romantic Wedding Pearl Gloves (F)",
+    "isOutfit": 1,
+    "slots": ["GL"],
+    "parts": [
+      {
+        "assetId": "wardrobe-9a931b9dc9b75929f96a262d",
+        "slot": "GL"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 11720365,
+    "presetId": 11720360,
+    "bodyVariant": "female",
+    "sourceName": "Romantic Wedding Pearl Shoes (F)",
+    "isOutfit": 1,
+    "slots": ["SH"],
+    "parts": [
+      {
+        "assetId": "wardrobe-d9573b13a926a0d9de099da5",
+        "slot": "SH"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 11820364,
+    "presetId": 11820360,
+    "bodyVariant": "female",
+    "sourceName": "Romantic Wedding Party Balloon (F)",
+    "isOutfit": 1,
+    "slots": ["MT"],
+    "parts": [
+      {
+        "assetId": "wardrobe-23e1976c50666b2a0ad30263",
+        "slot": "MT"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 11850170,
+    "presetId": 11850072,
+    "bodyVariant": "female",
+    "sourceName": "Merry Saintly Fairy Wings (F)",
+    "isOutfit": 1,
+    "slots": ["MT"],
+    "parts": [
+      {
+        "assetId": "wardrobe-f8968de1a0fc7b79983b43f5",
+        "slot": "MT"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 12220364,
+    "presetId": 12220360,
+    "bodyVariant": "female",
+    "sourceName": "Romantic Wedding Dress (F)",
+    "isOutfit": 1,
+    "slots": ["CL", "PA"],
+    "parts": [
+      {
+        "assetId": "wardrobe-dc4bf9cb8925ea8c81d262a5",
+        "slot": "CL"
+      },
+      {
+        "assetId": "wardrobe-81b92384f7a2271d331682a9",
+        "slot": "PA"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 13320221,
+    "presetId": 13300220,
+    "bodyVariant": "female",
+    "sourceName": "Tweet Tweet Pink Bean (Scepter)",
+    "isOutfit": 1,
+    "slots": ["RH"],
+    "parts": [
+      {
+        "assetId": "wardrobe-3d0da6d82a89564870c80e56",
+        "slot": "RH"
+      }
+    ],
+    "availability": "preview"
+  },
+  {
+    "itemId": 15600560,
+    "presetId": 15600512,
+    "bodyVariant": "female",
+    "sourceName": "Cherry Blossom Orb",
+    "isOutfit": 1,
+    "slots": ["LH", "RH"],
+    "parts": [],
+    "availability": "unavailable"
+  }
+]
