@@ -47,6 +47,7 @@ export const libraryItemSchema = z
     slots: z.array(z.string()).min(1),
     parts: z.array(z.object({ assetId: z.string(), slot: z.string() })),
     decal: decalSchema.optional(),
+    cosmeticEffect: z.literal('effects/hair-twinkle-a.json').optional(),
     handParts: z
       .object({ RH: z.array(z.string()).min(1), LH: z.array(z.string()).min(1) })
       .optional(),

@@ -81,6 +81,8 @@
   let loadingCatalog = $state(true);
   let catalogError = $state('');
   let ready = $state(false);
+  let effectsEnabled = $state(true);
+  const hasHairEffect = $derived(equipped.some((bundle) => bundle.item.library?.cosmeticEffect));
   let retry = $state(0);
   const limit = 12;
   const hex = (color: Rgb) =>
@@ -326,6 +328,18 @@
           }}>{playing ? 'Pause' : 'Play'}</button
         >
         <button disabled={busy || !ready} onclick={download}>Save image</button>
+        {#if hasHairEffect}
+          <label
+            ><input
+              type="checkbox"
+              checked={effectsEnabled}
+              onchange={(e) => {
+                effectsEnabled = e.currentTarget.checked;
+                viewer?.setEffectsEnabled(effectsEnabled);
+              }}
+            /> Hair effects</label
+          >
+        {/if}
         {#if weapons.length}
           <button
             disabled={busy || weapons.every((bundle) => bundle.weaponPlacement === 'drawn')}
@@ -362,6 +376,9 @@
           >{/each}
       </div>
       {#if error}<p role="alert" class="mb-3 text-red-400">{error}</p>{/if}
+      {#if hasHairEffect}<p class="mb-2 text-sm opacity-75">
+          Hair effect preview: sparkle motion and glow may differ from the game.
+        </p>{/if}
       <div
         bind:this={container}
         class="h-[min(65vh,650px)] min-h-[350px] w-full overflow-hidden rounded-xl"

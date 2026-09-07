@@ -1,10 +1,10 @@
 import {
   AnimationMixer,
+  AmbientLight,
   Box3,
   Color,
   DirectionalLight,
   Group,
-  HemisphereLight,
   Mesh,
   Object3D,
   PerspectiveCamera,
@@ -40,6 +40,7 @@ import {
 import { FaceAnimation, type Customization } from './faceAnimation';
 import { FaceDecal } from './faceDecal';
 import { applyCharacterMaterials } from './characterMaterials';
+import { CosmeticEffect } from './cosmeticEffect';
 
 function dispose(root: Object3D) {
   releaseEquipmentBones(root);
@@ -70,6 +71,8 @@ export class OutfitScene {
   private bones?: BodySkeleton;
   private mixer?: AnimationMixer;
   private equipment = new Map<string, Group>();
+  private cosmeticEffects = new Map<string, CosmeticEffect>();
+  effectsEnabled = true;
   private equipmentAssets = new Map<string, NativeAsset>();
   private bundles = new Map<string, OutfitBundle>();
   private hairLengths = new Map<string, number>();
@@ -120,6 +123,12 @@ export class OutfitScene {
         slots: b.slots
       })),
       visible,
+      effects: [...this.cosmeticEffects].map(([key, effect]) => ({
+        key,
+        enabled: effect.enabled,
+        particles: effect.simulations.map((s) => s.particles.length),
+        time: effect.simulations[0]?.time
+      })),
       memory: { ...this.renderer.info.memory },
       colors: this.colorControls.map((c) => ({ label: c.label, colors: c.colors }))
     };
@@ -130,6 +139,15 @@ export class OutfitScene {
     for (const group of this.equipment.values())
       for (const mixer of equipmentMixers(group)) mixer.setTime(time);
     this.body?.scene.updateMatrixWorld(true);
+    for (const effect of this.cosmeticEffects.values()) effect.seek(time, this.camera);
+    this.renderer.render(this.scene, this.camera);
+  }
+  setEffectsEnabled(enabled: boolean) {
+    this.effectsEnabled = enabled;
+    for (const effect of this.cosmeticEffects.values()) {
+      effect.enabled = enabled;
+      effect.update(0, this.camera);
+    }
     this.renderer.render(this.scene, this.camera);
   }
   selectExpression(name: string) {
@@ -189,6 +207,8 @@ export class OutfitScene {
     // when framing a new pose so running hair, hands and back items stay in view.
     const box = new Box3().setFromObject(this.body.scene, true);
     for (const group of this.equipment.values()) box.union(new Box3().setFromObject(group, true));
+    for (const effect of this.cosmeticEffects.values())
+      if (effect.enabled) box.union(effect.framingBounds());
     const center = box.getCenter(new Vector3()),
       size = box.getSize(new Vector3());
     const distance =
@@ -218,8 +238,10 @@ export class OutfitScene {
     this.renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.scene.background = new Color('#303844');
-    this.scene.add(new HemisphereLight(0xffffff, 0x555566, 2));
-    const light = new DirectionalLight(0xffffff, 2.5);
+    // character_spring2019 inherits white ambient and directional Dimmer=0.8.
+    // Three's irradiance convention includes PI; characterMaterials removes it.
+    this.scene.add(new AmbientLight(0xffffff, Math.PI * 0.8));
+    const light = new DirectionalLight(0xffffff, Math.PI * 0.8);
     light.position.set(3, 5, 4);
     this.scene.add(light);
     element.appendChild(this.renderer.domElement);
@@ -246,6 +268,8 @@ export class OutfitScene {
           for (const mixer of equipmentMixers(group)) mixer.update(delta);
       }
       (this.face ?? this.defaultFace)?.update(delta);
+      for (const effect of this.cosmeticEffects.values())
+        effect.update(this.playing ? delta : 0, this.camera);
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
       this.frame = requestAnimationFrame(draw);
@@ -363,6 +387,7 @@ export class OutfitScene {
       colors: ColorControl[];
       face?: FaceAnimation;
       decal?: FaceDecal;
+      effect?: CosmeticEffect;
     }[] = [];
     try {
       for (const bundle of changes) {
@@ -402,6 +427,20 @@ export class OutfitScene {
             this.body.scene
           );
         }
+        if (bundle.item.library?.cosmeticEffect) {
+          if (!bundle.slots.includes('HR')) throw new Error('Only hair effects are supported');
+          const heads: Object3D[] = [];
+          this.body?.scene.traverse((node) => {
+            if (sourceName(node) === 'Bip01 Head') heads.push(node);
+          });
+          if (heads.length !== 1) throw new Error('Hair effect attachment is unavailable');
+          entry.effect = await CosmeticEffect.load(
+            this.customizationBase + bundle.item.library.cosmeticEffect,
+            bundle.item.id,
+            heads[0]
+          );
+          entry.effect.enabled = this.effectsEnabled;
+        }
         // A cap changes the same hairstyle's authored geometry, preserving its dye.
         if (
           (bundle.slots.includes('HR') || bundle.weaponForms) &&
@@ -429,6 +468,7 @@ export class OutfitScene {
         this.skinColors?.detach(entry.colors);
         entry.face?.dispose();
         entry.decal?.dispose();
+        entry.effect?.dispose();
         for (const color of entry.colors) color.dispose();
         dispose(entry.group);
       }
@@ -439,7 +479,7 @@ export class OutfitScene {
     for (const { bundle } of staged)
       for (const old of conflictingItems(this.equippedItems, bundle)) evicted.add(bundleKey(old));
     for (const key of evicted) this.unequip(key);
-    for (const { bundle, group, colors, face, decal } of staged) {
+    for (const { bundle, group, colors, face, decal, effect } of staged) {
       const key = bundleKey(bundle);
       let fabric = 0;
       for (const color of colors)
@@ -450,6 +490,11 @@ export class OutfitScene {
       this.equipment.set(key, group);
       this.equipmentColors.set(key, colors);
       this.bundles.set(key, bundle);
+      if (effect) {
+        this.cosmeticEffects.set(key, effect);
+        this.scene.add(effect.root);
+        effect.update(0, this.camera);
+      }
       if (face) this.face = face;
       if (decal) {
         this.decal = decal;
@@ -464,6 +509,8 @@ export class OutfitScene {
   }
 
   unequip(slot: string) {
+    this.cosmeticEffects.get(slot)?.dispose();
+    this.cosmeticEffects.delete(slot);
     if (this.bundles.get(slot)?.slots.includes('FD')) {
       this.decal?.dispose();
       this.decal = undefined;

@@ -5,6 +5,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   ShaderLib,
+  NoColorSpace,
   Texture,
   WebGLRenderer
 } from 'three';
@@ -60,5 +61,60 @@ describe('source character lighting', () => {
     (shader.uniforms.ms2GlossMap.value as Texture).addEventListener('dispose', dispose);
     material.dispose();
     expect(dispose).toHaveBeenCalledOnce();
+  });
+  it('loads the hair direction as data, keeps the dye map, and owns its texture copy', async () => {
+    const { material, gltf, dependency } = fixture(true, true);
+    material.userData.nifShader = 'MS2CharacterHairMaterial';
+    material.userData.nifTextures.shader1 = { index: 4 };
+    material.normalMap = new Texture();
+    const dyeMap = material.map;
+    await applyCharacterMaterials(gltf);
+    const shader = {
+      vertexShader: ShaderLib.standard.vertexShader,
+      fragmentShader: ShaderLib.standard.fragmentShader,
+      uniforms: {}
+    } as Parameters<typeof material.onBeforeCompile>[0];
+    material.onBeforeCompile(shader, {} as WebGLRenderer);
+    const direction = shader.uniforms.ms2HairDirectionMap.value as Texture;
+    expect(dependency).toHaveBeenCalledWith('texture', 4);
+    expect(direction.colorSpace).toBe(NoColorSpace);
+    expect(material.map).toBe(dyeMap);
+    expect(shader.fragmentShader).toContain(
+      'ms2HairSpecular(geometryNormal, halfVector, ms2HairTangent'
+    );
+    const dispose = vi.fn();
+    direction.addEventListener('dispose', dispose);
+    material.dispose();
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+  it('rejects missing hair directions and mismatched tangent coordinates', async () => {
+    const { material, gltf } = fixture(true, true);
+    material.userData.nifShader = 'MS2CharacterHairMaterial';
+    await expect(applyCharacterMaterials(gltf)).rejects.toThrow('Missing source hair direction');
+    material.normalMap = new Texture();
+    material.userData.nifTextures.shader1 = { index: 4, texCoord: 1 };
+    await expect(applyCharacterMaterials(gltf)).rejects.toThrow(
+      'matching normal-map tangent frame'
+    );
+  });
+  it('uses authored ambient and rim values without retaining physical indirect specular', async () => {
+    const { material, gltf } = fixture(false);
+    Object.assign(material.userData.nifLighting, {
+      ambient: [0.7, 0.6, 0.5],
+      FresnelBoost: 10,
+      FresnelExponent: 4
+    });
+    await applyCharacterMaterials(gltf);
+    const shader = {
+      vertexShader: ShaderLib.standard.vertexShader,
+      fragmentShader: ShaderLib.standard.fragmentShader,
+      uniforms: {}
+    } as Parameters<typeof material.onBeforeCompile>[0];
+    material.onBeforeCompile(shader, {} as WebGLRenderer);
+    expect(shader.uniforms.ms2Ambient.value.toArray()).toEqual([0.7, 0.6, 0.5]);
+    expect(shader.uniforms.ms2FresnelBoost.value).toBe(10);
+    expect(shader.uniforms.ms2FresnelExponent.value).toBe(4);
+    expect(shader.fragmentShader).toContain('#undef RE_IndirectSpecular');
+    expect(shader.fragmentShader).toContain('#define RE_IndirectDiffuse RE_IndirectDiffuse_MS2');
   });
 });

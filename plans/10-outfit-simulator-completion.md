@@ -1,5 +1,57 @@
 # Plan 10: Clothing simulator completion
 
+Review checkpoint, 2026-09-07: the user authorized committing and pushing on
+`feat/clothing-simulator`, branched from local master with the four earlier
+simulator commits preserved. The backend uses the same branch name. Generated
+client assets and Gelo's private appearance snapshot remain local and ignored.
+Deployment is not authorized.
+
+## Character surface correction, 2026-09-06
+
+Implemented the requested shader fix without changing geometry, dyes or hair
+effects. Character materials use authored ambient independently of diffuse,
+Fresnel rim parameters and the hair direction map's anisotropic highlights.
+The source character_spring2019 scene's inherited white ambient/directional
+coefficients are 0.8. They replace the dark hemisphere fill, with consistent
+Three irradiance conversion for diffuse and specular. Key and rim directions
+remain documented studio choices; skin subsurface and exact client global
+values are not claimed reproduced.
+
+Gelo's twelve saved instances and a complete male outfit were checked from three
+angles. Male10200121 plus hat11300001 keeps C hair and explicit blue dye; six
+hair replacement cycles stay at 22 geometries/63 textures. Gelo Happy/Henesys
+with star_attack_idle_a at 0.65 seconds exports a decoded 823x520 PNG, effects
+enabled. Backend STATUS.md records item IDs, source hashes and local captures.
+214 focused tests passed, with 15 material/effect tests rerun after the final
+correction. Typecheck is clean. Eleven GPU checks pass, including full material
+pixels that catch ambient being multiplied by diffuse and inconsistent light
+units. Rerun them in T3 by importing
+`/src/routes/dev/nif-converter/characterShaderAcceptance.ts`, then calling
+`verifyCharacterShader()` and `await verifyCharacterLightingPipeline()`.
+The release-05 asset inventory remains unchanged at 635 files.
+The final production build passes; all 635 packaged files match the inventory.
+Only simulator-release-05 is packaged under gltf.
+
+## Hair effects pilot, 2026-09-06
+
+The user authorized effects and excluded badges. Default simulator-release-05
+adds the source hair-twinkle family for 10200121/10200122 male and
+10200123/10200124 female.
+Gelo is `/outfits?preview=gelo-07`. Two particle emitters and the animated glow
+follow the source head attachment. The Hair effects checkbox hides/freezes them.
+Badges have no loader or selector. New hairstyles remain under Available models.
+
+The release contains 153 models, 82 reviewed geometry entries, 35 previews and
+10 unavailable entries. All 635 files reproduce byte for byte. 211 focused tests,
+including source asset binding and nine effect tests, pass; typecheck is clean.
+Both bodies were exercised with full outfits and hat fitting. Removal clears the
+effect; a forced load failure preserves the existing outfit. Playback recording
+and exact item/state evidence are in backend STATUS.md. Particle randomness,
+drag, billboard orientation and full material parity remain unverified against
+the running client. No effects commit or deployment occurred.
+The production build passes and all 635 packaged files match inventory hashes.
+Gelo's enabled-effects Henesys/Happy PNG decoded successfully at 823x520.
+
 ## Motion, library and shaders completed, 2026-09-06
 
 The four authorized follow-ups are implemented. The default `simulator-release-04`
