@@ -1,5 +1,33 @@
 # Plan 10: Clothing simulator completion
 
+## Next priority: full wardrobe coverage, 2026-09-07
+
+The user requested a plan for all clothing and wearable decorations before
+save/load and sharing. The authoritative implementation order and exit checks
+are in the backend's NifToGltf/Native/SIMULATOR-PLAN.md, section "Current plan:
+complete clothing and decoration coverage". This update is planning only.
+
+1. Reconcile the entire client inventory, keeping every item/body entry even
+   when geometry is shared, unresolved or nonvisual. Measure the true denominator.
+2. Make every scoped item discoverable. Replace DB-name/slot coverage assumptions
+   in the outfit API with the reconciled source catalog; keep pagination and
+   availability counts consistent. No database writes are needed.
+3. Convert reusable families with complete item-specific attachment, cutting and
+   customization records. Use bounded, reproducible batches and fresh candidates.
+4. Resolve high-coverage compatibility failures and the existing 35 previews/
+   10 unavailable entries. Preserve complete outfits, dyes and accepted effects.
+5. Review distinct visual bundles and both eligible bodies, using contact sheets,
+   direct T3 interaction, exact source checks and targeted reference comparisons.
+6. Prepare a reproducible expanded source/asset release, measure catalog and
+   outfit loading at scale, and verify the actual production package.
+
+The UI must distinguish missing geometry from an omitted optional effect, expose
+unsupported items clearly and never substitute another item. Badges remain
+excluded. Known broken geometry cannot be promoted by validator/typecheck success.
+The current 127 item/body entries are a subset, not a full coverage denominator.
+Generated assets and private snapshots remain local. No commit, push or deployment
+is authorized by this planning request.
+
 Review checkpoint, 2026-09-07: the user authorized committing and pushing on
 `feat/clothing-simulator`, branched from local master with the four earlier
 simulator commits preserved. The backend uses the same branch name. Generated
