@@ -59,6 +59,7 @@ export function characterPreviewBase(name: string): string {
 export const libraryItemSchema = z
   .object({
     itemId: z.number().int().positive(),
+    presetId: z.number().int().positive().optional(),
     sourceName: z.string().optional(),
     sourceIcon: z.string().nullable().optional(),
     isOutfit: z.number().int().optional(),

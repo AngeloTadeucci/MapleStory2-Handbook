@@ -1,6 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import DBClient from '$lib/prismaClient';
+import { parseNativeManifest } from '$lib/nativeAssets';
+import { enableApproximateHair, hasApproximateHair } from '$lib/outfits/approximateHair';
 import {
   catalogSchema,
   characterPreviewBase,
@@ -24,6 +26,16 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
       const response = await fetch(`${base}simulator-catalog.json`);
       if (!response.ok) throw new Error('Model catalog is unavailable');
       const catalog = catalogSchema.parse(await response.json());
+      if (catalog.items.some(hasApproximateHair)) {
+        const manifestUrl = new URL(`${base}native-manifest.json`, url).href;
+        const manifest = await fetch(manifestUrl);
+        if (manifest.ok) {
+          catalog.items = enableApproximateHair(
+            catalog.items,
+            parseNativeManifest(await manifest.json(), manifestUrl)
+          );
+        }
+      }
       let labels: ItemLabel[] = [];
       try {
         // SELECT only. Missing database records and names do not remove source IDs.

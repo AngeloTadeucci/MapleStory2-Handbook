@@ -15,6 +15,7 @@ const relativeAssetPath = z
   );
 const assetSchema = z.object({
   id: z.string().min(1),
+  itemId: z.string().nullish(),
   input: relativeAssetPath,
   uri: relativeAssetPath,
   clips: z.array(z.string()),
