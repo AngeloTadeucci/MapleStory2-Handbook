@@ -255,7 +255,7 @@ export function conflictingItems(equipped: OutfitBundle[], next: OutfitBundle): 
 }
 
 export const searchSchema = z.object({
-  hairPreview: z.enum(['', 'sassy']).default(''),
+  hairPreview: z.enum(['', 'sassy', 'twins']).default(''),
   preview: z
     .string()
     .regex(/^[a-z0-9-]{0,40}$/)

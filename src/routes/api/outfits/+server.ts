@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import { applySassyPreview, loadSassyPreview } from '$lib/outfits/sassyPreview';
+import { applyTwinTailPreview, loadTwinTailPreview } from '$lib/outfits/twinTailPreview';
 import type { RequestHandler } from './$types';
 import DBClient from '$lib/prismaClient';
 import { parseNativeManifest } from '$lib/nativeAssets';
@@ -39,6 +40,10 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
           if (query.hairPreview) {
             assets = [...assets, ...(await loadSassyPreview(fetch, url.href))];
             catalog.items = applySassyPreview(catalog.items, assets);
+            if (query.hairPreview === 'twins') {
+              assets = [...assets, ...(await loadTwinTailPreview(fetch, url.href))];
+              catalog.items = applyTwinTailPreview(catalog.items, assets);
+            }
           }
           catalog.items = enableApproximateHair(catalog.items, assets);
         } else if (query.hairPreview) throw new Error('Base hair manifest is unavailable');

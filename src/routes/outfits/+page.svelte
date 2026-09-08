@@ -17,9 +17,42 @@
   import { customizationSchema, type Customization } from '$lib/outfits/faceAnimation';
   import { characterPreviewSchema } from '$lib/outfits/characterPreview';
   import { loadSassyPreview } from '$lib/outfits/sassyPreview';
+  import { loadTwinTailPreview } from '$lib/outfits/twinTailPreview';
   let assetBase = $state(libraryBase);
   let preview = $state('');
   let hairPreview = $state('');
+  let motionPlayback: import('$lib/outfits/hairMotion').HairMotionPlayback | undefined;
+  let motionActive = $state(false);
+  let motionMessage = $state('');
+  let browserHairEnabled = $state(false);
+  function toggleBrowserHair(enabled: boolean) {
+    motionPlayback?.stop();
+    browserHairEnabled = enabled;
+    viewer?.setBrowserHairEnabled(enabled);
+  }
+  async function playHairMotion() {
+    if (!viewer) return;
+    motionPlayback?.stop();
+    browserHairEnabled = false;
+    viewer.setBrowserHairEnabled(false);
+    try {
+      const { HairMotionPlayback, hairMotionSchema } = await import('$lib/outfits/hairMotion');
+      const response = await fetch('/gltf/sassy-pigtails-preview-01/motion-fitting-idle.json');
+      if (!response.ok) throw new Error('The local PhysX motion sample has not been generated.');
+      const sample = hairMotionSchema.parse(await response.json());
+      motionPlayback = new HairMotionPlayback(viewer, sample, (message) => {
+        motionActive = false;
+        motionMessage = message;
+      });
+      clip = sample.clip;
+      playing = false;
+      motionActive = true;
+      motionMessage = 'Playing the eight-second local PhysX sample.';
+      motionPlayback.start();
+    } catch (cause) {
+      motionMessage = cause instanceof Error ? cause.message : 'Unable to play motion sample';
+    }
+  }
   let previewName = $state('');
   let omitted = $state<string[]>([]);
   let previewNotes = $state<string[]>([]);
@@ -111,6 +144,7 @@
     colorRevision++;
   }
   function refresh() {
+    motionPlayback?.stop();
     if (viewer) {
       equipped = viewer.equippedItems;
       hatWarnings = viewer.hatAttachmentWarnings;
@@ -124,6 +158,7 @@
     }
   }
   async function chooseBody(variant: string) {
+    motionPlayback?.stop();
     const asset = assets.find((entry) => entry.bodyVariant === variant && !entry.skeleton);
     if (!asset || !viewer) return;
     busy = true;
@@ -143,6 +178,7 @@
     }
   }
   async function equip(item: CatalogItem, hand?: 'LH' | 'RH') {
+    motionPlayback?.stop();
     if (!viewer) return;
     busy = true;
     error = '';
@@ -210,7 +246,7 @@
       try {
         preview = dev ? (new URLSearchParams(location.search).get('preview') ?? '') : '';
         hairPreview = dev ? (new URLSearchParams(location.search).get('hairPreview') ?? '') : '';
-        if (hairPreview && (hairPreview !== 'sassy' || preview))
+        if (hairPreview && (!['sassy', 'twins'].includes(hairPreview) || preview))
           throw new Error('Invalid local hair preview');
         if (preview) assetBase = characterPreviewBase(preview);
         const url = new URL(`${assetBase}native-manifest.json`, location.href).href;
@@ -228,6 +264,8 @@
         assets = hairPreview
           ? [...manifest, ...(await loadSassyPreview(fetch, location.href))]
           : manifest;
+        if (hairPreview === 'twins')
+          assets = [...assets, ...(await loadTwinTailPreview(fetch, location.href))];
         viewer = new OutfitScene(container);
         viewer.setCustomization(customization, assetBase);
         if (dev) Object.assign(container, { outfitViewer: viewer });
@@ -281,6 +319,7 @@
     })();
     return () => {
       active = false;
+      motionPlayback?.stop();
       viewer?.destroy();
     };
   });
@@ -313,6 +352,41 @@
     Dress your character, customize colors and save an image. The catalog includes every eligible
     client item. Preview models may have appearance issues; unavailable items show the reason.
   </p>
+  {#if dev && hairPreview && equipped.some((b) => b.item.id === 10200010)}
+    <aside class="mb-4 rounded border p-3" aria-label="Browser hair motion">
+      <label
+        ><input
+          type="checkbox"
+          checked={browserHairEnabled}
+          disabled={busy}
+          onchange={(e) => toggleBrowserHair(e.currentTarget.checked)}
+        /> Browser hair motion</label
+      >
+      <p class="text-sm">
+        Approximate gravity and sway for Sassy Pigtails. Uses a simple head collider; shoulders and
+        hats can still clip. Turn off to restore the authored pose.
+      </p>
+    </aside>
+    <details class="mb-4">
+      <summary>Earlier PhysX experiment</summary>
+      <aside
+        class="mb-4 rounded border border-amber-600 p-3"
+        aria-label="Local PhysX motion sample"
+      >
+        <p>
+          Experimental motion from the local client PhysX solver. Uses test timing and gravity;
+          client scene settings and character collisions are not reproduced.
+        </p>
+        <p class="text-sm">
+          Requires position 1 on both tails, size 1, and no hat. Plays fitting idle for eight
+          seconds.
+        </p>
+        <button disabled={busy || motionActive} onclick={playHairMotion}>Play PhysX sample</button>
+        <button onclick={() => motionPlayback?.stop()}>Restore rest pose</button>
+        {#if motionMessage}<p role="status">{motionMessage}</p>{/if}
+      </aside>
+    </details>
+  {/if}
   <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_390px]">
     <section class="min-w-0" aria-label="Character">
       <div class="mb-3 flex flex-wrap items-center gap-3">
@@ -329,6 +403,7 @@
             disabled={busy}
             bind:value={clip}
             onchange={() => {
+              motionPlayback?.stop();
               viewer?.selectClip(clip);
               playing = true;
             }}

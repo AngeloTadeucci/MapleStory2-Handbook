@@ -80,7 +80,7 @@ describe.skipIf(!installed)('separate Sassy Pigtails preview', () => {
     }
     expect(tails[0].input).toBe(tails[1].input);
     expect(tails[0].attachmentSource).not.toBe(tails[1].attachmentSource);
-    expect(item.library?.reason).toContain('Physics motion is not simulated');
+    expect(item.library?.reason).toContain('approximate browser motion');
   });
   it('keeps usable explicit entries and rejects incomplete bundles', async () => {
     const tails = await loadSassyPreview(fetcher, 'http://localhost/');

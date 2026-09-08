@@ -61,6 +61,7 @@ import {
 } from './hairPlacement';
 import { applyItemDefault, itemDefaultColors, ItemPaletteAnimation } from './itemDefaults';
 import { viewDistance } from './viewFraming';
+import { BrowserHair } from './browserHair';
 
 function dispose(root: Object3D) {
   releaseEquipmentBones(root);
@@ -98,6 +99,34 @@ export class OutfitScene {
   private hairLengths = new Map<string, number>();
   private hairPlacements = new Map<string, HairPlacementControl[]>();
   private hairPlacementValues = new Map<string, number>();
+  browserHairEnabled = false;
+  private browserHair?: BrowserHair;
+  private browserHairGroup?: Object3D;
+  private browserHairSignature = '';
+  setBrowserHairEnabled(enabled: boolean) {
+    this.browserHair?.restore();
+    this.browserHair = undefined;
+    this.browserHairGroup = undefined;
+    this.browserHairEnabled = enabled;
+    this.applyHairPlacements();
+    this.updateBrowserHair(0, true);
+    this.renderFrame();
+  }
+  private updateBrowserHair(delta: number, reset = false) {
+    if (!this.browserHairEnabled) return;
+    const group = this.equipment.get('10200010');
+    const bundle = this.bundles.get('10200010');
+    if (!group || !bundle?.parts.some((p) => p.id === 'sassy-pigtails-tail-1')) return;
+    if (group !== this.browserHairGroup) {
+      this.browserHair?.restore();
+      this.browserHair = new BrowserHair(group);
+      this.browserHairGroup = group;
+      reset = true;
+    }
+    const signature = JSON.stringify(this.hairPlacementControls.map((c) => [c.value, c.scale]));
+    this.browserHair?.update(delta, reset || signature !== this.browserHairSignature);
+    this.browserHairSignature = signature;
+  }
   private hatFitSignature = '';
   get hatAttachmentWarnings(): string[] {
     const hair = this.equippedItems.find((bundle) => bundle.slots.includes('HR'));
@@ -205,6 +234,7 @@ export class OutfitScene {
       })),
       visible,
       hatAttachmentWarnings: this.hatAttachmentWarnings,
+      browserHair: { enabled: this.browserHairEnabled, active: Boolean(this.browserHair) },
       effects: [...this.cosmeticEffects].map(([key, effect]) => ({
         key,
         enabled: effect.enabled,
@@ -224,6 +254,7 @@ export class OutfitScene {
       for (const mixer of equipmentMixers(group)) mixer.setTime(time);
     this.applyHairPlacements();
     this.body?.scene.updateMatrixWorld(true);
+    this.updateBrowserHair(0, true);
     for (const effect of this.cosmeticEffects.values()) effect.seek(time, this.camera);
     this.renderer.render(this.scene, this.camera);
   }
@@ -403,6 +434,7 @@ export class OutfitScene {
       }
       (this.face ?? this.defaultFace)?.update(delta);
       this.applyHairPlacements();
+      this.updateBrowserHair(this.playing ? delta : 0);
       for (const effect of this.cosmeticEffects.values())
         effect.update(this.playing ? delta : 0, this.camera);
       this.controls.update();
@@ -708,10 +740,16 @@ export class OutfitScene {
     }
     this.refreshVisibility();
     this.refreshHatAttachments(true);
+    this.updateBrowserHair(0, true);
     this.renderer.render(this.scene, this.camera);
   }
 
   unequip(slot: string) {
+    if (slot === '10200010') {
+      this.browserHair?.restore();
+      this.browserHair = undefined;
+      this.browserHairGroup = undefined;
+    }
     this.hairPlacements.delete(slot);
     this.paletteAnimations.delete(slot);
     this.cosmeticEffects.get(slot)?.dispose();
@@ -762,12 +800,22 @@ export class OutfitScene {
     this.mixer.stopAllAction();
     this.mixer.clipAction(clip).reset().play();
     this.mixer.update(0);
+    this.applyHairPlacements();
+    this.updateBrowserHair(0, true);
     this.playing = true;
   }
 
   screenshot(): string {
     this.renderer.render(this.scene, this.camera);
     return this.renderer.domElement.toDataURL('image/png');
+  }
+
+  equipmentRoot(key: string): Object3D | undefined {
+    return this.equipment.get(key);
+  }
+
+  renderFrame() {
+    this.renderer.render(this.scene, this.camera);
   }
 
   destroy() {

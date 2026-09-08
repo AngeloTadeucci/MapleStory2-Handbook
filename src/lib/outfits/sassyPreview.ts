@@ -58,10 +58,10 @@ export function applySassyPreview(entries: LibraryItem[], assets: NativeAsset[])
           parts: forms.a.map((assetId) => ({ assetId, slot: 'HR' })),
           hairForms: forms,
           availability: 'preview',
-          reason: 'Authored tail placements available. Physics motion is not simulated.',
+          reason: 'Authored tail placements and optional approximate browser motion available.',
           limitations: [
             ...(entry.limitations ?? []),
-            'Physics motion is not simulated. Tails retain their rest pose.',
+            'Optional browser gravity and sway use a simple head collider. Shoulder and hat collisions are not implemented.',
             'Local Sassy Pigtails preview. Client visual parity has not been established.'
           ]
         }
