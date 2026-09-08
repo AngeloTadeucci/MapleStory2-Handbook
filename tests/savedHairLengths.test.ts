@@ -101,3 +101,58 @@ it('applies a continuous tail size to both attachments and restores their size d
   control.reset();
   for (const placement of placements) expect(placement.setScale).toHaveBeenLastCalledWith(1);
 });
+
+it('captures and restores independent tail placement and size without resetting morph channels', () => {
+  const group = new Group();
+  const mesh = new Mesh();
+  mesh.name = 'HR1:1';
+  mesh.morphTargetInfluences = [0.37];
+  group.add(mesh);
+  const tails = [
+    {
+      value: 2,
+      scale: 0.8,
+      set(v: number) {
+        this.value = v;
+      },
+      setScale(v: number) {
+        this.scale = v;
+      }
+    },
+    {
+      value: 0,
+      scale: 1.2,
+      set(v: number) {
+        this.value = v;
+      },
+      setScale(v: number) {
+        this.scale = v;
+      }
+    }
+  ];
+  const scene = Object.create(OutfitScene.prototype) as OutfitScene;
+  Object.assign(scene, {
+    bundles: new Map([['10200010', { slots: ['HR'], item: { id: 10200010 } }]]),
+    equipment: new Map([['10200010', group]]),
+    hairLengths: new Map([['10200010:0', 1]]),
+    hairPlacements: new Map([['10200010', tails]])
+  });
+  const state = scene.savedHairState!;
+  expect(state).toEqual({
+    lengths: [1, 0.37],
+    tails: [
+      { position: 2, scale: 0.8 },
+      { position: 0, scale: 1.2 }
+    ]
+  });
+  tails.forEach((t) => {
+    t.value = 1;
+    t.scale = 1;
+  });
+  mesh.morphTargetInfluences = [0.5];
+  scene.restoreHairState(state);
+  expect(scene.savedHairState).toEqual(state);
+  expect(mesh.morphTargetInfluences).toEqual([0.37]);
+  expect(() => scene.restoreHairState({ lengths: [0, 0], tails: [] })).toThrow('no longer match');
+  expect(scene.savedHairState).toEqual(state);
+});

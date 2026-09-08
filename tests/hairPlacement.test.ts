@@ -122,3 +122,17 @@ describe('authored hair placement', () => {
     expect(first.head.position.toArray()).toEqual([0, 0, 0]);
   });
 });
+
+it('slides between authored attachment positions and rotations without moving other bones', () => {
+  const { root, head, control, remember } = fixture();
+  control.set(0.5);
+  expect(root.position.toArray()).toEqual([45.96855, -16.90475, -20.8083]);
+  expect(root.quaternion.angleTo(clientHairRotation([0, 0, 45]))).toBeLessThan(1e-7);
+  root.position.set(0, 0, 0);
+  control.apply();
+  expect(root.position.x).toBeCloseTo(45.96855);
+  expect(head.position.toArray()).toEqual([0, 0, 0]);
+  expect(remember).toHaveBeenLastCalledWith(0.5);
+  for (const bad of [-0.1, 1.1, NaN, Infinity]) expect(() => control.set(bad)).toThrow();
+  expect(control.value).toBe(0.5);
+});

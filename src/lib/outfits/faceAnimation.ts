@@ -10,7 +10,7 @@ import {
   UnsignedByteType
 } from 'three';
 import { z } from 'zod';
-import { bakeColors, type ColorControl, type Pixels, type Rgb } from './materialColors';
+import { prepareColorBake, type ColorControl, type Pixels, type Rgb } from './materialColors';
 import { sourceName } from './sharedSkeleton';
 import { libraryBase } from './catalog';
 
@@ -71,7 +71,15 @@ async function pixels(path: string, base: string): Promise<Pixels> {
 
 export class FaceAnimation {
   private originals = new Map<MeshStandardMaterial, Texture | null>();
-  private images = new Map<string, { image: Pixels; mask?: Pixels; texture: DataTexture }>();
+  private images = new Map<
+    string,
+    {
+      image: Pixels;
+      bake?: ReturnType<typeof prepareColorBake>;
+      texture: DataTexture;
+      data: Uint8Array;
+    }
+  >();
   private expression = 'default';
   private elapsed = 0;
   readonly control: ColorControl;
@@ -111,10 +119,14 @@ export class FaceAnimation {
         if (face.images.has(key)) continue;
         const image = await pixels(frame.image, base),
           mask = frame.mask ? await pixels(frame.mask, base) : undefined;
+        const mode = { linear: true, wrapS: false, wrapT: false };
+        const bake = mask ? prepareColorBake(image, mask, mode, mode) : undefined;
+        const output = bake?.pixels ?? image;
+        const data = new Uint8Array(output.data);
         const texture = new DataTexture(
-          new Uint8Array(image.data),
-          image.width,
-          image.height,
+          data,
+          output.width,
+          output.height,
           RGBAFormat,
           UnsignedByteType
         );
@@ -122,8 +134,11 @@ export class FaceAnimation {
         texture.flipY = false;
         texture.magFilter = LinearFilter;
         texture.minFilter = LinearFilter;
-        face.images.set(key, { image, mask, texture });
+        face.images.set(key, { image, bake, texture, data });
       }
+      face.control.activeChannels = [0, 1, 2].map((index) =>
+        [...face.images.values()].some((frame) => frame.bake?.activeChannels[index] === true)
+      );
       face.recolor();
       return face;
     } catch (error) {
@@ -161,14 +176,9 @@ export class FaceAnimation {
     for (const material of this.originals.keys()) material.map = texture;
   }
   private recolor() {
-    const mode = { linear: true, wrapS: false, wrapT: false };
-    for (const { image, mask, texture } of this.images.values()) {
-      const result = mask ? bakeColors(image, mask, this.control.colors, mode, mode) : image;
-      texture.image = {
-        data: new Uint8Array(result.data),
-        width: result.width,
-        height: result.height
-      };
+    for (const { image, bake, texture, data } of this.images.values()) {
+      const result = bake ? bake.bake(this.control.colors) : image;
+      data.set(result.data);
       texture.needsUpdate = true;
     }
   }

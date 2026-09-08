@@ -1,4 +1,3 @@
-import { dev } from '$app/environment';
 import { parseNativeManifest, type NativeAsset } from '$lib/nativeAssets';
 import type { LibraryItem } from './catalog';
 
@@ -6,7 +5,6 @@ export const sassyPreviewBase = '/gltf/sassy-pigtails-preview-01/';
 const tailIds = ['sassy-pigtails-tail-1', 'sassy-pigtails-tail-2'];
 
 export async function loadSassyPreview(fetcher: typeof fetch, origin: string) {
-  if (!dev) throw new Error('Hair previews are local only');
   const url = new URL(`${sassyPreviewBase}native-manifest.json`, origin).href;
   const response = await fetcher(url);
   if (!response.ok) throw new Error('Sassy Pigtails preview export is unavailable');

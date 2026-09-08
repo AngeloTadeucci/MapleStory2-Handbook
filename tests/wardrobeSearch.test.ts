@@ -30,6 +30,14 @@ describe('complete wardrobe discovery', () => {
     };
     expect(joinCatalog([source], [])[0].icon_path).toBe('./data/resource/image/item/icon/test.png');
   });
+  it('uses item rarity metadata for slot frames without assigning a grade to missing labels', () => {
+    const source = entry(1, 'female');
+    const [unlabelled] = joinCatalog([source], []);
+    expect(unlabelled.rarity).toBeUndefined();
+    const [labelled] = joinCatalog([source], [{ ...unlabelled, rarity: 4 }]);
+    expect(labelled.rarity).toBe(4);
+    expect(labelled.library).toBe(source);
+  });
   it('keeps authored hair weights above one without accepting invalid numbers', () => {
     const value = {
       version: 1,

@@ -67,11 +67,78 @@ export function bakeColors(
   return { width, height, data };
 }
 
+/** Cache source sampling once. Slider updates only blend fixed samples into reusable pixels. */
+export function prepareColorBake(
+  diffuse: Pixels,
+  control: Pixels,
+  diffuseMode: Sampling,
+  controlMode: Sampling
+) {
+  const width = Math.max(diffuse.width, control.width),
+    height = Math.max(diffuse.height, control.height);
+  const sampled = (image: Pixels, mode: Sampling) => {
+    if (
+      (image.width === width && image.height === height) ||
+      (image.width === 1 && image.height === 1)
+    )
+      return { data: image.data, divisor: 255, constant: image.width === 1 && image.height === 1 };
+    const data = new Float64Array(width * height * 4);
+    for (let i = 0; i < data.length; i += 4) {
+      const u = (((i / 4) % width) + 0.5) / width,
+        v = (Math.floor(i / 4 / width) + 0.5) / height;
+      data.set(sample(image, u, v, mode), i);
+    }
+    return { data, divisor: 1, constant: false };
+  };
+  const d = sampled(diffuse, diffuseMode),
+    c = sampled(control, controlMode);
+  const pixels: Pixels = { width, height, data: new Uint8ClampedArray(width * height * 4) };
+  const activeChannels: [boolean, boolean, boolean] = [false, false, false];
+  for (let i = 0; i < pixels.data.length; i += 4) {
+    const di = d.constant ? 0 : i,
+      ci = c.constant ? 0 : i;
+    if (d.data[di + 3] === 0 || c.data[ci + 3] === 0) continue;
+    if (c.data[ci] > 0) activeChannels[0] = true;
+    if (c.data[ci + 1] > 0) activeChannels[1] = true;
+    if (c.data[ci] < c.divisor) activeChannels[2] = true;
+  }
+  return {
+    pixels,
+    activeChannels,
+    bake(colors: Rgb[]): Pixels {
+      if (
+        colors.length !== 3 ||
+        colors.some((color) => color.some((value) => !Number.isFinite(value)))
+      )
+        throw new Error('Three finite override colors are required');
+      const [primary, accent, shade] = colors;
+      const output = pixels.data;
+      for (let i = 0; i < output.length; i += 4) {
+        const di = d.constant ? 0 : i,
+          ci = c.constant ? 0 : i;
+        const red = c.data[ci] / c.divisor,
+          green = c.data[ci + 1] / c.divisor,
+          alpha = c.data[ci + 3] / c.divisor;
+        for (let channel = 0; channel < 3; channel++) {
+          const override =
+            primary[channel] * red + accent[channel] * green + shade[channel] * (1 - red);
+          output[i + channel] = Math.round(
+            ((d.data[di + channel] / d.divisor) * (1 - alpha) + override * alpha) * 255
+          );
+        }
+        output[i + 3] = Math.round((d.data[di + 3] / d.divisor) * 255);
+      }
+      return pixels;
+    }
+  };
+}
+
 export type ColorControl = {
   label: string;
   shader: string;
   paletteId?: string;
   colors: Rgb[];
+  activeChannels?: readonly boolean[];
   set: (index: number, color: Rgb) => void;
   setColors: (colors: Rgb[]) => void;
   reset: () => void;
@@ -126,25 +193,38 @@ export async function loadColorControls(gltf: GLTF): Promise<ColorControl[]> {
         wrapS: texture.wrapS === RepeatWrapping,
         wrapT: texture.wrapT === RepeatWrapping
       });
+      const prepared = prepareColorBake(diffuse, control, mode(base), mode(mask));
       const original = material.map;
       const canvas = document.createElement('canvas');
+      canvas.width = prepared.pixels.width;
+      canvas.height = prepared.pixels.height;
+      const context = canvas.getContext('2d')!;
+      const image = context.createImageData(canvas.width, canvas.height);
       const edited = editableTexture(original, canvas);
       const colors = info.nifOverrideColors.map((color): Rgb => [...color]);
+      let painted: Rgb[] | undefined;
       const apply = () => {
-        const pixels = bakeColors(diffuse, control, colors, mode(base), mode(mask));
-        canvas.width = pixels.width;
-        canvas.height = pixels.height;
-        const context = canvas.getContext('2d')!;
-        const image = context.createImageData(pixels.width, pixels.height);
+        if (
+          painted &&
+          colors.every(
+            (color, index) =>
+              !prepared.activeChannels[index] ||
+              color.every((value, channel) => value === painted![index][channel])
+          )
+        )
+          return;
+        const pixels = prepared.bake(colors);
         image.data.set(pixels.data);
         context.putImageData(image, 0, 0);
         material.map = edited;
         edited.needsUpdate = true;
+        painted = colors.map((color) => [...color] as Rgb);
       };
       controls.push({
         label: material.name,
         shader: info.nifShader,
         colors,
+        activeChannels: prepared.activeChannels,
         set(index, color) {
           if (index < 0 || index > 2) throw new Error('Invalid color channel');
           colors[index] = [...color];
@@ -158,6 +238,7 @@ export async function loadColorControls(gltf: GLTF): Promise<ColorControl[]> {
         reset() {
           colors.splice(0, 3, ...info.nifOverrideColors.map((color): Rgb => [...color]));
           material.map = original;
+          painted = undefined;
         },
         dispose() {
           material.map = original;

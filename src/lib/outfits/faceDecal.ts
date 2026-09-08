@@ -37,6 +37,24 @@ export const decalSchema = z.object({
   scaleRange: z.tuple([z.number().positive(), z.number().positive()]).optional()
 });
 export type FaceDecalData = z.infer<typeof decalSchema>;
+type DecalOptions = { translation?: string; rotation?: string };
+const bindings = new WeakMap<
+  MeshStandardMaterial,
+  {
+    texture: { value: Texture };
+    transform: { value: Vector4 };
+  }
+>();
+
+export function validateDecalPosition(x: number, y: number, angle: number) {
+  if (
+    ![x, y, angle].every(Number.isFinite) ||
+    Math.abs(x) > 0.5 ||
+    Math.abs(y) > 0.5 ||
+    Math.abs(angle) > Math.PI
+  )
+    throw new Error('Makeup position is outside the face');
+}
 
 // Client MS2CharacterSkinMaterial: TexCoordTransform2D, followed by alpha blend.
 export function decalUv(u: number, v: number, [x, y, angle, scale]: FaceDecalData['transform']) {
@@ -54,7 +72,8 @@ export class FaceDecal {
   private constructor(
     private texture: Texture,
     private data: FaceDecalData,
-    private materials: MeshStandardMaterial[]
+    private materials: MeshStandardMaterial[],
+    private options: DecalOptions
   ) {
     this.transform.set(...data.transform);
   }
@@ -63,6 +82,19 @@ export class FaceDecal {
       placements: this.data.placements ?? [this.data.transform],
       scaleRange: this.data.scaleRange ?? [this.data.transform[3], this.data.transform[3]],
       value: this.transform.toArray(),
+      movable: this.options.translation === '1',
+      rotatable: this.options.rotation === '1',
+      move: (x: number, y: number) => {
+        validateDecalPosition(x, y, this.transform.z);
+        if (this.options.translation !== '1') throw new Error('This makeup has a fixed position');
+        this.transform.x = x;
+        this.transform.y = y;
+      },
+      rotate: (angle: number) => {
+        validateDecalPosition(this.transform.x, this.transform.y, angle);
+        if (this.options.rotation !== '1') throw new Error('This makeup has a fixed rotation');
+        this.transform.z = angle;
+      },
       place: (index: number) => {
         const value = (this.data.placements ?? [this.data.transform])[index];
         if (!value) throw new Error('Unknown source makeup placement');
@@ -77,7 +109,13 @@ export class FaceDecal {
       reset: () => this.transform.set(...this.data.transform)
     };
   }
-  static async load(data: FaceDecalData, base: string, body: Object3D, defaults?: Rgb[]) {
+  static async load(
+    data: FaceDecalData,
+    base: string,
+    body: Object3D,
+    defaults?: Rgb[],
+    options: DecalOptions = {}
+  ) {
     const materials: MeshStandardMaterial[] = [];
     body.traverse((node) => {
       if (!(node instanceof Mesh) || sourceName(node) !== 'FA_Skin') return;
@@ -117,7 +155,7 @@ export class FaceDecal {
     } else texture = await new TextureLoader().loadAsync(`${base}${data.texture}`);
     texture.flipY = false;
     texture.colorSpace = SRGBColorSpace;
-    const result = new FaceDecal(texture, data, materials);
+    const result = new FaceDecal(texture, data, materials, options);
     if (source && mask && defaults) {
       const colors = defaults.map((c): Rgb => [...c]);
       const original = defaults.map((c): Rgb => [...c]);
@@ -157,29 +195,43 @@ export class FaceDecal {
   }
   attach() {
     for (const material of this.materials) {
+      // Three retains compiled uniforms per material/program. Repoint the same
+      // uniform objects when replacing makeup so cached programs use the new item.
+      const binding = bindings.get(material) ?? {
+        texture: { value: this.texture },
+        transform: { value: this.transform }
+      };
+      binding.texture.value = this.texture;
+      binding.transform.value = this.transform;
+      bindings.set(material, binding);
       const compile = material.onBeforeCompile,
         key = material.customProgramCacheKey;
       material.onBeforeCompile = (shader, renderer) => {
         compile.call(material, shader, renderer);
-        shader.uniforms.faceDecal = { value: this.texture };
-        shader.uniforms.faceDecalTransform = { value: this.transform };
+        shader.uniforms.faceDecal = binding.texture;
+        shader.uniforms.faceDecalTransform = binding.transform;
         shader.fragmentShader =
           `uniform sampler2D faceDecal;\nuniform vec4 faceDecalTransform;\n` +
           shader.fragmentShader;
         shader.fragmentShader = shader.fragmentShader.replace(
           '#include <map_fragment>',
           `#include <map_fragment>
+          #ifdef USE_MAP
           vec2 decalPoint = vMapUv - vec2(0.5) - faceDecalTransform.xy;
           decalPoint.x *= 2.0;
           float decalSin = sin(-faceDecalTransform.z), decalCos = cos(-faceDecalTransform.z);
           vec2 decalUV = vec2(decalCos * decalPoint.x - decalSin * decalPoint.y,
                              decalSin * decalPoint.x + decalCos * decalPoint.y) / faceDecalTransform.w + vec2(0.5);
           vec4 decalColor = texture2D(faceDecal, clamp(decalUV, 0.0, 1.0));
-          diffuseColor.rgb = mix(diffuseColor.rgb, decalColor.rgb, decalColor.a);
+          // Composite the texel before characterMaterials captures it for ambient
+          // lighting, and use that same texel with MatDiffuse for direct light.
+          sampledDiffuseColor.rgb = mix(sampledDiffuseColor.rgb, decalColor.rgb, decalColor.a);
+          diffuseColor.rgb = diffuse * sampledDiffuseColor.rgb;
+          #endif
         `
         );
       };
-      material.customProgramCacheKey = () => `${key.call(material)}:source-face-decal-v1`;
+      material.customProgramCacheKey = () => `${key.call(material)}:source-face-decal-v2`;
       material.needsUpdate = true;
       this.restores.push(() => {
         material.onBeforeCompile = compile;

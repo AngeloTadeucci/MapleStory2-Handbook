@@ -153,6 +153,7 @@ export type CatalogItem = {
   gender: number;
   slot: number;
   is_outfit: number;
+  rarity?: number;
   dyeable: number;
   kfms: unknown;
   library: LibraryItem | null;

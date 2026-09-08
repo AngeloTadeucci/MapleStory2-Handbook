@@ -1,0 +1,72 @@
+{
+  "source": "LithMS2-XML/Gfx/uimyinfodialog_i1.dds",
+  "sha256": "e8ca1bcd569396b2ea8d473611b872f4e00f0793a5e68abaf18a1892be3a74ed",
+  "regions": {
+    "slots/hats": [
+      488,
+      525,
+      68,
+      68
+    ],
+    "slots/eyewear": [
+      624,
+      661,
+      68,
+      68
+    ],
+    "slots/tops": [
+      902,
+      281,
+      68,
+      68
+    ],
+    "slots/pants": [
+      896,
+      525,
+      68,
+      68
+    ],
+    "slots/back": [
+      624,
+      525,
+      68,
+      68
+    ],
+    "slots/weapon": [
+      692,
+      593,
+      68,
+      68
+    ],
+    "slots/earrings": [
+      692,
+      661,
+      68,
+      68
+    ],
+    "slots/face-accessories": [
+      556,
+      661,
+      68,
+      68
+    ],
+    "slots/gloves": [
+      896,
+      593,
+      68,
+      68
+    ],
+    "slots/shoes": [
+      624,
+      593,
+      68,
+      68
+    ],
+    "character-background": [
+      484,
+      4,
+      412,
+      448
+    ]
+  }
+}

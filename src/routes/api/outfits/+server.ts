@@ -1,7 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { dev } from '$app/environment';
-import { applySassyPreview, loadSassyPreview } from '$lib/outfits/sassyPreview';
-import { applyTwinTailPreview, loadTwinTailPreview } from '$lib/outfits/twinTailPreview';
+import { applyHairPreviews, loadHairPreviews } from '$lib/outfits/hairPreviews';
 import type { RequestHandler } from './$types';
 import DBClient from '$lib/prismaClient';
 import { parseNativeManifest } from '$lib/nativeAssets';
@@ -37,13 +36,9 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
         const manifest = await fetch(manifestUrl);
         if (manifest.ok) {
           let assets = parseNativeManifest(await manifest.json(), manifestUrl);
-          if (query.hairPreview) {
-            assets = [...assets, ...(await loadSassyPreview(fetch, url.href))];
-            catalog.items = applySassyPreview(catalog.items, assets);
-            if (query.hairPreview === 'twins') {
-              assets = [...assets, ...(await loadTwinTailPreview(fetch, url.href))];
-              catalog.items = applyTwinTailPreview(catalog.items, assets);
-            }
+          if (!query.preview) {
+            assets = [...assets, ...(await loadHairPreviews(fetch, url.href))];
+            catalog.items = applyHairPreviews(catalog.items, assets);
           }
           catalog.items = enableApproximateHair(catalog.items, assets);
         } else if (query.hairPreview) throw new Error('Base hair manifest is unavailable');
@@ -60,6 +55,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
               gender: true,
               slot: true,
               is_outfit: true,
+              rarity: true,
               dyeable: true,
               kfms: true
             }

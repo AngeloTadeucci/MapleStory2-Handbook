@@ -8,7 +8,10 @@ import {
   Mesh,
   Object3D,
   PerspectiveCamera,
+  Raycaster,
+  Vector2,
   Scene,
+  SkinnedMesh,
   Texture,
   TextureLoader,
   SRGBColorSpace,
@@ -60,7 +63,7 @@ import {
   type HairPlacementControl
 } from './hairPlacement';
 import { applyItemDefault, itemDefaultColors, ItemPaletteAnimation } from './itemDefaults';
-import { viewDistance } from './viewFraming';
+import { backgroundCrop, orbitViewSize, viewDistance } from './viewFraming';
 import { BrowserHair } from './browserHair';
 
 function dispose(root: Object3D) {
@@ -201,12 +204,39 @@ export class OutfitScene {
     return [...this.equipment].flatMap(([key, group]) =>
       equipmentAnimationControls(group).map((control, index) => ({
         ...control,
+        key,
         label: `${this.bundles.get(key)?.item.name ?? key} animation${index ? ` ${index + 1}` : ''}`
       }))
     );
   }
   get makeupControls() {
     return this.decal?.controls;
+  }
+  makeupPoint(clientX: number, clientY: number) {
+    if (!this.body || !this.decal?.controls.movable) return;
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const ray = new Raycaster();
+    ray.setFromCamera(
+      new Vector2(
+        ((clientX - rect.left) / rect.width) * 2 - 1,
+        1 - ((clientY - rect.top) / rect.height) * 2
+      ),
+      this.camera
+    );
+    this.body.scene.updateWorldMatrix(true, true);
+    const skin: Mesh[] = [];
+    this.body.scene.traverse((node) => {
+      if (node instanceof Mesh && sourceName(node) === 'FA_Skin') {
+        // Animated skin can move beyond its previously computed picking bounds.
+        if (node instanceof SkinnedMesh) {
+          node.computeBoundingSphere();
+          node.computeBoundingBox();
+        }
+        skin.push(node);
+      }
+    });
+    const hit = ray.intersectObjects(skin, false)[0];
+    return hit?.uv ? ([hit.uv.x - 0.5, hit.uv.y - 0.5] as const) : undefined;
   }
   setCustomization(data: Customization, base = libraryBase) {
     this.customization = data;
@@ -219,6 +249,57 @@ export class OutfitScene {
     }
     for (const control of this.equipmentColors.get(String(id)) ?? [])
       if (!isSkinColor(control)) control.setColors(colors);
+  }
+  itemColorControls(key: string): ColorControl[] {
+    const bundle = this.bundles.get(key);
+    if (bundle?.slots.includes('FA')) return this.face ? [this.face.control] : [];
+    return (this.equipmentColors.get(key) ?? []).filter((c) => !isSkinColor(c));
+  }
+  get bodyColorControls() {
+    return [
+      ...(this.skinColors?.control ? [this.skinColors.control] : []),
+      ...(this.defaultFace ? [this.defaultFace.control] : [])
+    ];
+  }
+  get savedHairState() {
+    const hair = this.equippedItems.find((b) => b.slots.includes('HR'));
+    if (!hair) return undefined;
+    const lengths: (number | null)[] = [0, 1].map(
+      (i) => this.hairLengths.get(`${hair.item.id}:${i}`) ?? null
+    );
+    this.equipment.get(bundleKey(hair))?.traverse((node) => {
+      if (!(node instanceof Mesh) || node.morphTargetInfluences?.length !== 1) return;
+      const index = hairLengthIndex(sourceName(node));
+      if (index !== undefined && lengths[index] === null)
+        lengths[index] = node.morphTargetInfluences[0];
+    });
+    return {
+      lengths,
+      tails: this.hairPlacementControls.map((c) => ({ position: c.value, scale: c.scale }))
+    };
+  }
+  restoreHairState(state: {
+    lengths: (number | null)[];
+    tails: { position: number; scale: number }[];
+  }) {
+    const hair = this.equippedItems.find((b) => b.slots.includes('HR'));
+    if (!hair || state.tails.length !== this.hairPlacementControls.length)
+      throw new Error('Hair attachment controls no longer match this outfit');
+    state.lengths.forEach((value, index) => {
+      if (value === null) return;
+      this.hairLengths.set(`${hair.item.id}:${index}`, value);
+      this.equipment.get(bundleKey(hair))?.traverse((node) => {
+        if (node instanceof Mesh && hairLengthIndex(sourceName(node)) === index)
+          applySavedHairLength(node, value);
+      });
+    });
+    state.tails.forEach((tail, i) => {
+      const control = this.hairPlacementControls[i];
+      control.set(tail.position);
+      control.setScale(tail.scale);
+    });
+    if (state.tails.length)
+      this.hairLengths.set(`${hair.item.id}:attachment`, state.tails[0].scale);
   }
   inspect() {
     const visible: string[] = [];
@@ -356,7 +437,7 @@ export class OutfitScene {
   }
   async setBackground(url: string | null) {
     const request = ++this.backgroundRequest;
-    const texture = url ? await new TextureLoader().loadAsync(url) : undefined;
+    const texture = await new TextureLoader().loadAsync(url ?? '/outfits/character-background.png');
     if (request !== this.backgroundRequest || !this.alive) {
       texture?.dispose();
       return;
@@ -364,17 +445,32 @@ export class OutfitScene {
     this.background?.dispose();
     this.background = texture;
     if (texture) texture.colorSpace = SRGBColorSpace;
-    this.scene.background = texture ?? new Color('#303844');
+    this.scene.background = texture;
+    this.fitBackground();
   }
-  view(angle: 'front' | 'side' | 'back' = 'front') {
-    if (!this.body) return;
-    this.body.scene.updateMatrixWorld(true);
+  private fitBackground() {
+    const texture = this.background;
+    if (!texture || !(texture.image instanceof HTMLImageElement)) return;
+    const image = texture.image;
+    if (!image.naturalWidth || !image.naturalHeight) return;
+    const crop = backgroundCrop(image.naturalWidth / image.naturalHeight, this.camera.aspect);
+    texture.repeat.set(...crop.repeat);
+    texture.offset.set(...crop.offset);
+    texture.updateMatrix();
+  }
+  private outfitBounds() {
+    this.body!.scene.updateMatrixWorld(true);
     // SkinnedMesh caches its first bounding box. Use current deformed vertices
     // when framing a new pose so running hair, hands and back items stay in view.
-    const box = new Box3().setFromObject(this.body.scene, true);
+    const box = new Box3().setFromObject(this.body!.scene, true);
     for (const group of this.equipment.values()) box.union(new Box3().setFromObject(group, true));
     for (const effect of this.cosmeticEffects.values())
       if (effect.enabled) box.union(effect.framingBounds());
+    return box;
+  }
+  view(angle: 'front' | 'side' | 'back' = 'front') {
+    if (!this.body) return;
+    const box = this.outfitBounds();
     const center = box.getCenter(new Vector3()),
       size = box.getSize(new Vector3());
     const distance = viewDistance(size, this.camera.aspect, this.camera.fov, angle);
@@ -400,7 +496,7 @@ export class OutfitScene {
   constructor(private element: HTMLElement) {
     this.renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    this.scene.background = new Color('#303844');
+    this.scene.background = new Color('#000000');
     // character_spring2019 inherits white ambient and directional Dimmer=0.8.
     // Three's irradiance convention includes PI; characterMaterials removes it.
     this.scene.add(new AmbientLight(0xffffff, Math.PI * 0.8));
@@ -410,12 +506,26 @@ export class OutfitScene {
     element.appendChild(this.renderer.domElement);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     const resize = () => {
-      const width = element.clientWidth,
-        height = element.clientHeight;
+      const width = this.element.clientWidth,
+        height = this.element.clientHeight;
       if (!width || !height) return;
       this.renderer.setSize(width, height);
-      this.camera.aspect = width / height;
+      const aspect = width / height;
+      if (this.body && Math.abs(aspect - this.camera.aspect) > 1e-6) {
+        const offset = this.camera.position.clone().sub(this.controls.target);
+        const projected = orbitViewSize(
+          this.outfitBounds().getSize(new Vector3()),
+          offset,
+          this.camera.up
+        );
+        const ratio =
+          viewDistance(projected, aspect, this.camera.fov, 'front') /
+          viewDistance(projected, this.camera.aspect, this.camera.fov, 'front');
+        this.camera.position.copy(this.controls.target).addScaledVector(offset, ratio);
+      }
+      this.camera.aspect = aspect;
       this.camera.updateProjectionMatrix();
+      this.fitBackground();
       this.renderer.render(this.scene, this.camera);
     };
     this.resize = new ResizeObserver(resize);
@@ -442,6 +552,13 @@ export class OutfitScene {
       this.frame = requestAnimationFrame(draw);
     };
     this.frame = requestAnimationFrame(draw);
+  }
+
+  mount(element: HTMLElement) {
+    this.resize.disconnect();
+    this.element = element;
+    element.appendChild(this.renderer.domElement);
+    this.resize.observe(element);
   }
 
   async setBody(asset: NativeAsset): Promise<string[]> {
@@ -587,9 +704,11 @@ export class OutfitScene {
                     attached,
                     part,
                     `${bundle.item.name} placement ${entry.placements.length + 1}`,
-                    this.hairPlacementValues.get(key) ?? 0,
+                    this.hairPlacementValues.get(key) ?? (bundle.item.id === 10200010 ? 2 : 0),
                     (value) => this.hairPlacementValues.set(key, value),
-                    this.hairLengths.get(`${bundle.item.id}:attachment`) ?? 1
+                    this.hairPlacements.get(bundleKey(bundle))?.[entry.placements.length]?.scale ??
+                      this.hairLengths.get(`${bundle.item.id}:attachment`) ??
+                      1
                   )
                 );
               }
@@ -616,7 +735,8 @@ export class OutfitScene {
             bundle.item.library.decal,
             this.customizationBase,
             this.body.scene,
-            this.customization?.palettes[bundle.item.library.customize.colorPalette]?.[0]?.colors
+            this.customization?.palettes[bundle.item.library.customize.colorPalette]?.[0]?.colors,
+            bundle.item.library.customize
           );
           if (entry.decal.control) entry.colors.push(entry.decal.control);
         }

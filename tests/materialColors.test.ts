@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Texture } from 'three';
 import {
   bakeColors,
+  prepareColorBake,
   editableTexture,
   type Pixels,
   type Rgb
@@ -61,5 +62,59 @@ describe('client color masks', () => {
     const mask = pixels(4, ...Array(16).fill(0));
     expect(bakeColors(source, mask, colors, mode, mode).data[4]).toBe(64);
     expect(bakeColors(source, mask, colors, { ...mode, linear: false }, mode).data[4]).toBe(0);
+  });
+});
+
+describe('prepared color changes', () => {
+  it('matches the reference bake across sampling modes, dimensions, alpha and independent channels', () => {
+    const image = (width: number, height: number, seed: number): Pixels => ({
+      width,
+      height,
+      data: Uint8ClampedArray.from(
+        { length: width * height * 4 },
+        (_, i) => (i * 37 + seed * 19) % 256
+      )
+    });
+    for (const [dw, dh, cw, ch] of [
+      [1, 1, 8, 4],
+      [8, 4, 1, 1],
+      [4, 4, 4, 4],
+      [3, 2, 7, 5],
+      [7, 5, 3, 2]
+    ]) {
+      for (const linear of [false, true])
+        for (const wrap of [false, true]) {
+          const d = image(dw, dh, 3),
+            c = image(cw, ch, 7);
+          const mode = { linear, wrapS: wrap, wrapT: wrap };
+          const prepared = prepareColorBake(d, c, mode, mode);
+          for (const palette of [
+            colors,
+            [
+              [0.13, 0.27, 0.96],
+              [0.56, 0.83, 0.07],
+              [0.95, 0.19, 0.62]
+            ] as Rgb[]
+          ]) {
+            expect(prepared.bake(palette).data).toEqual(bakeColors(d, c, palette, mode, mode).data);
+          }
+        }
+    }
+  });
+  it('reuses output memory and identifies only channels contributing to visible pixels', () => {
+    const prepared = prepareColorBake(
+      pixels(1, 255, 255, 255, 255),
+      pixels(2, 128, 0, 0, 255, 0, 255, 0, 0),
+      mode,
+      mode
+    );
+    expect(prepared.activeChannels).toEqual([true, false, true]);
+    const data = prepared.bake(colors).data;
+    expect(prepared.bake([...colors].reverse()).data).toBe(data);
+    expect(() => prepared.bake([[NaN, 0, 0], colors[1], colors[2]])).toThrow('finite');
+    expect(
+      prepareColorBake(pixels(1, 255, 255, 255, 0), pixels(1, 255, 255, 255, 255), mode, mode)
+        .activeChannels
+    ).toEqual([false, false, false]);
   });
 });

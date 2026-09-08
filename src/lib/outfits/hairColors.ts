@@ -12,6 +12,9 @@ export function sharedHairColor(controls: ColorControl[]): ColorControl {
   setColors(defaults);
   return {
     ...first,
+    activeChannels: [0, 1, 2].map((index) =>
+      controls.some((control) => control.activeChannels?.[index] !== false)
+    ),
     set(index, color) {
       for (const control of controls) control.set(index, color);
     },

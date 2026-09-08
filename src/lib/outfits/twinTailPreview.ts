@@ -1,4 +1,3 @@
-import { dev } from '$app/environment';
 import { parseNativeManifest, type NativeAsset } from '$lib/nativeAssets';
 import type { LibraryItem } from './catalog';
 
@@ -20,7 +19,6 @@ const sources = [
 ];
 
 export async function loadTwinTailPreview(fetcher: typeof fetch, origin: string) {
-  if (!dev) throw new Error('Hair previews are local only');
   const url = new URL(`${twinTailPreviewBase}native-manifest.json`, origin).href;
   const response = await fetcher(url);
   if (!response.ok) throw new Error('Twin-tail preview export is unavailable');

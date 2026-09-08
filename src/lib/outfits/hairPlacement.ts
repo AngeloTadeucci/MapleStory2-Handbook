@@ -1,4 +1,4 @@
-import { Euler, Object3D, Quaternion, SkinnedMesh } from 'three';
+import { Euler, Object3D, Quaternion, SkinnedMesh, Vector3 } from 'three';
 import type { NativeAsset } from '$lib/nativeAssets';
 import { sourceName } from './sharedSkeleton';
 import source from './hair-placement-source.json';
@@ -59,22 +59,26 @@ export function createHairPlacement(
   let value = initial;
   let scale = initialScale;
   const rotations = part.presets.map((preset) => clientHairRotation(preset.rotation));
+  const positions = part.presets.map((preset) => new Vector3().fromArray(preset.position));
   const apply = () => {
-    const preset = part.presets[value];
+    const lower = Math.floor(value),
+      upper = Math.ceil(value),
+      fraction = value - lower;
     // The exported head skeleton remains in source coordinates beneath the
     // single glTF conversion root. Do not convert these coordinates again.
-    root.position.fromArray(preset.position);
-    root.quaternion.copy(rotations[value]);
+    root.position.lerpVectors(positions[lower], positions[upper], fraction);
+    root.quaternion.slerpQuaternions(rotations[lower], rotations[upper], fraction);
     root.scale.setScalar(scale);
     root.updateWorldMatrix(true, true);
   };
   const set = (next: number) => {
-    if (!Number.isInteger(next) || !part.presets[next]) throw new Error('Unknown hair placement');
+    if (!Number.isFinite(next) || next < 0 || next > part.presets.length - 1)
+      throw new Error('Unknown hair placement');
     value = next;
     remember(value);
     apply();
   };
-  if (!part.presets[value]) value = 0;
+  if (!Number.isFinite(value) || value < 0 || value > part.presets.length - 1) value = 0;
   apply();
   return {
     label,

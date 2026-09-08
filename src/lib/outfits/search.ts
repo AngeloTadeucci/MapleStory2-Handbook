@@ -20,6 +20,7 @@ export function joinCatalog(entries: LibraryItem[], labels: ItemLabel[]): Catalo
       gender: entry.bodyVariant === 'male' ? 0 : 1,
       slot: slotNumbers[entry.slots[0]] ?? 0,
       is_outfit: entry.isOutfit ?? label?.is_outfit ?? 0,
+      rarity: label?.rarity,
       dyeable: entry.customize.color === '1' ? 1 : 0,
       kfms: [],
       library: entry

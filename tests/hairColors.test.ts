@@ -45,3 +45,13 @@ it('shares base dye, edits, palette and reset with every ponytail', () => {
   hair.dispose();
   for (const part of [base, pony, second]) expect(part.dispose).toHaveBeenCalledOnce();
 });
+
+it('keeps an accent control when any hair attachment uses it', () => {
+  const base = control(0.8),
+    tail = control(0.8);
+  base.activeChannels = [true, false, true];
+  tail.activeChannels = [true, true, true];
+  expect(sharedHairColor([base, tail]).activeChannels).toEqual([true, true, true]);
+  tail.activeChannels = [true, false, true];
+  expect(sharedHairColor([base, tail]).activeChannels).toEqual([true, false, true]);
+});
