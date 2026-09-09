@@ -17,9 +17,6 @@ importers:
       '@prisma/client':
         specifier: ^7.2.0
         version: 7.2.0(prisma@7.2.0(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3))(typescript@5.9.3)
-      highlight.run:
-        specifier: ^9.25.0
-        version: 9.25.0
       lodash.debounce:
         specifier: ^4.0.8
         version: 4.0.8
@@ -335,15 +332,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
-
-  '@launchdarkly/js-client-sdk-common@1.13.0':
-    resolution: {integrity: sha512-3u3nWLKfu7ADbrBlbYq1rDROXG1WcRGRGhHFyAjtDPCCh783sPIb1frC1n4tj6b64bustVrZvLR9dGrQlp6tJQ==}
-
-  '@launchdarkly/js-client-sdk@0.6.0':
-    resolution: {integrity: sha512-9aBgpGKXxaiPudNuQ9MoS8wFSIR1h0P2EFDP2veNJG7tBuxzDKfH3hzjW01C4/WyWN6bk7P7XKwisxw775klBQ==}
-
-  '@launchdarkly/js-sdk-common@2.17.0':
-    resolution: {integrity: sha512-HYQNc4xbE58hBOO1yZsqE+BHOC36AYrHPZ5hwvlHoZRSsaoYCPM+Q/n+O+N3JhWXTqGsu6SwUzqUzTyxg8prGg==}
 
   '@mrleebo/prisma-ast@0.12.1':
     resolution: {integrity: sha512-JwqeCQ1U3fvccttHZq7Tk0m/TMC6WcFAQZdukypW3AzlJYKYTGNVd1ANU2GuhKnv4UQuOFj3oAl0LLG/gxFN1w==}
@@ -1222,9 +1210,6 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
 
-  highlight.run@9.25.0:
-    resolution: {integrity: sha512-E2ofYAyn1l6Zqa5/CyS4dAlZbFpLBCzLAPNtLx1MDeB2DrSVstFTcrkTSVw23hdL/jDvpim05QpQUelr8bFWdw==}
-
   hono@4.10.6:
     resolution: {integrity: sha512-BIdolzGpDO9MQ4nu3AUuDwHZZ+KViNm+EZ75Ae55eMXMqLVhDFqEMXxtUe9Qh8hjL+pIna/frs2j6Y2yD5Ua/g==}
     engines: {node: '>=16.9.0'}
@@ -1242,10 +1227,6 @@ packages:
 
   immutable@5.1.4:
     resolution: {integrity: sha512-p6u1bG3YSnINT5RQmx/yRZBpenIl30kVxkTLDyHLIMk0gict704Q9n+thfDI7lTRm9vXdDYutVzXhzcThxTnXA==}
-
-  imurmurhash@0.1.4:
-    resolution: {integrity: sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==}
-    engines: {node: '>=0.8.19'}
 
   is-core-module@2.16.1:
     resolution: {integrity: sha512-UfoeMA6fIJ8wTYFEUjelnaGI67v6+N7qXJEvQuIGa99l4xsCruSYOVSQ0uPANn4dAzm8lkYPaKLrrijLq7x23w==}
@@ -1980,16 +1961,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
-
-  '@launchdarkly/js-client-sdk-common@1.13.0':
-    dependencies:
-      '@launchdarkly/js-sdk-common': 2.17.0
-
-  '@launchdarkly/js-client-sdk@0.6.0':
-    dependencies:
-      '@launchdarkly/js-client-sdk-common': 1.13.0
-
-  '@launchdarkly/js-sdk-common@2.17.0': {}
 
   '@mrleebo/prisma-ast@0.12.1':
     dependencies:
@@ -3023,11 +2994,6 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  highlight.run@9.25.0:
-    dependencies:
-      '@launchdarkly/js-client-sdk': 0.6.0
-      imurmurhash: 0.1.4
-
   hono@4.10.6: {}
 
   http-status-codes@2.3.0: {}
@@ -3041,8 +3007,6 @@ snapshots:
       safer-buffer: 2.1.2
 
   immutable@5.1.4: {}
-
-  imurmurhash@0.1.4: {}
 
   is-core-module@2.16.1:
     dependencies:
