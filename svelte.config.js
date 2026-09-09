@@ -16,7 +16,10 @@ const config = {
     ...(process.env.HANDBOOK_STATIC_DIR
       ? { files: { assets: process.env.HANDBOOK_STATIC_DIR } }
       : {}),
-    adapter: simulatorAdapter(adapter({ out: process.env.HANDBOOK_BUILD_DIR || 'build' }))
+    adapter: simulatorAdapter(adapter({ out: process.env.HANDBOOK_BUILD_DIR || 'build' }), {
+      linkModels: process.env.HANDBOOK_LINK_MODELS === '1',
+      modelsDirectory: process.env.HANDBOOK_REUSE_MODELS_DIR
+    })
   }
 };
 

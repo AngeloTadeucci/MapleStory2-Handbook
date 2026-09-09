@@ -179,7 +179,13 @@ export function shareSkeleton(
         })
       )
   );
-  const initialClip = defaultEquipmentClip(animations.map((clip) => clip.name));
+  const preferred: unknown = equipment.userData.defaultEquipmentClip;
+  if (preferred !== undefined && typeof preferred !== 'string')
+    throw new Error('Equipment default animation must be a clip name');
+  const initialClip = defaultEquipmentClip(
+    animations.map((clip) => clip.name),
+    preferred
+  );
   const result = new EquipmentGroup();
   for (const { bone, parent } of attachments) {
     parent.add(bone);

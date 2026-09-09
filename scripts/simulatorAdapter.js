@@ -1,15 +1,31 @@
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { cpSync, linkSync, mkdirSync, readFileSync, readdirSync, symlinkSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 /**
  * Package only the canonical model inventory. Private snapshots stay local.
  * @param {import('@sveltejs/kit').Adapter} adapter
+ * @param {{ linkModels?: boolean, modelsDirectory?: string }} [options] Only for verified immutable assets on the same filesystem.
  * @returns {import('@sveltejs/kit').Adapter}
  */
-export function simulatorAdapter(adapter) {
+export function simulatorAdapter(adapter, { linkModels = false, modelsDirectory } = {}) {
   return {
     ...adapter,
     async adapt(builder) {
+      if (linkModels && modelsDirectory) {
+        // SvelteKit clears its output at buildStart. Restore static inputs here,
+        // after compilation, when the explicit reuse mode skipped Vite's copy.
+        const client = builder.getClientDirectory();
+        symlinkSync(modelsDirectory, join(client, 'gltf'), 'dir');
+        const assets = builder.config.kit.files.assets;
+        for (const name of readdirSync(assets)) {
+          if (name !== 'gltf')
+            cpSync(join(assets, name), join(client, name), {
+              recursive: true,
+              dereference: true,
+              force: false
+            });
+        }
+      }
       await adapter.adapt({
         ...builder,
         writeClient(destination) {
@@ -42,7 +58,11 @@ export function simulatorAdapter(adapter) {
                   )
                 )
                   throw new Error('Invalid or private model package path');
-                builder.copy(join(source, 'gltf', path), join(destination, 'gltf', path));
+                const target = join(destination, 'gltf', path);
+                if (linkModels) {
+                  mkdirSync(dirname(target), { recursive: true });
+                  linkSync(join(source, 'gltf', path), target);
+                } else builder.copy(join(source, 'gltf', path), target);
                 files.push('gltf/' + path);
               }
             } else {

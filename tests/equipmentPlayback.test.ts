@@ -9,3 +9,11 @@ it('uses the source idle sequence and rejects an ambiguous multi-clip default', 
   expect(defaultEquipmentClip([])).toBeUndefined();
   expect(() => defaultEquipmentClip(['Run_A', 'Attack_Idle_A'])).toThrow('unambiguous');
 });
+
+it('uses an explicit exported default while keeping ambiguous names strict', () => {
+  const names = ['Idle_A [sequence 28]', 'Idle_A [sequence 0]'];
+  expect(defaultEquipmentClip(names, names[1])).toBe(names[1]);
+  expect(() => defaultEquipmentClip(names)).toThrow('unambiguous');
+  expect(() => defaultEquipmentClip(names, 'missing')).toThrow('missing or duplicated');
+  expect(() => defaultEquipmentClip([names[0], names[0]], names[0])).toThrow('duplicated');
+});

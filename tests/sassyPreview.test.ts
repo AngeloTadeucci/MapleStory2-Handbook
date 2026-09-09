@@ -48,7 +48,11 @@ describe.skipIf(!installed)('separate Sassy Pigtails preview', () => {
           input instanceof Request ? input.url : String(input),
           'http://localhost'
         );
-        return Response.json(read(url.pathname.replace('/gltf/', '')));
+        const path = url.pathname.replace('/gltf/', '');
+        const fixture = ['simulator-catalog.json', 'native-manifest.json'].includes(path)
+          ? `simulator-release-14/${path}`
+          : path;
+        return Response.json(read(fixture));
       }
     } as unknown as Parameters<typeof GET>[0]);
     expect(response.status).toBe(200);

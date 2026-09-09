@@ -20,7 +20,10 @@ const installed = [
 ].every((p) => existsSync(`static/gltf/${p}`));
 const fetcher = (async (url: string | URL | Request) => {
   const path = new URL(String(url), 'http://localhost').pathname.replace('/gltf/', '');
-  return new Response(JSON.stringify(read(path)));
+  const fixture = ['simulator-catalog.json', 'native-manifest.json'].includes(path)
+    ? `simulator-release-14/${path}`
+    : path;
+  return new Response(JSON.stringify(read(fixture)));
 }) as typeof fetch;
 
 describe.skipIf(!installed)('explicit twin-tail previews', () => {

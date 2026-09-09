@@ -40,6 +40,32 @@ function fixture() {
 }
 
 describe('shared equipment skeleton', () => {
+  it('uses the exported duplicate-sequence default and keeps both clips selectable', () => {
+    const body = fixture(),
+      gear = fixture();
+    const joint = new Bone();
+    joint.name = 'wing';
+    joint.userData.equipmentBone = true;
+    gear.bone.add(joint);
+    const complete = new AnimationClip('Idle_A [sequence 0]', 2, [
+      new NumberKeyframeTrack('wing.position', [0, 2], [0, 0, 0, 2, 0, 0])
+    ]);
+    const subset = complete.clone();
+    subset.name = 'Idle_A [sequence 28]';
+    gear.root.userData.defaultEquipmentClip = complete.name;
+    const shared = shareSkeleton(gear.root, captureBodySkeleton(body.root), [subset, complete]);
+    try {
+      const [control] = equipmentAnimationControls(shared);
+      expect(control.current).toBe(complete.name);
+      expect(control.names).toEqual([subset.name, complete.name]);
+      equipmentMixers(shared)[0].setTime(1);
+      expect(body.bone.children[0].position.x).toBeCloseTo(1);
+      control.set(subset.name);
+      expect(control.current).toBe(subset.name);
+    } finally {
+      releaseEquipmentBones(shared);
+    }
+  });
   it('animates only the owned joint, supports seeking, and releases its mixer', () => {
     const body = fixture(),
       gear = fixture();

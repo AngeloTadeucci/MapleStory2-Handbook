@@ -28,6 +28,21 @@ function fixture(enabled: boolean, gloss = false) {
 }
 
 describe('source character lighting', () => {
+  it('keeps authored scene ambient local to its material and defaults other materials to zero', async () => {
+    for (const ambient of [undefined, [1, 0.5, 0.25]]) {
+      const { material, gltf } = fixture(false);
+      Object.assign(material.userData.nifLighting, { sceneAmbient: ambient });
+      await applyCharacterMaterials(gltf);
+      const shader = {
+        vertexShader: ShaderLib.standard.vertexShader,
+        fragmentShader: ShaderLib.standard.fragmentShader,
+        uniforms: {}
+      } as Parameters<typeof material.onBeforeCompile>[0];
+      material.onBeforeCompile(shader, {} as WebGLRenderer);
+      expect(shader.uniforms.ms2SceneAmbient.value.toArray()).toEqual(ambient ?? [0, 0, 0]);
+      expect(shader.fragmentShader).toContain('(irradiance * RECIPROCAL_PI + ms2SceneAmbient)');
+    }
+  });
   it('keeps the client half-Lambert response at front, side and back normals', () => {
     expect([-1, -0.5, 0, 0.5, 1].map(halfLambert)).toEqual([0, 0.0625, 0.25, 0.5625, 1]);
   });

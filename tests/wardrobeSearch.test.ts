@@ -84,7 +84,8 @@ const path = root && resolve(root, 'simulator-catalog.json');
 it.skipIf(!path || !existsSync(path))(
   'enumerates every source-backed pair through paginated discovery',
   () => {
-    const catalog = catalogSchema.parse(JSON.parse(readFileSync(path!, 'utf8')));
+    const raw: unknown = JSON.parse(readFileSync(path!, 'utf8'));
+    const catalog = catalogSchema.parse(raw);
     const sourcePath = process.env.WARDROBE_INVENTORY;
     if (sourcePath) {
       const source: { items: { itemId: number; bodyVariant: string }[] } = JSON.parse(
@@ -92,7 +93,11 @@ it.skipIf(!path || !existsSync(path))(
       );
       const keys = (entries: { itemId: number; bodyVariant: string }[]) =>
         entries.map((i) => `${i.itemId}:${i.bodyVariant}`).sort();
-      expect(keys(catalog.items)).toEqual(keys(source.items));
+      // Schema parsing adds audited preset aliases to the picker. Inventory
+      // coverage compares the authored records before those aliases are added.
+      expect(keys((raw as { items: { itemId: number; bodyVariant: string }[] }).items)).toEqual(
+        keys(source.items)
+      );
     }
     const items = joinCatalog(catalog.items, []);
     for (const body of ['male', 'female']) {

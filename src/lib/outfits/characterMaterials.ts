@@ -17,6 +17,9 @@ const lightingSchema = z.object({
       z.number().nonnegative()
     ]),
     power: z.number().nonnegative(),
+    sceneAmbient: z
+      .tuple([z.number().nonnegative(), z.number().nonnegative(), z.number().nonnegative()])
+      .optional(),
     ambient: z
       .tuple([z.number().nonnegative(), z.number().nonnegative(), z.number().nonnegative()])
       .optional(),
@@ -111,6 +114,9 @@ export async function applyCharacterMaterials(gltf: GLTF): Promise<void> {
       shader.uniforms.ms2Ambient = {
         value: new Vector3(...(info.nifLighting.ambient ?? [1, 1, 1]))
       };
+      shader.uniforms.ms2SceneAmbient = {
+        value: new Vector3(...(info.nifLighting.sceneAmbient ?? [0, 0, 0]))
+      };
       shader.uniforms.ms2ColorBoost = { value: info.nifLighting.ColorBoost ?? 1 };
       shader.uniforms.ms2FresnelBoost = { value: info.nifLighting.FresnelBoost ?? 0 };
       shader.uniforms.ms2FresnelExponent = { value: info.nifLighting.FresnelExponent ?? 4 };
@@ -122,6 +128,7 @@ export async function applyCharacterMaterials(gltf: GLTF): Promise<void> {
         `uniform vec3 ms2Specular;
 uniform float ms2Power;
 uniform vec3 ms2Ambient;
+uniform vec3 ms2SceneAmbient;
 uniform float ms2ColorBoost;
 uniform float ms2FresnelBoost;
 uniform float ms2FresnelExponent;
@@ -150,7 +157,7 @@ void RE_Direct_MS2(const in IncidentLight directLight, const in vec3 geometryPos
 void RE_IndirectDiffuse_MS2(const in vec3 irradiance, const in vec3 geometryPosition,
   const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal,
   const in PhysicalMaterial material, inout ReflectedLight reflectedLight) {
-  reflectedLight.indirectDiffuse += irradiance * RECIPROCAL_PI * ms2Ambient * ms2BaseTexel * ms2ColorBoost;
+  reflectedLight.indirectDiffuse += (irradiance * RECIPROCAL_PI + ms2SceneAmbient) * ms2Ambient * ms2BaseTexel * ms2ColorBoost;
 }
 #undef RE_Direct
 #define RE_Direct RE_Direct_MS2
@@ -181,7 +188,7 @@ ms2HairTangent = normalize(tbn[0] * ms2LocalHair.x + tbn[1] * ms2LocalHair.y);`
         );
     };
     material.customProgramCacheKey = () =>
-      `${previousKey}:ms2-light-v2:${Boolean(gloss)}:${Boolean(hairDirection)}`;
+      `${previousKey}:ms2-light-v3:${Boolean(gloss)}:${Boolean(hairDirection)}`;
     material.needsUpdate = true;
   }
 }
