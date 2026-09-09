@@ -18,7 +18,8 @@
   import { characterPreviewSchema } from '$lib/outfits/characterPreview';
   import { loadHairPreviews } from '$lib/outfits/hairPreviews';
   import { findOutfitItem, parseOutfitItemId } from '$lib/outfits/itemLink';
-  import { starterOutfit, starterEyeColor } from '$lib/outfits/starterOutfit';
+  import { starterOutfit } from '$lib/outfits/starterOutfit';
+  import { applyDye, dyeChoices } from '$lib/outfits/dyePicker';
   import { animationGroups, animationLabel } from '$lib/outfits/characterAnimations';
   import ColorPanel from '$lib/outfits/ColorPanel.svelte';
   import SlotIcon from '$lib/outfits/SlotIcon.svelte';
@@ -352,11 +353,14 @@
                 throw new Error('A starting outfit item is unavailable.');
               const bundle = resolveBundle(item, assets, body);
               await viewer.equipBundle(bundle);
-              viewer.setItemColors(bundleKey(bundle), preset.colors);
+              if (preset.colors) viewer.setItemColors(bundleKey(bundle), preset.colors);
+              if (preset.dye) {
+                for (const control of viewer.itemColorControls(bundleKey(bundle))) {
+                  const dye = dyeChoices(control).find((choice) => choice.id === preset.dye);
+                  if (dye) control.setColors(applyDye(dye, control.colors));
+                }
+              }
             }
-            viewer.bodyColorControls
-              .find((control) => control.shader === 'Face')
-              ?.setColors([[...starterEyeColor], [...starterEyeColor], [...starterEyeColor]]);
             refresh();
             viewer.view();
           } catch (cause) {

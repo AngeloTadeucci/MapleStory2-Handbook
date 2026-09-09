@@ -1,6 +1,8 @@
 import type { Rgb } from './materialColors';
 
-export const starterOutfit: { id: number; colors: Rgb[] }[] = [
+export const starterOutfit: { id: number; colors?: Rgb[]; dye?: string }[] = [
+  // Innocent Face with Guardian Blue dye.
+  { id: 10300004, dye: 'dye:4' },
   // Bubbly Wave Locks, Pure Ribbon Frill Dress, Pretty Ribbon Wedding Pumps.
   {
     id: 10200006,
@@ -27,4 +29,3 @@ export const starterOutfit: { id: number; colors: Rgb[] }[] = [
     ]
   }
 ];
-export const starterEyeColor: Rgb = [0.37, 0.24, 0.15];
