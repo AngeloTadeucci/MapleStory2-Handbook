@@ -64,6 +64,7 @@ import {
 } from './hairPlacement';
 import { applyItemDefault, itemDefaultColors, ItemPaletteAnimation } from './itemDefaults';
 import { backgroundCrop, orbitViewSize, viewDistance } from './viewFraming';
+import { transparentScreenshot } from './transparentScreenshot';
 import { BrowserHair } from './browserHair';
 
 function dispose(root: Object3D) {
@@ -502,7 +503,11 @@ export class OutfitScene {
   }
 
   constructor(private element: HTMLElement) {
-    this.renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    this.renderer = new WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: true
+    });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.scene.background = new Color('#000000');
     // character_spring2019 inherits white ambient and directional Dimmer=0.8.
@@ -937,8 +942,7 @@ export class OutfitScene {
   }
 
   screenshot(): string {
-    this.renderer.render(this.scene, this.camera);
-    return this.renderer.domElement.toDataURL('image/png');
+    return transparentScreenshot(this.renderer, this.scene, this.camera);
   }
 
   equipmentRoot(key: string): Object3D | undefined {

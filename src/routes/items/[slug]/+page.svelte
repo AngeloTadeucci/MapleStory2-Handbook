@@ -15,6 +15,8 @@
   import SupportNotice from '$lib/components/SupportNotice.svelte';
   import { IconCode, Rarity, SlotName } from '$lib/Enums';
   import FrogAppreciationMeter from '$lib/components/item/FrogAppreciationMeter.svelte';
+  import { findOutfitItem } from '$lib/outfits/itemLink';
+  import { Shirt } from 'lucide-svelte';
 
   interface Props {
     data: PageData;
@@ -38,6 +40,21 @@
   const rewardedByQuests = $derived(data.props.rewardedByQuests);
 
   let gltfExists: boolean = $state(false);
+  let characterLink = $state('');
+
+  $effect(() => {
+    const id = item.id;
+    const preferredBody = item.gender === 0 ? 'male' : 'female';
+    const abort = new AbortController();
+    characterLink = '';
+    void findOutfitItem(fetch, id, preferredBody, abort.signal)
+      .then((entry) => {
+        if (!abort.signal.aborted && entry?.library)
+          characterLink = `/outfits?item=${id}&body=${entry.library.bodyVariant}`;
+      })
+      .catch(() => {});
+    return () => abort.abort();
+  });
 
   const gltfUrl = getGltfUrl();
 
@@ -123,6 +140,11 @@
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
       <div class="flex flex-col gap-2">
         <ItemDetails {item} {descriptions} />
+        {#if characterLink}
+          <a href={characterLink} class="try-on"
+            ><Shirt size={16} aria-hidden="true" />Try on character</a
+          >
+        {/if}
         {#if droppedBy.length > 0}
           <ItemDroppedBy {droppedBy} />
         {/if}
@@ -152,6 +174,32 @@
 </div>
 
 <style>
+  .try-on {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.75rem 0 1rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-primary-700);
+    border-radius: 0.5rem;
+    background: var(--color-primary-900);
+    color: var(--color-surface-50);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background 0.15s,
+      border-color 0.15s;
+  }
+  .try-on:hover {
+    background: var(--color-primary-800);
+    border-color: var(--color-primary-500);
+  }
+  .try-on:focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 3px;
+  }
   .model {
     position: relative;
     background-image: url('/item/render_box.png');

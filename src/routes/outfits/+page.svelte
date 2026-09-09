@@ -17,6 +17,8 @@
   import { customizationSchema, type Customization } from '$lib/outfits/faceAnimation';
   import { characterPreviewSchema } from '$lib/outfits/characterPreview';
   import { loadHairPreviews } from '$lib/outfits/hairPreviews';
+  import { findOutfitItem, parseOutfitItemId } from '$lib/outfits/itemLink';
+  import { starterOutfit, starterEyeColor } from '$lib/outfits/starterOutfit';
   import { animationGroups, animationLabel } from '$lib/outfits/characterAnimations';
   import ColorPanel from '$lib/outfits/ColorPanel.svelte';
   import SlotIcon from '$lib/outfits/SlotIcon.svelte';
@@ -286,6 +288,7 @@
   onMount(() => {
     mounted = true;
     let active = true;
+    const linkedItemAbort = new AbortController();
     void (async () => {
       try {
         preview = dev ? (new URLSearchParams(location.search).get('preview') ?? '') : '';
@@ -312,7 +315,61 @@
         viewer.setCustomization(customization, assetBase);
         await viewer.setBackground(null);
         if (dev) Object.assign(container, { outfitViewer: viewer });
+        let linkedItem: CatalogItem | undefined;
+        let linkedItemError = '';
+        const params = new URLSearchParams(location.search);
+        if (!preview && params.has('item')) {
+          const id = parseOutfitItemId(params.get('item'));
+          if (!id) linkedItemError = 'This item link is invalid. Choose an item below.';
+          else {
+            try {
+              linkedItem = await findOutfitItem(
+                fetch,
+                id,
+                params.get('body') === 'male' ? 'male' : 'female',
+                linkedItemAbort.signal
+              );
+              if (!linkedItem)
+                linkedItemError =
+                  'This item is not available in the fashion simulator yet. Choose an item below.';
+            } catch (cause) {
+              linkedItemError =
+                cause instanceof Error ? cause.message : 'Unable to load this item.';
+            }
+          }
+        }
+        if (!active) return;
+        if (linkedItem?.library) body = linkedItem.library.bodyVariant;
         await chooseBody(body);
+        if (!active) return;
+        busy = true;
+        if (!preview && !hairPreview && body === 'female') {
+          try {
+            for (const preset of starterOutfit) {
+              const item = await findOutfitItem(fetch, preset.id, 'female', linkedItemAbort.signal);
+              if (!active) return;
+              if (!item || item.library?.bodyVariant !== 'female')
+                throw new Error('A starting outfit item is unavailable.');
+              const bundle = resolveBundle(item, assets, body);
+              await viewer.equipBundle(bundle);
+              viewer.setItemColors(bundleKey(bundle), preset.colors);
+            }
+            viewer.bodyColorControls
+              .find((control) => control.shader === 'Face')
+              ?.setColors([[...starterEyeColor], [...starterEyeColor], [...starterEyeColor]]);
+            refresh();
+            viewer.view();
+          } catch (cause) {
+            error = cause instanceof Error ? cause.message : 'Unable to load the starting outfit.';
+          }
+        }
+        if (linkedItem) {
+          await equip(linkedItem);
+          const equippedSlot = equipped.find((bundle) => bundle.item.id === linkedItem.id)
+            ?.slots[0];
+          if (equippedSlot)
+            slot = ['BH', 'RHLH', 'OH'].includes(equippedSlot) ? 'RH' : equippedSlot;
+        } else if (linkedItemError) error = linkedItemError;
         if (preview) {
           busy = true;
           const response = await fetch(`${assetBase}character.json`);
@@ -361,6 +418,7 @@
     })();
     return () => {
       active = false;
+      linkedItemAbort.abort();
       mounted = false;
       viewer?.destroy();
     };
@@ -599,7 +657,7 @@
   }
 </script>
 
-<svelte:head><title>Outfits | MapleStory 2 Handbook</title></svelte:head>
+<svelte:head><title>Fashion Simulator | MapleStory 2 Handbook</title></svelte:head>
 {#snippet slotButton(key: string, appearance = false)}
   {@const worn = equipped.find((b) => occupies(b, key))}
   <div class="slot-cell">
@@ -658,7 +716,7 @@
 <main class="wardrobe">
   <header class="page-header">
     <div>
-      <h1>Outfits</h1>
+      <h1>Fashion Simulator</h1>
     </div>
     <div class="header-actions">
       <button disabled={busy || !ready} onclick={download}><Camera size={16} /> Save image</button>
