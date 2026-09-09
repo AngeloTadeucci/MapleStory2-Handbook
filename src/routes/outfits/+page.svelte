@@ -304,14 +304,14 @@
           throw new Error('Invalid local hair preview');
         if (preview) assetBase = characterPreviewBase(preview);
         const url = new URL(`${assetBase}native-manifest.json`, location.href).href;
-        const [{ OutfitScene }, response] = await Promise.all([
+        const [{ OutfitScene }, response, customResponse] = await Promise.all([
           import('$lib/outfits/OutfitScene'),
-          fetch(url)
+          fetch(url),
+          fetch(`${assetBase}customization.json`)
         ]);
         if (!response.ok) throw new Error('The outfit model library is unavailable.');
         const manifest = parseNativeManifest(await response.json(), url);
         if (!active) return;
-        const customResponse = await fetch(`${assetBase}customization.json`);
         if (!customResponse.ok) throw new Error('Customization library is unavailable');
         customization = customizationSchema.parse(await customResponse.json());
         if (!active) return;

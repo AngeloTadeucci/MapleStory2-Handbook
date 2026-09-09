@@ -119,14 +119,23 @@ export class FaceAnimation {
   ): Promise<FaceAnimation> {
     const face = new FaceAnimation(preset, defaults);
     try {
-      for (const frame of [
+      const frames = [
         ...Object.values(preset.sequences),
         ...Object.values(preset.poseExpressions ?? {})
-      ].flatMap((s) => s.frames)) {
+      ].flatMap((s) => s.frames);
+      // Fetch each source once, in parallel, before allocating GPU textures.
+      // An unsuccessful load therefore cannot leave partially built textures behind.
+      const paths = new Set(
+        frames.flatMap((frame) => [frame.image, ...(frame.mask ? [frame.mask] : [])])
+      );
+      const sources = new Map(
+        await Promise.all([...paths].map(async (path) => [path, await pixels(path, base)] as const))
+      );
+      for (const frame of frames) {
         const key = frame.image + '|' + frame.mask;
         if (face.images.has(key)) continue;
-        const image = await pixels(frame.image, base),
-          mask = frame.mask ? await pixels(frame.mask, base) : undefined;
+        const image = sources.get(frame.image)!,
+          mask = frame.mask ? sources.get(frame.mask)! : undefined;
         const mode = { linear: true, wrapS: false, wrapT: false };
         const bake = mask ? prepareColorBake(image, mask, mode, mode) : undefined;
         const output = bake?.pixels ?? image;
