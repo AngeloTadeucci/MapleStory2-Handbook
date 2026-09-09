@@ -21,6 +21,8 @@
   import { starterOutfit } from '$lib/outfits/starterOutfit';
   import { applyDye, dyeChoices } from '$lib/outfits/dyePicker';
   import { animationGroups, animationLabel } from '$lib/outfits/characterAnimations';
+  import CreateGifModal from '$lib/components/CreateGifModal.svelte';
+  import type { GifCaptureSource } from '$lib/gifCapture';
   import ColorPanel from '$lib/outfits/ColorPanel.svelte';
   import SlotIcon from '$lib/outfits/SlotIcon.svelte';
   import {
@@ -32,6 +34,7 @@
   } from '$lib/outfits/outfitCode';
   import {
     Camera,
+    Film,
     Copy,
     Download,
     Upload,
@@ -71,6 +74,9 @@
   let clip = $state('');
   let playing = $state(false);
   let busy = $state(true);
+  let gifOpen = $state(false);
+  let gifSource = $state<GifCaptureSource>();
+  let gifModel = $state('');
   let error = $state('');
   let hatWarnings = $state<string[]>([]);
   let equipped = $state<OutfitBundle[]>([]);
@@ -717,6 +723,14 @@
       >{/if}
   </div>
 {/snippet}
+<CreateGifModal
+  download
+  model={gifModel}
+  source={gifSource}
+  selectedAnimation={clip}
+  open={gifOpen}
+  onClose={() => (gifOpen = false)}
+/>
 <main class="wardrobe">
   <header class="page-header">
     <div>
@@ -724,6 +738,16 @@
     </div>
     <div class="header-actions">
       <button disabled={busy || !ready} onclick={download}><Camera size={16} /> Save image</button>
+      <button
+        disabled={busy || !ready || !clip}
+        onclick={() => {
+          if (!viewer) return;
+          gifSource = viewer.gifSource();
+          const id = crypto.getRandomValues(new Uint32Array(4));
+          gifModel = `outfit-${Array.from(id, (part) => part.toString(16).padStart(8, '0')).join('')}`;
+          gifOpen = true;
+        }}><Film size={16} /> Create GIF</button
+      >
       <button
         class="primary"
         disabled={busy || !ready || Boolean(preview)}

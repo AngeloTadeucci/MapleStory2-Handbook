@@ -174,6 +174,13 @@ export class FaceAnimation {
     this.clip = name;
     this.update(0, time);
   }
+  get currentTime() {
+    return this.elapsed / 1000;
+  }
+  seek(time: number, poseTime = time) {
+    this.elapsed = time * 1000;
+    this.update(0, poseTime);
+  }
   update(delta: number, poseTime?: number) {
     this.elapsed =
       this.expression === 'auto' && poseTime !== undefined

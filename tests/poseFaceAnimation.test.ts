@@ -11,7 +11,7 @@ const preset: FacePreset = {
   code: 'test',
   sequences: {
     default: { frames: [frame('idle')], repeat: true, sourceAnimation: null },
-    happy: { frames: [frame('happy')], repeat: false, sourceAnimation: null }
+    happy: { frames: [frame('happy'), frame('happy2')], repeat: false, sourceAnimation: null }
   },
   poseExpressions: {
     emotion_dance_f: {
@@ -64,6 +64,11 @@ it('pairs the authored face frames with pose time across pauses, loops, override
   face.select('happy');
   const happy = material.map;
   face.update(0, 0.15);
+  expect(material.map).toBe(happy);
+  face.seek(0.15);
+  expect(material.map).not.toBe(happy);
+  expect(face.currentTime).toBe(0.15);
+  face.seek(0);
   expect(material.map).toBe(happy);
   face.select('auto');
   face.selectClip('emotion_dance_f', 0.15);

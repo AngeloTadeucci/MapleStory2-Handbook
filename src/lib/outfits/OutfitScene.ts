@@ -1,3 +1,4 @@
+import type { GifCaptureSource } from '$lib/gifCapture';
 import {
   AnimationMixer,
   AmbientLight,
@@ -194,6 +195,7 @@ export class OutfitScene {
   private bodyVisibility = new Map<Object3D, boolean>();
   private request = 0;
   private alive = true;
+  private capturingGif = false;
   private frame = 0;
   private previous = 0;
   private resize: ResizeObserver;
@@ -548,6 +550,10 @@ export class OutfitScene {
       if (!this.alive) return;
       const delta = this.previous ? Math.min((time - this.previous) / 1000, 0.1) : 0;
       this.previous = time;
+      if (this.capturingGif) {
+        this.frame = requestAnimationFrame(draw);
+        return;
+      }
       if (this.playing) {
         this.mixer?.update(delta);
         for (const animations of this.paletteAnimations.values())
@@ -939,6 +945,39 @@ export class OutfitScene {
     this.applyHairPlacements();
     this.updateBrowserHair(0, true);
     this.playing = true;
+  }
+
+  gifSource(): GifCaptureSource {
+    return {
+      width: this.renderer.domElement.clientWidth,
+      height: this.renderer.domElement.clientHeight,
+      duration: this.body?.animations.find((clip) => clip.name === this.activeClip)?.duration ?? 0,
+      begin: () => {
+        const time = this.poseTime;
+        const playing = this.playing;
+        const enabled = this.controls.enabled;
+        const face = this.face ?? this.defaultFace;
+        const faceTime = face?.currentTime ?? 0;
+        this.capturingGif = true;
+        this.playing = false;
+        this.controls.enabled = false;
+        return () => {
+          this.capturingGif = false;
+          if (!this.alive) return;
+          this.seek(time);
+          face?.seek(faceTime, this.poseTime);
+          this.renderFrame();
+          this.playing = playing;
+          this.controls.enabled = enabled;
+        };
+      },
+      frame: (time) => {
+        if (!this.alive) throw new Error('The preview was closed.');
+        this.seek(time);
+        (this.face ?? this.defaultFace)?.seek(time, this.poseTime);
+        return this.screenshot();
+      }
+    };
   }
 
   screenshot(): string {

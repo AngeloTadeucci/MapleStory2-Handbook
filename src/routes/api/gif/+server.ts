@@ -7,6 +7,7 @@ import { join } from 'path';
 
 const schema = z.object({
   model: z.string(),
+  download: z.boolean().default(false),
   animation: z.string(),
   screenshots: z.array(z.string()),
   framerate: z.number().int().min(10).max(50),
@@ -16,10 +17,12 @@ const schema = z.object({
 });
 
 export const POST = async ({ request }: RequestEvent) => {
-  const { model, animation, screenshots, framerate, height, width, quality } = await request.json();
+  const { model, animation, screenshots, framerate, height, width, quality, download } =
+    await request.json();
 
   const validation = schema.safeParse({
     model,
+    download,
     animation,
     screenshots,
     framerate,
@@ -87,9 +90,18 @@ export const POST = async ({ request }: RequestEvent) => {
     );
     fs.rmSync(processingFolder, { recursive: true });
 
+    if (validation.data.download) {
+      const data = fs.readFileSync(join(gifOutputFolder(model), gif));
+      return new Response(data, {
+        headers: {
+          'Content-Type': 'image/gif',
+          'Content-Disposition': 'attachment; filename="maplestory2-outfit.gif"'
+        }
+      });
+    }
     return json({ url: `${model}/${gif}` });
   } catch (err) {
-    fs.rmSync(processingFolder, { recursive: true });
+    fs.rmSync(processingFolder, { recursive: true, force: true });
     return new Response(JSON.stringify({ message: 'Failed to create gif', code: err }), {
       status: 500
     });
@@ -106,17 +118,13 @@ async function convertToGif(
   width: number,
   quality: number
 ) {
-  const appPath = process.cwd();
-
-  const outputFolder = process.env.GIFS_OUTPUT_PATH
-    ? join(process.env.GIFS_OUTPUT_PATH, model)
-    : join(appPath, '..', 'gifs', model);
+  const outputFolder = gifOutputFolder(model);
 
   const outputFileName = `${model}-${animation}-${crypto.randomUUID()}.gif`;
 
   const inputFile = join(folder, fileName);
 
-  return new Promise(function (resolve, reject) {
+  return new Promise<string>(function (resolve, reject) {
     if (!fs.existsSync(inputFile.replace('*', '0'))) {
       reject(400);
       return;
@@ -147,4 +155,10 @@ async function convertToGif(
       }
     });
   });
+}
+
+function gifOutputFolder(model: string) {
+  return process.env.GIFS_OUTPUT_PATH
+    ? join(process.env.GIFS_OUTPUT_PATH, model)
+    : join(process.cwd(), '..', 'gifs', model);
 }

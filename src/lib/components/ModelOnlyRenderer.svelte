@@ -8,6 +8,7 @@
     useListCollection
   } from '@skeletonlabs/skeleton-svelte';
   import { onMount } from 'svelte';
+  import type { GifCaptureSource } from '$lib/gifCapture';
   import CreateGifModal from './CreateGifModal.svelte';
   import LoadingSpinner from './LoadingSpinner.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
@@ -226,11 +227,33 @@
     }
   });
 
+  let gifSource = $state<GifCaptureSource>();
   const openGifModal = async () => {
     if (nativeAsset ? !selectedAnimation : selectedAnimation == npc.kfm) {
       confirmDialogOpen = true;
       return;
     }
+    const viewer = modelViewer;
+    if (!viewer) return;
+    gifSource = {
+      width: viewer.offsetWidth,
+      height: viewer.offsetHeight,
+      duration: viewer.duration,
+      begin: () => {
+        const time = viewer.currentTime;
+        const wasPlaying = playing;
+        viewer.pause();
+        return () => {
+          viewer.currentTime = time;
+          if (wasPlaying) viewer.play();
+        };
+      },
+      frame: async (time) => {
+        viewer.currentTime = time;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return viewer.toDataURL();
+      }
+    };
     gifModalOpen = true;
   };
 
@@ -464,8 +487,8 @@
 
 <!-- GIF Modal -->
 <CreateGifModal
-  {npc}
-  {modelViewer}
+  model={npc.kfm}
+  source={gifSource}
   {selectedAnimation}
   open={gifModalOpen}
   onClose={() => (gifModalOpen = false)}

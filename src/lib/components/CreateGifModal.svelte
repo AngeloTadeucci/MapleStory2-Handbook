@@ -1,18 +1,26 @@
 <script lang="ts">
-  import type { Npc } from '$lib/types/Npc';
+  import { captureGifFrames, type GifCaptureSource } from '$lib/gifCapture';
   import type { ZodIssue } from 'zod';
   import { gifSchema } from '$lib/schemas/gif';
   import { PUBLIC_GIFS_URL } from '$env/static/public';
   import { Dialog, Portal, Combobox, useListCollection } from '@skeletonlabs/skeleton-svelte';
 
   type CreateGifProps = {
-    npc: Npc;
-    modelViewer: any;
+    model: string;
+    download?: boolean;
+    source: GifCaptureSource | undefined;
     selectedAnimation: string;
     open: boolean;
     onClose: () => void;
   };
-  let { npc, modelViewer, selectedAnimation, open, onClose }: CreateGifProps = $props();
+  let {
+    model,
+    source,
+    selectedAnimation,
+    open,
+    onClose,
+    download = false
+  }: CreateGifProps = $props();
 
   let resize = $state(false);
   let loading = $state(false);
@@ -48,9 +56,9 @@
   };
 
   $effect(() => {
-    if (modelViewer) {
-      formData.height = modelViewer.offsetHeight || 400;
-      formData.width = modelViewer.offsetWidth || 400;
+    if (source) {
+      formData.height = source.height || 400;
+      formData.width = source.width || 400;
     }
   });
 
@@ -58,7 +66,7 @@
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    if (!modelViewer) {
+    if (!source) {
       onClose();
       return;
     }
@@ -73,37 +81,18 @@
     loading = true;
     statusMessage = 'Taking screenshots...';
 
-    modelViewer.pause();
-    modelViewer.currentTime = 0;
-    const screenshots = [];
-    const duration = modelViewer.duration;
-
-    const iIncrease = 1 / formData.framerate;
-    for (let i = 0.0; i < duration; i += iIncrease) {
-      modelViewer.currentTime = i;
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      const blob = modelViewer.toDataURL();
-      screenshots.push(blob);
-    }
-
-    if (screenshots.length === 0) {
-      return;
-    }
-    modelViewer.play();
-
-    statusMessage = 'Uploading frames...';
-
-    // Log payload size
-    const payload = JSON.stringify({
-      model: npc.kfm,
-      animation: selectedAnimation,
-      screenshots,
-      ...formData
-    });
-    const sizeInMB = (payload.length / 1024 / 1024).toFixed(2);
-    console.log(`[GIF Upload] Payload size: ${sizeInMB} MB (${screenshots.length} frames)`);
-
     try {
+      const screenshots = await captureGifFrames(source, formData.framerate, (done, total) => {
+        statusMessage = `Capturing frame ${done} of ${total}...`;
+      });
+      statusMessage = 'Creating GIF...';
+      const payload = JSON.stringify({
+        model,
+        download,
+        animation: selectedAnimation,
+        screenshots,
+        ...formData
+      });
       const response = await fetch(`/api/gif`, {
         method: 'POST',
         headers: {
@@ -112,11 +101,18 @@
         body: payload
       });
 
-      loading = false;
-
       if (response.ok) {
-        const { url } = await response.json();
-        window.open(PUBLIC_GIFS_URL + url, '_blank');
+        if (download) {
+          const url = URL.createObjectURL(await response.blob());
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'maplestory2-outfit.gif';
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        } else {
+          const { url } = await response.json();
+          window.open(PUBLIC_GIFS_URL + url, '_blank');
+        }
         onClose();
       } else if (response.status === 413) {
         errorMessage =
@@ -126,13 +122,14 @@
         errorMessage = data.message || 'Failed to create GIF';
       }
     } catch (err) {
-      loading = false;
       errorMessage = err instanceof Error ? err.message : 'Network error. Please try again.';
+    } finally {
+      loading = false;
     }
   };
 
   function handleClose() {
-    onClose();
+    if (!loading) onClose();
   }
 </script>
 
@@ -145,30 +142,23 @@
   <Portal>
     <Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-950/50" />
     <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <Dialog.Content class="card bg-surface-800 w-full max-w-lg p-4 space-y-4 shadow-xl">
+      <Dialog.Content
+        class="card bg-surface-800 w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto p-4 space-y-4 shadow-xl"
+      >
         <Dialog.Title class="text-2xl font-bold">Create GIF</Dialog.Title>
         {#if errorMessage}
           <div class="p-3 bg-error-500/20 border border-error-500 rounded text-error-300">
             {errorMessage}
           </div>
         {/if}
-        <article>
-          <h3>How does this work?</h3>
-          <ul class="my-4 ml-4 list-disc">
-            <li>
-              The gif will be created from the current animation, camera position and canvas size.
-            </li>
-            <li>
-              The browser will take a screenshot of the canvas for every frame and then send them
-              for processing.
-            </li>
-            <li>Don't worry about the background, it will be transparent.</li>
-            <li>
-              The processing may take a while, depending on the length of the animation and the
-              quality you choose.
-            </li>
-            <li>All gifs will be deleted after 24 hours. Make sure you download it!</li>
-          </ul>
+        <fieldset disabled={loading}>
+          <p class="mb-4">
+            Save the current animation and camera view as a transparent GIF. Longer animations and
+            higher frame rates take more time.
+          </p>
+          {#if !download}<p class="mb-4">
+              Download your GIF within 24 hours before it expires.
+            </p>{/if}
           <div class="flex w-full flex-col">
             <span class="font-bold">Framerate</span>
             <Combobox
@@ -255,14 +245,16 @@
               {/if}
             </label>
           </div>
-        </article>
+        </fieldset>
         {#if loading}
           <p>
             {statusMessage}
           </p>
         {/if}
         <footer class="flex justify-end gap-2 pt-4">
-          <Dialog.CloseTrigger class="btn preset-tonal">Close</Dialog.CloseTrigger>
+          <Dialog.CloseTrigger disabled={loading} class="btn preset-tonal"
+            >Close</Dialog.CloseTrigger
+          >
           <button class="btn preset-filled-primary" onclick={handleSubmit} disabled={loading}>
             {#if loading}
               <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
