@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import NativeModelViewer from '../NativeModelViewer.svelte';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import type Item from '$lib/types/Item';
   import getGltfUrl from '$lib/getGltfUrl';
@@ -53,18 +54,22 @@
   </div>
 {:else}
   <div class="model-container">
-    <model-viewer
-      loading={nativeAsset ? 'eager' : 'auto'}
-      src={nativeAsset?.url ?? `${gltfUrl}${item.kfms[0]}/${item.kfms[0]}.gltf`}
-      alt={item.name}
-      camera-controls
-      {...{ cameraTarget, customOrbit, orientation }}
-      autoplay
-      max-field-of-view="70deg"
-      touch-action="pan-y"
-      interaction-prompt="none"
-      style={`width: 100%; height: 100%; --iconPath: url(${iconPath});`}
-    ></model-viewer>
+    {#if nativeAsset}
+      <NativeModelViewer asset={nativeAsset} url={nativeAsset.url} label={item.name} />
+    {:else}
+      <model-viewer
+        loading="auto"
+        src={`${gltfUrl}${item.kfms[0]}/${item.kfms[0]}.gltf`}
+        alt={item.name}
+        camera-controls
+        {...{ cameraTarget, customOrbit, orientation }}
+        autoplay
+        max-field-of-view="70deg"
+        touch-action="pan-y"
+        interaction-prompt="none"
+        style={`width: 100%; height: 100%; --iconPath: url(${iconPath});`}
+      ></model-viewer>
+    {/if}
   </div>
 {/if}
 

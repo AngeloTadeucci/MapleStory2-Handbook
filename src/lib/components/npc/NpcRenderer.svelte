@@ -1,4 +1,6 @@
 <script lang="ts">
+  import NativeModelViewer from '$lib/components/NativeModelViewer.svelte';
+  import type { StandaloneScene } from '$lib/models/StandaloneScene';
   import getGltfUrl from '$lib/getGltfUrl';
   import { findNativeAsset, type NativeAsset, type ModelViewerElement } from '$lib/nativeAssets';
   import type { Npc } from '$lib/types/Npc';
@@ -125,7 +127,10 @@
     loadingGltf = false;
   });
 
-  let modelViewer: ModelViewerElement | undefined = $state();
+  let modelViewer: ModelViewerElement | StandaloneScene | undefined = $state();
+  $effect(() => {
+    if (nativeAsset && modelViewer) modelViewer.animationName = selectedAnimation;
+  });
   export const ssr = false;
 </script>
 
@@ -185,20 +190,36 @@
     </button>
   </div>
   <div class="model-container">
-    <model-viewer
-      loading={nativeAsset ? 'eager' : 'auto'}
-      bind:this={modelViewer}
-      src={nativeAsset?.url ?? `${gltfUrl}${npc.kfm}/${selectedAnimation}.gltf`}
-      animation-name={selectedAnimation}
-      alt={npc.name}
-      camera-controls
-      {...{ cameraTarget, customOrbit, orientation }}
-      autoplay
-      max-field-of-view="70deg"
-      touch-action="pan-y"
-      interaction-prompt="none"
-      style={customStyle ?? `width: 100%; height: 100%; --iconPath: url(${iconPath});`}
-    ></model-viewer>
+    {#if nativeAsset}
+      <NativeModelViewer
+        asset={nativeAsset}
+        url={nativeAsset.url}
+        label={npc.name}
+        style={customStyle ?? 'width: 550px; height: 760px;'}
+        onready={(viewer) => {
+          modelViewer = viewer;
+          if (viewer) {
+            validAnimations = viewer.availableAnimations;
+            viewer.animationName = selectedAnimation;
+          }
+        }}
+      />
+    {:else}
+      <model-viewer
+        loading="auto"
+        bind:this={modelViewer}
+        src={`${gltfUrl}${npc.kfm}/${selectedAnimation}.gltf`}
+        animation-name={selectedAnimation}
+        alt={npc.name}
+        camera-controls
+        {...{ cameraTarget, customOrbit, orientation }}
+        autoplay
+        max-field-of-view="70deg"
+        touch-action="pan-y"
+        interaction-prompt="none"
+        style={customStyle ?? `width: 100%; height: 100%; --iconPath: url(${iconPath});`}
+      ></model-viewer>
+    {/if}
   </div>
 {/if}
 

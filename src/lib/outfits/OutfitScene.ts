@@ -1,10 +1,8 @@
 import type { GifCaptureSource } from '$lib/gifCapture';
 import {
   AnimationMixer,
-  AmbientLight,
   Box3,
   Color,
-  DirectionalLight,
   Group,
   Mesh,
   Object3D,
@@ -31,7 +29,7 @@ import {
   type BodySkeleton
 } from './sharedSkeleton';
 import type { NativeAsset } from '$lib/nativeAssets';
-import { loadColorControls, type ColorControl, type Rgb } from './materialColors';
+import { type ColorControl, type Rgb } from './materialColors';
 import { hidesBodyPart } from './bodyVisibility';
 import { SkinColors, isSkinColor } from './skinColors';
 import {
@@ -44,7 +42,7 @@ import {
 } from './catalog';
 import { FaceAnimation, type Customization } from './faceAnimation';
 import { FaceDecal } from './faceDecal';
-import { applyCharacterMaterials } from './characterMaterials';
+import { addModelLighting, prepareModelMaterials } from '$lib/models/rendering';
 import { CosmeticEffect } from './cosmeticEffect';
 import {
   captureHairDefault,
@@ -512,12 +510,7 @@ export class OutfitScene {
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.scene.background = new Color('#000000');
-    // character_spring2019 inherits white ambient and directional Dimmer=0.8.
-    // Three's irradiance convention includes PI; characterMaterials removes it.
-    this.scene.add(new AmbientLight(0xffffff, Math.PI * 0.8));
-    const light = new DirectionalLight(0xffffff, Math.PI * 0.8);
-    light.position.set(3, 5, 4);
-    this.scene.add(light);
+    addModelLighting(this.scene);
     element.appendChild(this.renderer.domElement);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     const resize = () => {
@@ -586,8 +579,7 @@ export class OutfitScene {
     let defaultFace: FaceAnimation | undefined;
     let colors: ColorControl[] = [];
     try {
-      await applyCharacterMaterials(body);
-      colors = await loadColorControls(body);
+      colors = await prepareModelMaterials(body);
       const preset =
         this.customization?.faces[asset.bodyVariant === 'male' ? '10300001' : '10300003'];
       if (preset && this.customization) {
@@ -707,8 +699,7 @@ export class OutfitScene {
             throw new Error('Equipment has no exported attachment');
           const gear = await this.loader.loadAsync(asset.url);
           try {
-            await applyCharacterMaterials(gear);
-            entry.colors.push(...(await loadColorControls(gear)));
+            entry.colors.push(...(await prepareModelMaterials(gear)));
             const attached = shareSkeleton(gear.scene, this.bones, gear.animations);
             entry.group.add(attached);
             if (bundle.slots.includes('HR')) {

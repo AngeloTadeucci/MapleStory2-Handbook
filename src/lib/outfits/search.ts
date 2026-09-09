@@ -8,6 +8,11 @@ function usableName(value: string | undefined): string {
   return /^ITEMNAME_\d+_/i.test(name) ? '' : name;
 }
 
+function usableIcon(value: string | null | undefined): string {
+  const path = (value ?? '').replace(/\\/g, '/').toLowerCase();
+  return /(^|\/)icon0\.png$/.test(path) ? '' : path;
+}
+
 /** The client inventory owns identity, body eligibility, slots and pagination. */
 export function joinCatalog(entries: LibraryItem[], labels: ItemLabel[]): CatalogItem[] {
   const byId = new Map(labels.map((label) => [label.id, label]));
@@ -16,7 +21,7 @@ export function joinCatalog(entries: LibraryItem[], labels: ItemLabel[]): Catalo
     return {
       id: entry.itemId,
       name: usableName(label?.name) || usableName(entry.sourceName) || `Item ${entry.itemId}`,
-      icon_path: (label?.icon_path || entry.sourceIcon || '').replace(/\\/g, '/').toLowerCase(),
+      icon_path: usableIcon(label?.icon_path) || usableIcon(entry.sourceIcon),
       gender: entry.bodyVariant === 'male' ? 0 : 1,
       slot: slotNumbers[entry.slots[0]] ?? 0,
       is_outfit: entry.isOutfit ?? label?.is_outfit ?? 0,

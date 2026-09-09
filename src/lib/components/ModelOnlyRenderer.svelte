@@ -1,4 +1,6 @@
 <script lang="ts">
+  import NativeModelViewer from '$lib/components/NativeModelViewer.svelte';
+  import type { StandaloneScene } from '$lib/models/StandaloneScene';
   import type { Npc } from '$lib/types/Npc';
   import {
     Combobox,
@@ -137,7 +139,7 @@
     loadingGltf = false;
   });
 
-  let modelViewer: ModelViewerElement | undefined = $state();
+  let modelViewer: ModelViewerElement | StandaloneScene | undefined = $state();
   $effect(() => {
     if (modelViewer) {
       modelViewer.timeScale = animationSpeed;
@@ -198,8 +200,8 @@
 
   // Update animation from frameStep when paused (user drags slider)
   $effect(() => {
-    if (modelViewer && !playing && frameStep > 0) {
-      modelViewer.currentTime = frameStep / animationSpeed;
+    if (modelViewer && !playing && frameStep >= 0) {
+      modelViewer.currentTime = frameStep;
     }
   });
 
@@ -209,7 +211,7 @@
 
     const intervalId = setInterval(() => {
       if (modelViewer && modelViewer.currentTime !== undefined) {
-        frameStep = modelViewer.currentTime * animationSpeed;
+        frameStep = modelViewer.currentTime;
       }
     }, 50);
 
@@ -235,6 +237,11 @@
     }
     const viewer = modelViewer;
     if (!viewer) return;
+    if ('captureSource' in viewer) {
+      gifSource = viewer.captureSource();
+      gifModalOpen = true;
+      return;
+    }
     gifSource = {
       width: viewer.offsetWidth,
       height: viewer.offsetHeight,
@@ -294,23 +301,39 @@
 {:else}
   <div class="block min-h-screen flex-row md:flex">
     <div class="flex h-[40vh] items-center justify-center bg-surface-600 md:h-auto md:w-[70%]">
-      <model-viewer
-        loading={nativeAsset ? 'eager' : 'auto'}
-        bind:this={modelViewer}
-        src={nativeAsset?.url ?? `${gltfUrl}${npc.kfm}/${selectedAnimation}.gltf`}
-        animation-name={selectedAnimation}
-        onload={() => {
-          if (nativeAsset && modelViewer) validAnimations = [...modelViewer.availableAnimations];
-        }}
-        alt={npc.name}
-        camera-controls
-        {...{ cameraTarget, customOrbit, orientation }}
-        autoplay
-        max-field-of-view="70deg"
-        touch-action="pan-y"
-        interaction-prompt="none"
-        style={customStyle ?? `width: 550px; height: 760px; --iconPath: url(${iconPath});`}
-      ></model-viewer>
+      {#if nativeAsset}
+        <NativeModelViewer
+          asset={nativeAsset}
+          url={nativeAsset.url}
+          label={npc.name}
+          style={customStyle ?? 'width: 550px; height: 760px;'}
+          onready={(viewer) => {
+            modelViewer = viewer;
+            if (viewer) {
+              validAnimations = viewer.availableAnimations;
+              viewer.animationName = selectedAnimation;
+            }
+          }}
+        />
+      {:else}
+        <model-viewer
+          loading="auto"
+          bind:this={modelViewer}
+          src={`${gltfUrl}${npc.kfm}/${selectedAnimation}.gltf`}
+          animation-name={selectedAnimation}
+          onload={() => {
+            if (nativeAsset && modelViewer) validAnimations = [...modelViewer.availableAnimations];
+          }}
+          alt={npc.name}
+          camera-controls
+          {...{ cameraTarget, customOrbit, orientation }}
+          autoplay
+          max-field-of-view="70deg"
+          touch-action="pan-y"
+          interaction-prompt="none"
+          style={customStyle ?? `width: 550px; height: 760px; --iconPath: url(${iconPath});`}
+        ></model-viewer>
+      {/if}
     </div>
 
     <div class="h-[60vh] overflow-auto p-4 md:h-auto md:w-[30%] md:overflow-hidden">
@@ -405,7 +428,7 @@
       </div>
       <Slider
         min={0}
-        max={animationDuration ? animationDuration * animationSpeed : 1}
+        max={animationDuration || 1}
         step={0.01}
         value={[frameStep]}
         onValueChange={(details) => {
@@ -416,9 +439,7 @@
         <div class="flex items-center justify-between">
           <Slider.Label class="font-bold">Frame:</Slider.Label>
           <div class="text-xs">
-            {(frameStep / animationSpeed).toFixed(2)} / {(
-              (animationDuration || 1) / animationSpeed
-            ).toFixed(2)}
+            {frameStep.toFixed(2)} / {(animationDuration || 1).toFixed(2)}
           </div>
         </div>
         <Slider.Control class="mt-2 relative flex items-center">

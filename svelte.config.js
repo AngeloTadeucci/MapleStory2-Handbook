@@ -1,7 +1,6 @@
 import adapter from '@sveltejs/adapter-node';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { simulatorAdapter } from './scripts/simulatorAdapter.js';
-import simulatorRelease from './src/lib/outfits/simulator-release.json' with { type: 'json' };
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -17,10 +16,7 @@ const config = {
     ...(process.env.HANDBOOK_STATIC_DIR
       ? { files: { assets: process.env.HANDBOOK_STATIC_DIR } }
       : {}),
-    adapter: simulatorAdapter(
-      adapter({ out: process.env.HANDBOOK_BUILD_DIR || 'build' }),
-      simulatorRelease.directory
-    )
+    adapter: simulatorAdapter(adapter({ out: process.env.HANDBOOK_BUILD_DIR || 'build' }))
   }
 };
 

@@ -84,23 +84,18 @@ it('retains the authored placement when the ray misses', () => {
   expect(hatPlacementSource(10200213)!.rotation).toEqual([0.415399, -0.753385, -0.333627]);
   expect(hatPlacementSource(-1)).toBeUndefined();
 });
-it('limits compatibility to the diagnosed release and excludes fitted and private hats', () => {
+it('uses explicit compatibility metadata independently of the serving path', () => {
   const asset = {
     id: 'wardrobe-fbb6ec3687b62815b3fb4de0',
-    url: 'http://localhost/gltf/simulator-release-14/hat.gltf'
+    url: 'http://localhost/gltf/hat/hat.gltf',
+    compatibility: { movableHatPlacement: true }
   } as NativeAsset;
   expect(needsHatPlacement(asset)).toBe(true);
-  expect(needsHatPlacement({ ...asset, url: asset.url.replace('release-14', 'release-15') })).toBe(
-    true
-  );
-  expect(needsHatPlacement({ ...asset, id: 'wardrobe-f5ce58f738334c90c520c2d7' })).toBe(true);
-  expect(needsHatPlacement({ ...asset, id: '11320024-female-0' })).toBe(false);
-  expect(needsHatPlacement({ ...asset, url: asset.url.replace('release-14', 'release-05') })).toBe(
+  expect(needsHatPlacement({ ...asset, url: 'http://cdn.test/hat/hat.gltf' })).toBe(true);
+  expect(needsHatPlacement({ ...asset, compatibility: undefined })).toBe(false);
+  expect(needsHatPlacement({ ...asset, compatibility: { movableHatPlacement: false } })).toBe(
     false
   );
-  expect(
-    needsHatPlacement({ ...asset, url: 'http://localhost/gltf/character-previews/gelo/hat.gltf' })
-  ).toBe(false);
 });
 it('rejects unsupported skeletons without changing a binding', () => {
   const { head, mesh } = fixture();

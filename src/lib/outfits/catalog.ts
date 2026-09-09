@@ -3,7 +3,6 @@ import { dev } from '$app/environment';
 import getGltfUrl from '$lib/getGltfUrl';
 import type { NativeAsset } from '$lib/nativeAssets';
 import { decalSchema } from './faceDecal';
-import simulatorRelease from './simulator-release.json';
 import catalogAliases from './catalog-aliases.json';
 
 export const slotNames: Record<string, string> = {
@@ -52,7 +51,7 @@ export const slotNumbers: Record<string, number> = {
   RHLH: 20,
   OH: 19
 };
-export const libraryBase = `${(dev ? '/gltf/' : getGltfUrl()).replace(/\/?$/, '/')}${simulatorRelease.directory}/`;
+export const libraryBase = (dev ? '/gltf/' : getGltfUrl()).replace(/\/?$/, '/');
 export function characterPreviewBase(name: string): string {
   if (!dev || !/^[a-z0-9-]{1,40}$/.test(name)) throw new Error('Invalid local character preview');
   return `/gltf/character-previews/${name}/`;

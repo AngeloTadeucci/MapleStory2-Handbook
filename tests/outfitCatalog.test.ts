@@ -15,6 +15,7 @@ import {
 import { frameAt } from '../src/lib/outfits/faceAnimation';
 import { hidesBodyPart } from '../src/lib/outfits/bodyVisibility';
 import type { NativeAsset } from '../src/lib/nativeAssets';
+import { joinCatalog } from '../src/lib/outfits/search';
 
 const part = (id: string, slot: string): NativeAsset => ({
   id,
@@ -53,6 +54,12 @@ const bundle = (id: number, slots: string[]): OutfitBundle => ({
 });
 
 describe('outfit catalog and equipment rules', () => {
+  it('uses a source icon when the database declares the missing-icon placeholder', () => {
+    const label = { ...item(1, ['HR']), icon_path: 'icon0.png' };
+    const entry = { ...label.library!, sourceIcon: 'Resource/Image/Hair.png' };
+    expect(joinCatalog([entry], [label])[0].icon_path).toBe('resource/image/hair.png');
+    expect(joinCatalog([{ ...entry, sourceIcon: './Icon0.png' }], [label])[0].icon_path).toBe('');
+  });
   it('changes weapon geometry without changing hand identity or occupied slots', () => {
     const star = item(13400306, ['OH']);
     star.library!.handParts = { RH: ['right'], LH: ['left'] };

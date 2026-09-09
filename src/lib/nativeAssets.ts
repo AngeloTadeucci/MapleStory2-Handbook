@@ -15,6 +15,14 @@ const relativeAssetPath = z
   );
 const assetSchema = z.object({
   id: z.string().min(1),
+  model: z.string().min(1).optional(),
+  standalone: z.boolean().optional(),
+  facePreset: z.string().optional(),
+  customizationUri: relativeAssetPath.optional(),
+  clipMetadata: z
+    .array(z.object({ name: z.string(), duration: z.number().nonnegative() }))
+    .optional(),
+  compatibility: z.object({ movableHatPlacement: z.boolean().optional() }).optional(),
   itemId: z.string().nullish(),
   input: relativeAssetPath,
   attachmentSource: relativeAssetPath.optional(),
@@ -39,11 +47,17 @@ const manifestSchema = z.object({
   coordinateSystem: z.literal('gltf-y-up-meters'),
   assets: z.array(assetSchema)
 });
-export type NativeAsset = z.infer<typeof assetSchema> & { url: string };
+export type NativeAsset = z.infer<typeof assetSchema> & { url: string; customizationUrl?: string };
 
 export function parseNativeManifest(data: unknown, manifestUrl: string): NativeAsset[] {
   const manifest = manifestSchema.parse(data);
-  return manifest.assets.map((asset) => ({ ...asset, url: new URL(asset.uri, manifestUrl).href }));
+  return manifest.assets.map((asset) => ({
+    ...asset,
+    url: new URL(asset.uri, manifestUrl).href,
+    customizationUrl: asset.customizationUri
+      ? new URL(asset.customizationUri, manifestUrl).href
+      : undefined
+  }));
 }
 
 let manifestRequest: Promise<NativeAsset[]> | undefined;
@@ -69,6 +83,10 @@ export async function findNativeAsset(id: string): Promise<NativeAsset | undefin
 }
 
 export function selectNativeAsset(assets: NativeAsset[], id: string): NativeAsset | undefined {
+  const canonical = assets.filter(
+    (asset) => asset.standalone && asset.model?.toLowerCase() === id.toLowerCase()
+  );
+  if (canonical.length) return canonical.length === 1 ? canonical[0] : undefined;
   const matches = assets.filter((asset) => asset.id.toLowerCase() === id.toLowerCase());
   // Several body variants may share a source model. Never pick one by array order.
   return matches.length === 1 ? matches[0] : undefined;

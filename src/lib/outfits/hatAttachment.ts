@@ -9,13 +9,9 @@ export function hatPlacementSource(hairPreset: number): HatPlacement | undefined
   return placements[String(hairPreset)];
 }
 
-// Compatibility for the two diagnosed rigid caps, unchanged in releases 14 and 15. Other releases,
-// fitted hats and private character assets retain their original bindings.
+// Canonical manifests explicitly mark the diagnosed rigid cap bindings.
 export function needsHatPlacement(asset: NativeAsset): boolean {
-  return (
-    ['wardrobe-fbb6ec3687b62815b3fb4de0', 'wardrobe-f5ce58f738334c90c520c2d7'].includes(asset.id) &&
-    /\/simulator-release-(14|15)\//.test(new URL(asset.url).pathname)
-  );
+  return asset.compatibility?.movableHatPlacement === true;
 }
 
 export function fitMovableHat(root: Object3D, placement: HatPlacement, hair: Object3D): number {

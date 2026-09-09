@@ -20,6 +20,31 @@ function manifest(uri = 'female/body.gltf') {
 }
 
 describe('native manifest contract', () => {
+  it('resolves an explicit canonical alias across body and attachment variants', () => {
+    const base = manifest().assets[0];
+    const assets = parseNativeManifest(
+      {
+        ...manifest(),
+        assets: [
+          { ...base, id: 'female-placement', model: 'shared-model', standalone: false },
+          {
+            ...base,
+            id: 'male-placement',
+            model: 'shared-model',
+            standalone: true,
+            facePreset: '10300001',
+            customizationUri: 'customization.json',
+            clipMetadata: [{ name: 'Idle_A', duration: 2.5 }]
+          }
+        ]
+      },
+      'https://example.test/models/native-manifest.json'
+    );
+    expect(selectNativeAsset(assets, 'SHARED-MODEL')).toBe(assets[1]);
+    expect(assets[1].customizationUrl).toBe('https://example.test/models/customization.json');
+    expect(assets[1].clipMetadata).toEqual([{ name: 'Idle_A', duration: 2.5 }]);
+    expect(selectNativeAsset([...assets, assets[1]], 'shared-model')).toBeUndefined();
+  });
   it('resolves paths relative to the manifest and preserves clip case', () => {
     const assets = parseNativeManifest(
       manifest(),
