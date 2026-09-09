@@ -90,6 +90,9 @@ it('limits compatibility to the diagnosed release and excludes fitted and privat
     url: 'http://localhost/gltf/simulator-release-14/hat.gltf'
   } as NativeAsset;
   expect(needsHatPlacement(asset)).toBe(true);
+  expect(needsHatPlacement({ ...asset, url: asset.url.replace('release-14', 'release-15') })).toBe(
+    true
+  );
   expect(needsHatPlacement({ ...asset, id: 'wardrobe-f5ce58f738334c90c520c2d7' })).toBe(true);
   expect(needsHatPlacement({ ...asset, id: '11320024-female-0' })).toBe(false);
   expect(needsHatPlacement({ ...asset, url: asset.url.replace('release-14', 'release-05') })).toBe(

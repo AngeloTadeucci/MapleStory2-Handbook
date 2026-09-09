@@ -17,6 +17,7 @@
   import { customizationSchema, type Customization } from '$lib/outfits/faceAnimation';
   import { characterPreviewSchema } from '$lib/outfits/characterPreview';
   import { loadHairPreviews } from '$lib/outfits/hairPreviews';
+  import { animationGroups, animationLabel } from '$lib/outfits/characterAnimations';
   import ColorPanel from '$lib/outfits/ColorPanel.svelte';
   import SlotIcon from '$lib/outfits/SlotIcon.svelte';
   import {
@@ -49,7 +50,7 @@
   let omitted = $state<string[]>([]);
   let previewNotes = $state<string[]>([]);
   let customization = $state<Customization>();
-  let expression = $state('default');
+  let expression = $state('auto');
   let background = $state('');
   async function chooseBackground(value: string) {
     try {
@@ -173,7 +174,7 @@
   let effectsEnabled = $state(true);
   const hasHairEffect = $derived(equipped.some((bundle) => bundle.item.library?.cosmeticEffect));
   let retry = $state(0);
-  const limit = 12;
+  let limit = $state(12);
   function refresh() {
     moving = null;
     if (viewer) {
@@ -184,7 +185,7 @@
       hairPlacements = viewer.hairPlacementControls;
       equipmentAnimations = viewer.equipmentAnimationControls;
       makeupControls = viewer.makeupControls;
-      if (!expressionOptions.includes(expression)) expression = 'default';
+      if (expression !== 'auto' && !expressionOptions.includes(expression)) expression = 'auto';
       viewer.selectExpression(expression);
     }
   }
@@ -197,7 +198,7 @@
       clips = await viewer.setBody(asset);
       body = variant;
       page = 0;
-      expression = 'default';
+      expression = 'auto';
       refresh();
       clip = clips.includes('fitting_idle_a') ? 'fitting_idle_a' : clips[0];
       viewer.selectClip(clip);
@@ -271,6 +272,16 @@
       clearTimeout(timer);
       abort.abort();
     };
+  });
+  onMount(() => {
+    const desktop = window.matchMedia('(min-width: 851px)');
+    const updatePageSize = () => {
+      limit = desktop.matches ? 30 : 12;
+      page = 0;
+    };
+    updatePageSize();
+    desktop.addEventListener('change', updatePageSize);
+    return () => desktop.removeEventListener('change', updatePageSize);
   });
   onMount(() => {
     mounted = true;
@@ -500,7 +511,10 @@
       const faceId =
         bundles.find((b) => b.slots.includes('FA'))?.item.id ??
         (code.body === 'male' ? 10300001 : 10300003);
-      if (!customization.faces[String(faceId)]?.sequences[code.expression])
+      if (
+        code.expression !== 'auto' &&
+        !customization.faces[String(faceId)]?.sequences[code.expression]
+      )
         throw new Error('This expression is unavailable for the selected face.');
       host = document.createElement('div');
       host.style.cssText = `position:fixed;left:-10000px;top:0;width:${container.clientWidth}px;height:${container.clientHeight}px;`;
@@ -727,11 +741,16 @@
             bind:value={clip}
             onchange={() => {
               viewer?.selectClip(clip);
+              expression = 'auto';
               playing = true;
             }}
           >
-            {#each clips as name}<option value={name}>{name.replaceAll('_', ' ')}</option
-              >{/each}</select
+            {#each animationGroups(clips) as group}
+              <optgroup label={group.label}>
+                {#each group.clips as name}<option value={name}>{animationLabel(name)}</option
+                  >{/each}
+              </optgroup>
+            {/each}</select
           ></label
         >
         <button
@@ -808,7 +827,8 @@
               disabled={busy}
               bind:value={expression}
               onchange={() => viewer?.selectExpression(expression)}
-              >{#each expressionOptions as name}<option value={name}
+              ><option value="auto">Follow pose</option>{#each expressionOptions as name}<option
+                  value={name}
                   >{name === 'default' ? 'Blink' : name[0].toUpperCase() + name.slice(1)}</option
                 >{/each}</select
             ></label
@@ -825,15 +845,17 @@
             ></label
           >
         </div>
-        <ColorPanel
-          controls={colors.filter(
-            (c) =>
-              c.label === 'Skin' ||
-              (!equipped.some((b) => b.slots.includes('FA')) && c.shader === 'Face')
-          )}
-          {customization}
-          disabled={busy}
-        />
+        <div class="body-colors">
+          <ColorPanel
+            controls={colors.filter(
+              (c) =>
+                c.label === 'Skin' ||
+                (!equipped.some((b) => b.slots.includes('FA')) && c.shader === 'Face')
+            )}
+            {customization}
+            disabled={busy}
+          />
+        </div>
         <button class="clear-button" disabled={busy} onclick={clearOutfit}
           ><RotateCcw size={14} /> Clear outfit</button
         >
@@ -910,44 +932,52 @@
                   </div>
                 {/each}
               </div>
-              {#each hairControls as control}<label
-                  >{control.label}
-                  {#if control.range}
-                    <span class="tabular-nums">{Number(control.value.toFixed(4))}</span>
-                    <input
-                      type="range"
-                      min={control.range.min}
-                      max={control.range.max}
-                      step="0.01"
-                      value={control.value}
-                      disabled={busy}
-                      oninput={(event) => {
-                        control.set(event.currentTarget.valueAsNumber);
-                        hairControls = viewer?.hairControls ?? [];
-                      }}
-                    />
-                  {:else}
-                    <select
-                      value={control.value}
-                      disabled={busy}
-                      onchange={(e) => {
-                        control.set(Number(e.currentTarget.value));
-                        hairControls = viewer?.hairControls ?? [];
-                      }}
-                      ><option value={control.value} disabled>Current: {control.value}</option
-                      >{#each control.values as value}<option {value}>{value}</option
-                        >{/each}</select
+              <div class="hair-length-controls">
+                {#each hairControls as control}<div class="hair-length-control">
+                    <label
+                      ><span class="length-heading"
+                        ><span>{control.label}</span>
+                        {#if control.range}<span class="tabular-nums"
+                            >{Number(control.value.toFixed(4))}</span
+                          >{/if}</span
+                      >
+                      {#if control.range}
+                        <input
+                          type="range"
+                          aria-label={control.label}
+                          min={control.range.min}
+                          max={control.range.max}
+                          step="0.01"
+                          value={control.value}
+                          disabled={busy}
+                          oninput={(event) => {
+                            control.set(event.currentTarget.valueAsNumber);
+                            hairControls = viewer?.hairControls ?? [];
+                          }}
+                        />
+                      {:else}
+                        <select
+                          value={control.value}
+                          disabled={busy}
+                          onchange={(e) => {
+                            control.set(Number(e.currentTarget.value));
+                            hairControls = viewer?.hairControls ?? [];
+                          }}
+                          ><option value={control.value} disabled>Current: {control.value}</option
+                          >{#each control.values as value}<option {value}>{value}</option
+                            >{/each}</select
+                        >
+                      {/if}</label
                     >
-                  {/if}</label
-                >
-                <button
-                  aria-label={`Reset ${control.label}`}
-                  onclick={() => {
-                    control.reset();
-                    hairControls = viewer?.hairControls ?? [];
-                  }}>Reset length</button
-                >
-              {/each}
+                    <button
+                      aria-label={`Reset ${control.label}`}
+                      onclick={() => {
+                        control.reset();
+                        hairControls = viewer?.hairControls ?? [];
+                      }}>Reset length</button
+                    >
+                  </div>{/each}
+              </div>
             {/if}
             {#if slot === 'FD'}
               {#if makeupControls}
@@ -1272,7 +1302,7 @@
   }
   .studio-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 390px;
+    grid-template-columns: minmax(0, 674px) minmax(340px, 1fr);
     gap: 1.25rem;
     align-items: start;
   }
@@ -1290,6 +1320,7 @@
   }
   .studio-toolbar {
     display: flex;
+    justify-content: center;
     align-items: end;
     gap: 0.65rem;
     margin-bottom: 1rem;
@@ -1309,6 +1340,7 @@
   }
   .pose-control {
     flex: 1;
+    max-width: 18.75rem;
   }
   .pose-control select {
     width: 100%;
@@ -1469,7 +1501,9 @@
     text-align: right;
   }
   .studio-settings {
-    margin-top: 1rem;
+    container-type: inline-size;
+    max-width: 48.7rem;
+    margin: 1rem auto 0;
     border-top: 1px solid var(--color-surface-400);
     padding-top: 0.8rem;
   }
@@ -1478,11 +1512,25 @@
     font-size: 0.8rem;
     padding: 0.2rem 0;
   }
-  .settings-grid {
+  .settings-grid,
+  .body-colors {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
     gap: 0.7rem;
-    margin-top: 0.8rem;
+    max-width: 48.7rem;
+    margin: 0.8rem auto 0;
+  }
+  .body-colors :global(.dye-control) {
+    width: 100%;
+    margin-top: 0;
+  }
+  @container (max-width: 38rem) {
+    .settings-grid,
+    .body-colors {
+      grid-template-columns: minmax(0, 1fr);
+      max-width: 24rem;
+    }
   }
   .clear-button {
     margin-top: 1rem;
@@ -1520,7 +1568,21 @@
   .customize > label {
     margin-top: 0.7rem;
   }
-  .customize > button {
+  .hair-length-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 0.7rem;
+    margin-top: 0.7rem;
+  }
+  .hair-length-control {
+    min-width: 0;
+  }
+  .length-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .hair-length-control > button {
     margin-top: 0.4rem;
     font-size: 0.7rem;
   }
@@ -1548,7 +1610,7 @@
   }
   .item-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 6rem), 1fr));
     gap: 0.5rem;
   }
   .item-card {
@@ -1641,9 +1703,6 @@
     font-family: monospace;
   }
   @media (max-width: 1100px) {
-    .studio-layout {
-      grid-template-columns: minmax(0, 1fr) 340px;
-    }
     .wardrobe {
       padding: 1rem;
     }
@@ -1657,9 +1716,6 @@
     }
     .character-panel {
       position: static;
-    }
-    .item-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
     .character-canvas {
       height: 565px;
@@ -1685,9 +1741,6 @@
     }
     .character-canvas {
       height: 490px;
-    }
-    .item-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .studio-toolbar {
       gap: 0.4rem;

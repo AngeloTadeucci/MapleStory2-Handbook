@@ -56,7 +56,12 @@
   }
 </script>
 
-<fieldset class="dye-control" {disabled} aria-label={`${control.label} colors`}>
+<fieldset
+  class="dye-control"
+  class:compact={control.label === 'Skin' || control.shader === 'Face'}
+  {disabled}
+  aria-label={`${control.label} colors`}
+>
   <legend>{heading}</legend>
   <div class="mode-switch">
     <label
@@ -156,6 +161,11 @@
     font-size: 0.8rem;
     font-weight: 600;
   }
+  .compact {
+    width: 24rem;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
   .mode-switch {
     display: flex;
     align-items: center;
@@ -210,6 +220,9 @@
     border: 1px solid var(--color-surface-400);
     border-radius: 0.2rem;
     cursor: pointer;
+  }
+  .dye-control:not(.compact) .swatch-grid {
+    grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr));
   }
   .swatch :global(svg) {
     color: white;

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { AnimationMixer, Mesh, SkinnedMesh, Vector3, type Object3D } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   captureBodySkeleton,
@@ -50,6 +51,16 @@ async function load(file: string) {
   for (const mesh of data.meshes) for (const part of mesh.primitives) delete part.material;
   return new GLTFLoader().parseAsync(JSON.stringify(data), '');
 }
+const bodies = new Map<string, ReturnType<typeof load>>();
+async function loadBody(body: string) {
+  let pending = bodies.get(body);
+  if (!pending) {
+    pending = load(`${body}/body.gltf`);
+    bodies.set(body, pending);
+  }
+  const original = await pending;
+  return { scene: clone(original.scene), animations: original.animations };
+}
 function release(root: Object3D) {
   releaseEquipmentBones(root);
   root.traverse((node) => {
@@ -67,7 +78,7 @@ describe.skipIf(!directory)('candidate library body binding', () => {
     const asset = manifest.assets.find((a) => a.id === '11820024-female-0');
     if (!asset) return;
     const [body, gear, reference] = await Promise.all([
-      load('female/body.gltf'),
+      loadBody('female'),
       load(asset.uri),
       load(asset.uri)
     ]);
@@ -107,7 +118,7 @@ describe.skipIf(!directory)('candidate library body binding', () => {
     .slice(firstAsset, firstAsset + assetLimit)) {
     it(`${asset.id} preserves deformation on the selected body through idle and run`, async () => {
       const [body, gear, independent] = await Promise.all([
-        load(`${asset.bodyVariant}/body.gltf`),
+        loadBody(asset.bodyVariant),
         load(asset.uri),
         load(asset.uri)
       ]);

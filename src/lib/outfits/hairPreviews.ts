@@ -1,9 +1,11 @@
 import type { NativeAsset } from '$lib/nativeAssets';
+import { dev } from '$app/environment';
 import type { LibraryItem } from './catalog';
 import { loadSassyPreview, applySassyPreview } from './sassyPreview';
 import { loadTwinTailPreview, applyTwinTailPreview } from './twinTailPreview';
 import { loadCurlyPreview, applyCurlyPreview } from './curlyPreview';
 export async function loadHairPreviews(fetcher: typeof fetch, origin: string) {
+  if (!dev) return [];
   const results = await Promise.allSettled([
     loadSassyPreview(fetcher, origin),
     loadTwinTailPreview(fetcher, origin),

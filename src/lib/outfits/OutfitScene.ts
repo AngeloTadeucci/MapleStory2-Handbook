@@ -180,6 +180,7 @@ export class OutfitScene {
   private face?: FaceAnimation;
   private decal?: FaceDecal;
   private defaultFace?: FaceAnimation;
+  private activeClip = '';
   private customization?: Customization;
   private customizationBase = libraryBase;
   private variant = '';
@@ -329,6 +330,7 @@ export class OutfitScene {
   seek(time: number) {
     this.playing = false;
     this.mixer?.setTime(time);
+    (this.face ?? this.defaultFace)?.update(0, this.poseTime);
     for (const animations of this.paletteAnimations.values())
       for (const animation of animations) animation.seek(time);
     for (const group of this.equipment.values())
@@ -348,7 +350,13 @@ export class OutfitScene {
     this.renderer.render(this.scene, this.camera);
   }
   selectExpression(name: string) {
-    (this.face ?? this.defaultFace)?.select(name);
+    const face = this.face ?? this.defaultFace;
+    face?.select(name);
+    face?.selectClip(this.activeClip, this.poseTime);
+  }
+  private get poseTime(): number {
+    const clip = this.body?.animations.find((clip) => clip.name === this.activeClip);
+    return clip && this.mixer ? this.mixer.clipAction(clip).time : 0;
   }
   get hairControls(): {
     label: string;
@@ -542,7 +550,7 @@ export class OutfitScene {
         for (const group of this.equipment.values())
           for (const mixer of equipmentMixers(group)) mixer.update(delta);
       }
-      (this.face ?? this.defaultFace)?.update(delta);
+      (this.face ?? this.defaultFace)?.update(delta, this.poseTime);
       this.applyHairPlacements();
       this.updateBrowserHair(this.playing ? delta : 0);
       for (const effect of this.cosmeticEffects.values())
@@ -615,6 +623,7 @@ export class OutfitScene {
       dispose(this.body.scene);
     }
     this.body = body;
+    this.activeClip = '';
     this.bodyColors = colors;
     this.skinColors = skinColors;
     this.bodyVisibility.clear();
@@ -919,6 +928,8 @@ export class OutfitScene {
     if (!clip || !this.mixer) return;
     this.mixer.stopAllAction();
     this.mixer.clipAction(clip).reset().play();
+    this.activeClip = name;
+    this.selectExpression('auto');
     this.mixer.update(0);
     this.applyHairPlacements();
     this.updateBrowserHair(0, true);

@@ -10,6 +10,17 @@ export interface PatchNote {
 
 export const patchNotes: PatchNote[] = [
   {
+    version: '1.13.0',
+    date: '2026-09-09',
+    title: 'Outfit Simulator',
+    changes: [
+      { type: 'added', description: 'Try on outfits, hairstyles, and accessories in the new 3D outfit simulator' },
+      { type: 'added', description: 'Customize colors, hair, and makeup' },
+      { type: 'added', description: 'Preview 40 poses and animations, with matching expressions where available' },
+      { type: 'added', description: 'Save character images and share outfits using import and export codes' }
+    ]
+  },
+  {
     version: '1.12.0',
     date: '2026-08-11',
     title: 'Quest Chains',

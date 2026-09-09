@@ -33,7 +33,11 @@ export const customizationSchema = z.object({
   ),
   faces: z.record(
     z.string(),
-    z.object({ code: z.string(), sequences: z.record(z.string(), sequenceSchema) })
+    z.object({
+      code: z.string(),
+      sequences: z.record(z.string(), sequenceSchema),
+      poseExpressions: z.record(z.string(), sequenceSchema).optional()
+    })
   )
 });
 export type Customization = z.infer<typeof customizationSchema>;
@@ -80,7 +84,8 @@ export class FaceAnimation {
       data: Uint8Array;
     }
   >();
-  private expression = 'default';
+  private expression = 'auto';
+  private clip = '';
   private elapsed = 0;
   readonly control: ColorControl;
   private constructor(
@@ -114,7 +119,10 @@ export class FaceAnimation {
   ): Promise<FaceAnimation> {
     const face = new FaceAnimation(preset, defaults);
     try {
-      for (const frame of Object.values(preset.sequences).flatMap((s) => s.frames)) {
+      for (const frame of [
+        ...Object.values(preset.sequences),
+        ...Object.values(preset.poseExpressions ?? {})
+      ].flatMap((s) => s.frames)) {
         const key = frame.image + '|' + frame.mask;
         if (face.images.has(key)) continue;
         const image = await pixels(frame.image, base),
@@ -156,14 +164,25 @@ export class FaceAnimation {
     this.update(0);
   }
   select(name: string) {
-    if (!this.preset.sequences[name]) throw new Error('Expression unavailable');
+    if (name !== 'auto' && !this.preset.sequences[name]) throw new Error('Expression unavailable');
+    if (this.expression === name) return;
     this.expression = name;
     this.elapsed = 0;
     this.update(0);
   }
-  update(delta: number) {
-    this.elapsed += delta * 1000;
-    const sequence = this.preset.sequences[this.expression];
+  selectClip(name: string, time = 0) {
+    this.clip = name;
+    this.update(0, time);
+  }
+  update(delta: number, poseTime?: number) {
+    this.elapsed =
+      this.expression === 'auto' && poseTime !== undefined
+        ? poseTime * 1000
+        : this.elapsed + delta * 1000;
+    const sequence =
+      this.expression === 'auto'
+        ? (this.preset.poseExpressions?.[this.clip] ?? this.preset.sequences.default)
+        : this.preset.sequences[this.expression];
     const frame =
       sequence.frames[
         frameAt(

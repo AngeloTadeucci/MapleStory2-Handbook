@@ -1,6 +1,7 @@
 import { Mesh, MeshStandardMaterial, NoColorSpace, Texture, Vector3 } from 'three';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { z } from 'zod';
+import { applySourceRenderState } from './sourceRenderState';
 
 const lightingSchema = z.object({
   nifShader: z.enum([
@@ -67,6 +68,7 @@ export async function applyCharacterMaterials(gltf: GLTF): Promise<void> {
         if (material instanceof MeshStandardMaterial) materials.add(material);
   });
   for (const material of materials) {
+    applySourceRenderState(material);
     const parsed = lightingSchema.safeParse(material.userData);
     if (!parsed.success || !material.map) continue;
     const info = parsed.data;
