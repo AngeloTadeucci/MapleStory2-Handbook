@@ -25,12 +25,20 @@
   let totalItems = $state(0);
   const pageSizeOptions = [10, 25, 50, 100, 200];
 
+  // 'all' leaves the filter off, 'true' keeps only matching items, 'false' excludes them.
+  type TriState = 'all' | 'true' | 'false';
+
   let rarityList: string[] = $state([]);
   let jobList: string[] = $state([]);
   let itemTypeList: string[] = $state([]);
-  let outfitOnly = $state(false);
+  let outfitFilter: TriState = $state('all');
   let genderList: string[] = $state([]);
-  let setItemsOnly = $state(false);
+  let setItemsFilter: TriState = $state('all');
+
+  function readTriState(key: string): TriState {
+    const value = $page.url.searchParams.get(key);
+    return value === 'true' || value === 'false' ? value : 'all';
+  }
 
   function buildParams(
     search: string,
@@ -39,9 +47,9 @@
     rarity: string,
     job: string,
     type: string,
-    outfit: boolean,
+    outfit: TriState,
     gender: string,
-    setItems: boolean
+    setItems: TriState
   ) {
     // API expects 0-indexed page, but Skeleton v4 uses 1-indexed
     return paramsBuilder([
@@ -71,7 +79,7 @@
       },
       {
         name: 'outfit',
-        value: outfit ? 'true' : null
+        value: outfit === 'all' ? null : outfit
       },
       {
         name: 'gender',
@@ -79,7 +87,7 @@
       },
       {
         name: 'setItems',
-        value: setItems ? 'true' : null
+        value: setItems === 'all' ? null : setItems
       }
     ]);
   }
@@ -105,9 +113,9 @@
         .map((x) => getItemTypeKeyByDisplayName(x))
         .filter((x) => x)
         .join(','),
-      outfitOnly,
+      outfitFilter,
       genderList.map((x) => Gender[x as keyof typeof Gender]).join(','),
-      setItemsOnly
+      setItemsFilter
     );
 
     loading = true;
@@ -179,14 +187,14 @@
       itemTypeList = type.split(',').map((x) => getItemTypeKeyByDisplayName(x)).filter((x): x is string => x !== undefined);
     }
 
-    outfitOnly = $page.url.searchParams.get('outfit') === 'true';
+    outfitFilter = readTriState('outfit');
 
     const gender = $page.url.searchParams.get('gender');
     if (gender) {
       genderList = gender.split(',').map((x) => Gender[x as keyof typeof Gender].toString());
     }
 
-    setItemsOnly = $page.url.searchParams.get('setItems') === 'true';
+    setItemsFilter = readTriState('setItems');
 
     // load first batch onMount
     fetchData(false);
@@ -216,6 +224,18 @@
     } else {
       $page.url.searchParams.set(key, list.map((x) => enumerator[x]).join(','));
     }
+  }
+
+  async function applyTriState(key: string, value: TriState) {
+    if (value === 'all') {
+      $page.url.searchParams.delete(key);
+    } else {
+      $page.url.searchParams.set(key, value);
+    }
+    currentPage = 1;
+    $page.url.searchParams.set('page', '0');
+    goto($page.url.href, { keepFocus: true, replaceState: true });
+    await fetchData(true);
   }
 
   const debouncedSearch = debounce(
@@ -273,9 +293,9 @@
             rarityList = [];
             jobList = [];
             itemTypeList = [];
-            outfitOnly = false;
+            outfitFilter = 'all';
             genderList = [];
-            setItemsOnly = false;
+            setItemsFilter = 'all';
 
             currentPage = 1;
             pageSize = 10;
@@ -367,44 +387,30 @@
       />
     </label>
   </div>
-  <div class="flex flex-col gap-3 lg:flex-row mt-3">
-    <label class="flex items-center space-x-2">
-      <input
-        class="checkbox bg-surface-700 border-surface-500 checked:bg-primary-500 checked:border-primary-500"
-        type="checkbox"
-        bind:checked={outfitOnly}
-        onchange={async () => {
-          if (outfitOnly) {
-            $page.url.searchParams.set('outfit', 'true');
-          } else {
-            $page.url.searchParams.delete('outfit');
-          }
-          currentPage = 1;
-          $page.url.searchParams.set('page', '0');
-          goto($page.url.href, { keepFocus: true, replaceState: true });
-          await fetchData(true);
-        }}
-      />
-      <span>Show outfits only</span>
+  <div class="mt-3 flex flex-col gap-3 lg:flex-row">
+    <label class="label w-full">
+      <span>Outfits</span>
+      <select
+        class="input w-full border-transparent bg-surface-700 px-3 py-2 text-surface-50"
+        bind:value={outfitFilter}
+        onchange={() => applyTriState('outfit', outfitFilter)}
+      >
+        <option value="all">Show all items</option>
+        <option value="true">Outfits only</option>
+        <option value="false">Hide outfits</option>
+      </select>
     </label>
-    <label class="flex items-center space-x-2">
-      <input
-        class="checkbox bg-surface-700 border-surface-500 checked:bg-primary-500 checked:border-primary-500"
-        type="checkbox"
-        bind:checked={setItemsOnly}
-        onchange={async () => {
-          if (setItemsOnly) {
-            $page.url.searchParams.set('setItems', 'true');
-          } else {
-            $page.url.searchParams.delete('setItems');
-          }
-          currentPage = 1;
-          $page.url.searchParams.set('page', '0');
-          goto($page.url.href, { keepFocus: true, replaceState: true });
-          await fetchData(true);
-        }}
-      />
-      <span>Show set items only</span>
+    <label class="label w-full">
+      <span>Set items</span>
+      <select
+        class="input w-full border-transparent bg-surface-700 px-3 py-2 text-surface-50"
+        bind:value={setItemsFilter}
+        onchange={() => applyTriState('setItems', setItemsFilter)}
+      >
+        <option value="all">Show all items</option>
+        <option value="true">Set items only</option>
+        <option value="false">Hide set items</option>
+      </select>
     </label>
   </div>
   {#if totalItems > 0}

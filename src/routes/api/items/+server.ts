@@ -10,6 +10,12 @@ const rateLimiter = new RateLimiterMemory({
   duration: 60 * 5 // 5 minutes
 });
 
+// Tri-state filters: 'true' keeps only matching rows, 'false' excludes them,
+// anything else (including a missing param) leaves the set untouched.
+function parseTriState(value: string | null): 'true' | 'false' | null {
+  return value === 'true' || value === 'false' ? value : null;
+}
+
 export const GET = (async ({ url }) => {
   const search = url.searchParams.get('search') ?? '';
   const limit = Number(url.searchParams.get('limit') ?? 20);
@@ -17,9 +23,9 @@ export const GET = (async ({ url }) => {
   const rarityString = url.searchParams.get('rarity');
   const jobString = url.searchParams.get('job');
   const itemType = url.searchParams.get('type');
-  const outfitOnly = url.searchParams.get('outfit') === 'true';
+  const outfitFilter = parseTriState(url.searchParams.get('outfit'));
   const genderString = url.searchParams.get('gender');
-  const setItemsOnly = url.searchParams.get('setItems') === 'true';
+  const setItemsFilter = parseTriState(url.searchParams.get('setItems'));
 
   if (search.includes('"')) {
     return json({ items: [], total: 0 });
@@ -27,64 +33,43 @@ export const GET = (async ({ url }) => {
 
   const searchString = `"%${search}%"`;
 
-  let itemsStatement = `SELECT id, name, rarity, icon_path, main_description, guide_description, tooltip_description, job_limit, item_preset, is_outfit FROM maple2_codex.items WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
+  let where = `(name LIKE ${searchString} OR id LIKE ${searchString})`;
+
   if (rarityString) {
     // rarity in db is one single value, but we want to allow multiple rarities to be searched
-    itemsStatement += ` AND rarity IN (${rarityString})`;
+    where += ` AND rarity IN (${rarityString})`;
   }
 
   if (jobString) {
-    itemsStatement += ` AND JSON_CONTAINS(job_limit, '[${jobString}]')`;
+    where += ` AND JSON_CONTAINS(job_limit, '[${jobString}]')`;
   }
 
   if (itemType) {
     // Extract group and type from item IDs based on the formula:
     // Group = id / 10000000
     // Type = (id % 10000000) / 100000
-    itemsStatement += buildItemTypeCondition(itemType);
+    where += buildItemTypeCondition(itemType);
   }
 
-  if (outfitOnly) {
-    itemsStatement += ` AND is_outfit = 1`;
-  }
-
-  if (genderString) {
-    itemsStatement += ` AND gender IN (${genderString})`;
-  }
-
-  if (setItemsOnly) {
-    itemsStatement += ` AND set_name != ''`;
-  }
-
-  itemsStatement += ` LIMIT ${limit} OFFSET ${offset}`;
-  const items = await prisma.$queryRawUnsafe<SearchItem[]>(itemsStatement);
-
-  let countStatement = `SELECT COUNT(*) as count FROM maple2_codex.items WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
-  if (rarityString) {
-    countStatement += ` AND rarity IN (${rarityString})`;
-  }
-
-  if (jobString) {
-    countStatement += ` AND JSON_CONTAINS(job_limit, '[${jobString}]')`;
-  }
-
-  if (itemType) {
-    countStatement += buildItemTypeCondition(itemType);
-  }
-
-  if (outfitOnly) {
-    countStatement += ` AND is_outfit = 1`;
+  if (outfitFilter) {
+    where += ` AND is_outfit = ${outfitFilter === 'true' ? 1 : 0}`;
   }
 
   if (genderString) {
-    countStatement += ` AND gender IN (${genderString})`;
+    where += ` AND gender IN (${genderString})`;
   }
 
-  if (setItemsOnly) {
-    countStatement += ` AND set_name != ''`;
+  if (setItemsFilter) {
+    where += setItemsFilter === 'true' ? ` AND set_name != ''` : ` AND set_name = ''`;
   }
 
-  const itemCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(countStatement);
+  const items = await prisma.$queryRawUnsafe<SearchItem[]>(
+    `SELECT id, name, rarity, icon_path, main_description, guide_description, tooltip_description, job_limit, item_preset, is_outfit FROM maple2_codex.items WHERE ${where} LIMIT ${limit} OFFSET ${offset}`
+  );
+
+  const itemCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(
+    `SELECT COUNT(*) as count FROM maple2_codex.items WHERE ${where}`
+  );
   const total = Number(itemCount[0].count); // bigint here cast as number since it'll never get that big uwu
 
   return json({ items, total });
