@@ -13,6 +13,7 @@
   import ItemRenderer from '$lib/components/item/ItemRenderer.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
+  import { getImageUrl } from '$lib/getImageUrl';
   import { IconCode, Rarity, SlotName } from '$lib/Enums';
   import FrogAppreciationMeter from '$lib/components/item/FrogAppreciationMeter.svelte';
   import { findOutfitItem } from '$lib/outfits/itemLink';
@@ -118,7 +119,9 @@
   />
   <meta
     property="og:image"
-    content={`https://handbook.tadeucci.dev/${item.icon_path.split('/').slice(2).join('/')}`}
+    content={item.icon_path
+      ? getImageUrl(item.icon_path.split('/').slice(2).join('/'))
+      : 'https://handbook.tadeucci.dev/logo.png'}
   />
   <meta property="og:url" content={`https://handbook.tadeucci.dev/items/${item.id}`} />
   <meta name="twitter:card" content="summary" />

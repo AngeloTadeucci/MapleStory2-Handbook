@@ -9,6 +9,7 @@
   import NpcRenderer from '$lib/components/npc/NpcRenderer.svelte';
   import getGltfUrl from '$lib/getGltfUrl';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
+  import { getImageUrl } from '$lib/getImageUrl';
 
   interface Props {
     data: PageData;
@@ -64,7 +65,9 @@
   <meta property="og:description" content={npc.name} />
   <meta
     property="og:image"
-    content={`https://handbook.tadeucci.dev/${npc.portrait.split('/').slice(2).join('/')}`}
+    content={npc.portrait
+      ? getImageUrl(npc.portrait.split('/').slice(2).join('/'))
+      : 'https://handbook.tadeucci.dev/logo.png'}
   />
   <meta property="og:url" content={`https://handbook.tadeucci.dev/npcs/${npc.id}`} />
   <meta name="twitter:card" content="summary" />
