@@ -2,46 +2,45 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import DBClient from '$lib/prismaClient';
 import type { HousingSearchItem } from '$lib/types/Item';
 import { isHousingCategory, parseHousingFilterNumber } from '$lib/helpers/housing';
+import { Prisma } from '$lib/generated/prisma/client';
+import { parsePagination } from '$lib/server/pagination';
 
 const prisma = DBClient.getInstance().prisma;
 
 export const GET = (async ({ url }) => {
   const search = url.searchParams.get('search') ?? '';
-  const limit = Math.min(Number(url.searchParams.get('limit') ?? 20), 200);
-  const page = Number(url.searchParams.get('page') ?? 0);
-  const offset = Math.max(page, 0) * limit;
+  const { limit, offset } = parsePagination(url.searchParams, 20);
   const category = parseHousingFilterNumber(url.searchParams.get('category'));
   const currency = parseHousingFilterNumber(url.searchParams.get('currency'));
   const buyable = url.searchParams.get('buyable') === 'true';
 
-  if (search.includes('"')) {
-    return json({ items: [], total: 0 });
-  }
-
-  const filters: string[] = ['i.housing_category > 0', '(i.housing_category <> 10000 OR fs.item_id IS NOT NULL)'];
-  const searchString = `"%${search}%"`;
+  const filters: Prisma.Sql[] = [
+    Prisma.sql`i.housing_category > 0`,
+    Prisma.sql`(i.housing_category <> 10000 OR fs.item_id IS NOT NULL)`
+  ];
 
   if (search) {
-    filters.push(`(i.name LIKE ${searchString} OR i.id LIKE ${searchString})`);
+    const searchPattern = `%${search}%`;
+    filters.push(Prisma.sql`(i.name LIKE ${searchPattern} OR i.id LIKE ${searchPattern})`);
   }
 
   if (category != null && isHousingCategory(category)) {
-    filters.push(`i.housing_category = ${category}`);
+    filters.push(Prisma.sql`i.housing_category = ${category}`);
   } else if (category != null) {
-    filters.push('1 = 0');
+    filters.push(Prisma.sql`1 = 0`);
   }
 
   if (currency != null) {
-    filters.push(`fs.token_type = ${currency}`);
+    filters.push(Prisma.sql`fs.token_type = ${currency}`);
   }
 
   if (buyable) {
-    filters.push('fs.buyable = 1');
+    filters.push(Prisma.sql`fs.buyable = 1`);
   }
 
-  const where = filters.join(' AND ');
+  const where = Prisma.join(filters, ' AND ');
 
-  const itemsStatement = `
+  const items = await prisma.$queryRaw<HousingSearchItem[]>`
     SELECT
       i.id,
       i.name,
@@ -57,22 +56,19 @@ export const GET = (async ({ url }) => {
       fs.buyable,
       fs.token_type,
       fs.price
-    FROM maple2_codex.items i
-    LEFT JOIN maple2_codex.furnishing_shop fs ON fs.item_id = i.id
+    FROM items i
+    LEFT JOIN furnishing_shop fs ON fs.item_id = i.id
     WHERE ${where}
     ORDER BY i.name
     LIMIT ${limit} OFFSET ${offset}
   `;
 
-  const countStatement = `
+  const itemCount = await prisma.$queryRaw<{ count: bigint }[]>`
     SELECT COUNT(*) as count
-    FROM maple2_codex.items i
-    LEFT JOIN maple2_codex.furnishing_shop fs ON fs.item_id = i.id
+    FROM items i
+    LEFT JOIN furnishing_shop fs ON fs.item_id = i.id
     WHERE ${where}
   `;
-
-  const items = await prisma.$queryRawUnsafe<HousingSearchItem[]>(itemsStatement);
-  const itemCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(countStatement);
 
   return json({ items, total: Number(itemCount[0].count) });
 }) satisfies RequestHandler;

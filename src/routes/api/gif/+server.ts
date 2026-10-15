@@ -1,35 +1,50 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { exec } from 'child_process';
-import type { ExecException } from 'child_process';
+import { execFile } from 'child_process';
 import fs from 'fs';
 import { z } from 'zod';
 import { join } from 'path';
+import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
+import { GIF_MAX_DIMENSION, GIF_MAX_FRAMES } from '$lib/schemas/gif';
 
+// These values reach the filesystem and the gifski command line. Native clip
+// names contain spaces and brackets, e.g. "Sit_Chair_Idle_A [sequence 0] [event 14]".
 const schema = z.object({
-  model: z.string(),
+  model: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),
   download: z.boolean().default(false),
-  animation: z.string(),
-  screenshots: z.array(z.string()),
+  animation: z.string().regex(/^[A-Za-z0-9_ [\]-]{1,80}$/),
+  screenshots: z.array(z.string()).max(GIF_MAX_FRAMES),
   framerate: z.number().int().min(10).max(50),
-  height: z.number().int().positive(),
-  width: z.number().int().positive(),
+  height: z.number().int().positive().max(GIF_MAX_DIMENSION),
+  width: z.number().int().positive().max(GIF_MAX_DIMENSION),
   quality: z.number().int().min(1).max(100)
 });
 
-export const POST = async ({ request }: RequestEvent) => {
-  const { model, animation, screenshots, framerate, height, width, quality, download } =
-    await request.json();
+// Someone tuning size and quality makes a handful of GIFs in a few minutes.
+const rateLimiter = new RateLimiterMemory({
+  points: 10, // 10 requests
+  duration: 60 * 10 // 10 minutes
+});
 
-  const validation = schema.safeParse({
-    model,
-    download,
-    animation,
-    screenshots,
-    framerate,
-    height,
-    width,
-    quality
-  });
+// gifski is CPU heavy and each job holds every frame in memory and on disk.
+const MAX_CONCURRENT_JOBS = 2;
+const BUSY_RETRY_AFTER_SECONDS = 15;
+let activeJobs = 0;
+
+export const POST = async ({ request, getClientAddress }: RequestEvent) => {
+  try {
+    await rateLimiter.consume(getClientAddress());
+  } catch (err) {
+    if (!(err instanceof RateLimiterRes)) throw err;
+    return json(
+      { message: 'Too many GIF requests. Try again later.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.max(1, Math.ceil(err.msBeforeNext / 1000))) }
+      }
+    );
+  }
+
+  const validation = schema.safeParse(await request.json().catch(() => null));
 
   if (!validation.success) {
     return new Response(
@@ -40,57 +55,49 @@ export const POST = async ({ request }: RequestEvent) => {
     );
   }
 
-  const appPath = process.cwd();
-  const processingFolder = join(appPath, 'static', 'gifs', 'processing', model);
+  const { model, animation, screenshots, framerate, height, width, quality, download } =
+    validation.data;
 
-  // check if processing folder has items, if so delete all
-  if (fs.existsSync(processingFolder)) {
-    fs.rmSync(processingFolder, { recursive: true });
-    fs.mkdirSync(processingFolder, { recursive: true });
-  } else {
-    fs.mkdirSync(processingFolder, { recursive: true });
-  }
-
-  const baseFileName = `${model}-${animation}-`;
-
-  for (let i = 0; i < screenshots.length; i++) {
-    const screenshot: string = screenshots[i];
-    if (!screenshot.includes('data:image/png;base64,')) {
-      return new Response(JSON.stringify({ message: 'Invalid screenshot format' }), {
-        status: 400
-      });
-    }
-    const fileName = `${baseFileName}${i}.png`;
-    const base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
-    if (base64Data.length <= 0) {
-      return new Response(JSON.stringify({ message: 'No screenshot data' }), {
-        status: 400
-      });
-    }
-    const processingFile = join(processingFolder, fileName);
-    fs.writeFileSync(processingFile, base64Data, 'base64');
-  }
-
-  if (!fs.existsSync(join(processingFolder, baseFileName) + '0.png')) {
+  if (screenshots.length === 0) {
     return new Response(JSON.stringify({ message: 'No screenshot saved' }), {
       status: 400
     });
   }
 
-  try {
-    const gif = await convertToGif(
-      processingFolder,
-      `${baseFileName}*.png`,
-      model,
-      animation,
-      framerate,
-      height,
-      width,
-      quality
+  if (activeJobs >= MAX_CONCURRENT_JOBS) {
+    return json(
+      { message: 'The GIF service is busy. Try again in a moment.' },
+      { status: 503, headers: { 'Retry-After': String(BUSY_RETRY_AFTER_SECONDS) } }
     );
-    fs.rmSync(processingFolder, { recursive: true });
+  }
+  activeJobs++;
 
-    if (validation.data.download) {
+  const processingFolder = join(process.cwd(), 'static', 'gifs', 'processing', crypto.randomUUID());
+
+  try {
+    fs.mkdirSync(processingFolder, { recursive: true });
+    const frames: string[] = [];
+    for (let i = 0; i < screenshots.length; i++) {
+      const screenshot = screenshots[i];
+      if (!screenshot.includes('data:image/png;base64,')) {
+        return new Response(JSON.stringify({ message: 'Invalid screenshot format' }), {
+          status: 400
+        });
+      }
+      const base64Data = screenshot.replace(/^data:image\/png;base64,/, '');
+      if (base64Data.length <= 0) {
+        return new Response(JSON.stringify({ message: 'No screenshot data' }), {
+          status: 400
+        });
+      }
+      const frame = join(processingFolder, `frame-${String(i).padStart(5, '0')}.png`);
+      fs.writeFileSync(frame, base64Data, 'base64');
+      frames.push(frame);
+    }
+
+    const gif = await convertToGif(frames, model, animation, framerate, height, width, quality);
+
+    if (download) {
       const data = fs.readFileSync(join(gifOutputFolder(model), gif));
       return new Response(data, {
         headers: {
@@ -101,16 +108,17 @@ export const POST = async ({ request }: RequestEvent) => {
     }
     return json({ url: `${model}/${gif}` });
   } catch (err) {
-    fs.rmSync(processingFolder, { recursive: true, force: true });
     return new Response(JSON.stringify({ message: 'Failed to create gif', code: err }), {
       status: 500
     });
+  } finally {
+    activeJobs--;
+    fs.rmSync(processingFolder, { recursive: true, force: true });
   }
 };
 
-async function convertToGif(
-  folder: string,
-  fileName: string,
+function convertToGif(
+  frames: string[],
   model: string,
   animation: string,
   framerate: number,
@@ -119,40 +127,37 @@ async function convertToGif(
   quality: number
 ) {
   const outputFolder = gifOutputFolder(model);
+  fs.mkdirSync(outputFolder, { recursive: true });
 
-  const outputFileName = `${model}-${animation}-${crypto.randomUUID()}.gif`;
+  const safeAnimation = animation.replace(/[^A-Za-z0-9_-]/g, '_');
+  const outputFileName = `${model}-${safeAnimation}-${crypto.randomUUID()}.gif`;
+  const outputFile = join(outputFolder, outputFileName);
 
-  const inputFile = join(folder, fileName);
+  const gifskiBin = process.env.GIFSKI_PATH ?? join(process.cwd(), 'bin', 'gifski');
+  const args = [
+    '--fps',
+    String(framerate),
+    '-H',
+    String(height),
+    '-W',
+    String(width),
+    '--quality',
+    String(quality),
+    '-o',
+    outputFile,
+    ...frames
+  ];
 
   return new Promise<string>(function (resolve, reject) {
-    if (!fs.existsSync(inputFile.replace('*', '0'))) {
-      reject(400);
-      return;
-    }
-
-    const outputFile = join(outputFolder, outputFileName);
-    if (!fs.existsSync(outputFile)) {
-      fs.mkdirSync(outputFolder, { recursive: true });
-    }
-
-    const gifskiBin = process.env.GIFSKI_PATH ?? join(process.cwd(), 'bin', 'gifski');
-    const gifski = exec(
-      `${gifskiBin} --fps ${framerate} -H ${height} -W ${width} --quality ${quality} ${inputFile} -o ${outputFile} `, // -H 320 -W 320 --quality 70 --motion-quality 40 --lossy-quality 40
-      function (error: ExecException | null) {
-        if (error) {
-          console.log(error.stack);
-          console.log('[gifski] Error code: ' + error.code);
-          console.log('[gifski] Signal received: ' + error.signal);
-        }
+    execFile(gifskiBin, args, function (error) {
+      if (error) {
+        console.log(error.stack);
+        console.log('[gifski] Error code: ' + error.code);
+        console.log('[gifski] Signal received: ' + error.signal);
+        reject(error.code ?? 1);
+        return;
       }
-    );
-
-    gifski.on('exit', function (code: number | null) {
-      if (code != 0) {
-        reject(code);
-      } else {
-        resolve(outputFileName);
-      }
+      resolve(outputFileName);
     });
   });
 }

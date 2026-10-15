@@ -2,6 +2,10 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import DBClient from '$lib/prismaClient';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import type { SearchNpc } from '$lib/types/Npc';
+import { Prisma } from '$lib/generated/prisma/client';
+import { inListCondition } from '$lib/server/sqlFilters';
+import { parsePagination } from '$lib/server/pagination';
+import { createVisitHandler } from '$lib/server/visitCount';
 const prisma = DBClient.getInstance().prisma;
 
 const rateLimiter = new RateLimiterMemory({
@@ -11,113 +15,51 @@ const rateLimiter = new RateLimiterMemory({
 
 export const GET = (async ({ url }) => {
   const search = url.searchParams.get('search') ?? '';
-  const limit = Number(url.searchParams.get('limit') ?? 20);
-  const offset = Number(url.searchParams.get('page') ?? 0) * limit;
+  const { limit, offset } = parsePagination(url.searchParams, 20);
   const npcTypeString = url.searchParams.get('npcType');
   const minLevel = url.searchParams.get('minLevel');
   const maxLevel = url.searchParams.get('maxLevel');
   const isBoss = url.searchParams.get('isBoss') === 'true';
   const hasShop = url.searchParams.get('hasShop') === 'true';
 
-  if (search.includes('"')) {
-    return json({ npcs: [], total: 0 });
+  const searchPattern = `%${search}%`;
+
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`(name LIKE ${searchPattern} OR id LIKE ${searchPattern})`,
+    inListCondition('npc_type', npcTypeString)
+  ];
+
+  if (minLevel && Number.isFinite(Number(minLevel))) {
+    conditions.push(Prisma.sql` AND level >= ${Number(minLevel)}`);
   }
 
-  const searchString = `"%${search}%"`;
-
-  let npcsStatement = `SELECT id, name, portrait, title FROM maple2_codex.npcs WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
-
-  if (npcTypeString) {
-    npcsStatement += ` AND npc_type IN (${npcTypeString})`;
-  }
-
-  if (minLevel) {
-    npcsStatement += ` AND level >= ${Number(minLevel)}`;
-  }
-
-  if (maxLevel) {
-    npcsStatement += ` AND level <= ${Number(maxLevel)}`;
+  if (maxLevel && Number.isFinite(Number(maxLevel))) {
+    conditions.push(Prisma.sql` AND level <= ${Number(maxLevel)}`);
   }
 
   if (isBoss) {
-    npcsStatement += ` AND is_boss = 1`;
+    conditions.push(Prisma.sql` AND is_boss = 1`);
   }
 
   if (hasShop) {
-    npcsStatement += ` AND shop_id > 0`;
+    conditions.push(Prisma.sql` AND shop_id > 0`);
   }
 
-  npcsStatement += ` LIMIT ${limit} OFFSET ${offset}`;
-  const npcs = await prisma.$queryRawUnsafe<SearchNpc[]>(npcsStatement);
+  const where = Prisma.join(conditions, '');
 
-  let totalStatement = `SELECT COUNT(*) as count FROM maple2_codex.npcs WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
+  const npcs = await prisma.$queryRaw<SearchNpc[]>`
+    SELECT id, name, portrait, title FROM npcs WHERE ${where} LIMIT ${limit} OFFSET ${offset}`;
 
-  if (npcTypeString) {
-    totalStatement += ` AND npc_type IN (${npcTypeString})`;
-  }
-
-  if (minLevel) {
-    totalStatement += ` AND level >= ${Number(minLevel)}`;
-  }
-
-  if (maxLevel) {
-    totalStatement += ` AND level <= ${Number(maxLevel)}`;
-  }
-
-  if (isBoss) {
-    totalStatement += ` AND is_boss = 1`;
-  }
-
-  if (hasShop) {
-    totalStatement += ` AND shop_id > 0`;
-  }
-
-  const npcCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(totalStatement);
+  const npcCount = await prisma.$queryRaw<{ count: bigint }[]>`
+    SELECT COUNT(*) as count FROM npcs WHERE ${where}`;
   const total = Number(npcCount[0].count); // bigint here cast as number since it'll never get that big uwu
 
   return json({ npcs, total });
 }) satisfies RequestHandler;
 
-export const POST = (async (req) => {
-  const npcId = req.url.searchParams.get('id');
-  if (npcId == null) {
-    return new Response(JSON.stringify({ message: 'No npc id provided' }), {
-      status: 400
-    });
-  }
-  const userIp = req.getClientAddress();
-  const key = `${npcId}-${userIp}`;
-
-  try {
-    await rateLimiter.consume(key);
-
-    const npc = await prisma.npcs.findUnique({
-      where: {
-        id: Number(npcId)
-      }
-    });
-
-    if (npc == null) {
-      return new Response(JSON.stringify({ message: 'Npc not found' }), {
-        status: 404
-      });
-    }
-
-    await prisma.npcs.update({
-      where: {
-        id: Number(npcId)
-      },
-      data: {
-        visit_count: {
-          increment: 1
-        }
-      }
-    });
-
-    return new Response();
-  } catch (err) {
-    return new Response(JSON.stringify({ message: 'Too many requests' }), {
-      status: 429
-    });
-  }
-}) satisfies RequestHandler;
+export const POST = createVisitHandler({
+  noun: 'npc',
+  rateLimiter,
+  increment: (id) =>
+    prisma.npcs.updateMany({ where: { id }, data: { visit_count: { increment: 1 } } })
+});

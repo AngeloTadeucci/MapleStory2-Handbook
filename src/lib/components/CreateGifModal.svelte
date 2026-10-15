@@ -1,7 +1,7 @@
 <script lang="ts">
   import { captureGifFrames, type GifCaptureSource } from '$lib/gifCapture';
   import type { ZodIssue } from 'zod';
-  import { gifSchema } from '$lib/schemas/gif';
+  import { GIF_MAX_DIMENSION, gifSchema } from '$lib/schemas/gif';
   import { PUBLIC_GIFS_URL } from '$env/static/public';
   import { Dialog, Portal, Combobox, useListCollection } from '@skeletonlabs/skeleton-svelte';
 
@@ -57,12 +57,24 @@
 
   $effect(() => {
     if (source) {
-      formData.height = source.height || 400;
-      formData.width = source.width || 400;
+      formData.height = Math.min(source.height || 400, GIF_MAX_DIMENSION);
+      formData.width = Math.min(source.width || 400, GIF_MAX_DIMENSION);
     }
   });
 
   let errors: ZodIssue[] = $state([]);
+
+  // Aborted on unmount so a capture or upload in flight cannot touch state, open a tab or POST.
+  const lifetime = new AbortController();
+  $effect(() => () => lifetime.abort());
+
+  function retryHint(response: Response) {
+    const seconds = Number(response.headers.get('Retry-After'));
+    if (!Number.isFinite(seconds) || seconds <= 0) return '';
+    return seconds < 90
+      ? ` Try again in ${Math.ceil(seconds)} seconds.`
+      : ` Try again in about ${Math.ceil(seconds / 60)} minutes.`;
+  }
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -80,11 +92,18 @@
     }
     loading = true;
     statusMessage = 'Taking screenshots...';
+    const { signal } = lifetime;
 
     try {
-      const screenshots = await captureGifFrames(source, formData.framerate, (done, total) => {
-        statusMessage = `Capturing frame ${done} of ${total}...`;
-      });
+      const screenshots = await captureGifFrames(
+        source,
+        formData.framerate,
+        (done, total) => {
+          if (!signal.aborted) statusMessage = `Capturing frame ${done} of ${total}...`;
+        },
+        signal
+      );
+      signal.throwIfAborted();
       statusMessage = 'Creating GIF...';
       const payload = JSON.stringify({
         model,
@@ -98,12 +117,15 @@
         headers: {
           'Content-Type': 'application/json'
         },
-        body: payload
+        body: payload,
+        signal
       });
 
       if (response.ok) {
         if (download) {
-          const url = URL.createObjectURL(await response.blob());
+          const blob = await response.blob();
+          signal.throwIfAborted();
+          const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
           link.download = 'maplestory2-outfit.gif';
@@ -111,20 +133,26 @@
           setTimeout(() => URL.revokeObjectURL(url), 60_000);
         } else {
           const { url } = await response.json();
+          signal.throwIfAborted();
           window.open(PUBLIC_GIFS_URL + url, '_blank');
         }
         onClose();
       } else if (response.status === 413) {
         errorMessage =
           'The animation is too long or high quality. Try reducing framerate, quality, or resizing to smaller dimensions.';
+      } else if (response.status === 429) {
+        errorMessage = `You have created too many GIFs recently.${retryHint(response)}`;
+      } else if (response.status === 503) {
+        errorMessage = `The GIF service is busy right now.${retryHint(response)}`;
       } else {
         const data = await response.json().catch(() => ({ message: 'Unknown error' }));
         errorMessage = data.message || 'Failed to create GIF';
       }
     } catch (err) {
+      if (signal.aborted) return;
       errorMessage = err instanceof Error ? err.message : 'Network error. Please try again.';
     } finally {
-      loading = false;
+      if (!signal.aborted) loading = false;
     }
   };
 

@@ -2,6 +2,8 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import DBClient from '$lib/prismaClient';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import type { SearchTrophy } from '$lib/types/Trophy';
+import { parsePagination } from '$lib/server/pagination';
+import { createVisitHandler } from '$lib/server/visitCount';
 
 const prisma = DBClient.getInstance().prisma;
 
@@ -12,65 +14,23 @@ const rateLimiter = new RateLimiterMemory({
 
 export const GET = (async ({ url }) => {
   const search = url.searchParams.get('search') ?? '';
-  const limit = Number(url.searchParams.get('limit') ?? 20);
-  const offset = Number(url.searchParams.get('page') ?? 0) * limit;
+  const { limit, offset } = parsePagination(url.searchParams, 20);
 
-  if (search.includes('"')) {
-    return json({ trophies: [], total: 0 });
-  }
+  const searchPattern = `%${search}%`;
 
-  const searchString = `"%${search}%"`;
+  const trophies = await prisma.$queryRaw<SearchTrophy[]>`
+    SELECT id, name, icon FROM achieves WHERE name LIKE ${searchPattern} OR id LIKE ${searchPattern} LIMIT ${limit} OFFSET ${offset}`;
 
-  const trophiesStatement = `SELECT id, name, icon FROM achieves WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${offset}`;
-  const trophies = await prisma.$queryRawUnsafe<SearchTrophy[]>(trophiesStatement);
-
-  const totalStatement = `SELECT COUNT(*) as count FROM achieves WHERE name LIKE ${searchString} OR id LIKE ${searchString}`;
-  const trophiesCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(totalStatement);
+  const trophiesCount = await prisma.$queryRaw<{ count: bigint }[]>`
+    SELECT COUNT(*) as count FROM achieves WHERE name LIKE ${searchPattern} OR id LIKE ${searchPattern}`;
   const total = Number(trophiesCount[0].count); // bigint here cast as number since it'll never get that big uwu
 
-  return json({ trophies: trophies, total });
+  return json({ trophies, total });
 }) satisfies RequestHandler;
 
-export const POST = (async (req) => {
-  const trophyId = req.url.searchParams.get('id');
-  if (trophyId == null) {
-    return new Response(JSON.stringify({ message: 'No trophy id provided' }), {
-      status: 400
-    });
-  }
-  const userIp = req.getClientAddress();
-  const key = `${trophyId}-${userIp}`;
-
-  try {
-    await rateLimiter.consume(key);
-
-    const trophy = await prisma.achieves.findUnique({
-      where: {
-        id: Number(trophyId)
-      }
-    });
-
-    if (trophy == null) {
-      return new Response(JSON.stringify({ message: 'Trophy not found' }), {
-        status: 404
-      });
-    }
-
-    await prisma.achieves.update({
-      where: {
-        id: Number(trophyId)
-      },
-      data: {
-        visit_count: {
-          increment: 1
-        }
-      }
-    });
-
-    return new Response();
-  } catch (err) {
-    return new Response(JSON.stringify({ message: 'Too many requests' }), {
-      status: 429
-    });
-  }
-}) satisfies RequestHandler;
+export const POST = createVisitHandler({
+  noun: 'trophy',
+  rateLimiter,
+  increment: (id) =>
+    prisma.achieves.updateMany({ where: { id }, data: { visit_count: { increment: 1 } } })
+});

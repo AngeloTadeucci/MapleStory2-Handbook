@@ -1,27 +1,24 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import DBClient from '$lib/prismaClient';
+import { parsePagination } from '$lib/server/pagination';
 
 const prisma = DBClient.getInstance().prisma;
 
 export const GET = (async ({ url }) => {
-	const search = url.searchParams.get('search') ?? '';
-	const limit = Number(url.searchParams.get('limit') ?? 50);
-	const offset = Number(url.searchParams.get('page') ?? 0) * limit;
+  const search = url.searchParams.get('search') ?? '';
+  // No page requests this endpoint, the music page loads tracks server side.
+  const { limit, offset } = parsePagination(url.searchParams, 50, 100);
 
-	if (search.includes('"')) {
-		return json({ tracks: [], total: 0 });
-	}
+  const searchPattern = `%${search}%`;
 
-	const searchString = `"%${search}%"`;
+  const tracks = await prisma.$queryRaw<
+    { id: number; name: string; file_name: string; duration_seconds: number }[]
+  >`
+    SELECT id, name, file_name, duration_seconds FROM bgm_tracks WHERE name LIKE ${searchPattern} ORDER BY name LIMIT ${limit} OFFSET ${offset}`;
 
-	const tracksStatement = `SELECT id, name, file_name, duration_seconds FROM bgm_tracks WHERE name LIKE ${searchString} ORDER BY name LIMIT ${limit} OFFSET ${offset}`;
-	const tracks = await prisma.$queryRawUnsafe<
-		{ id: number; name: string; file_name: string; duration_seconds: number }[]
-	>(tracksStatement);
+  const countResult = await prisma.$queryRaw<{ count: bigint }[]>`
+    SELECT COUNT(*) as count FROM bgm_tracks WHERE name LIKE ${searchPattern}`;
+  const total = Number(countResult[0].count);
 
-	const totalStatement = `SELECT COUNT(*) as count FROM bgm_tracks WHERE name LIKE ${searchString}`;
-	const countResult = await prisma.$queryRawUnsafe<{ count: bigint }[]>(totalStatement);
-	const total = Number(countResult[0].count);
-
-	return json({ tracks, total });
+  return json({ tracks, total });
 }) satisfies RequestHandler;

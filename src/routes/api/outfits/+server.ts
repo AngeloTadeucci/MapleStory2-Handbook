@@ -15,7 +15,65 @@ import { joinCatalog, searchCatalog, type ItemLabel } from '$lib/outfits/search'
 
 // Metadata only. Geometry stays lazy. Cache avoids a full SELECT and schema
 // parse on every keystroke. Private preview indexes remain separate.
-const cache = new Map<string, { expires: number; items: ReturnType<typeof joinCatalog> }>();
+type CatalogEntry = { expires: number; items: ReturnType<typeof joinCatalog> };
+const cache = new Map<string, CatalogEntry>();
+// Concurrent requests for the same key share one refresh. An entry is removed
+// when its refresh settles, so a failed refresh is retried by the next request.
+const inFlight = new Map<string, Promise<CatalogEntry>>();
+
+type RefreshInput = {
+  base: string;
+  hairPreview: string;
+  preview: string;
+  fetch: typeof fetch;
+  url: URL;
+};
+
+async function refreshCatalog({
+  base,
+  hairPreview,
+  preview,
+  fetch,
+  url
+}: RefreshInput): Promise<CatalogEntry> {
+  const response = await fetch(`${base}simulator-catalog.json`);
+  if (!response.ok) throw new Error('Model catalog is unavailable');
+  const catalog = catalogSchema.parse(await response.json());
+  if (catalog.items.some(hasApproximateHair) || hairPreview) {
+    const manifestUrl = new URL(`${base}native-manifest.json`, url).href;
+    const manifest = await fetch(manifestUrl);
+    if (manifest.ok) {
+      let assets = parseNativeManifest(await manifest.json(), manifestUrl);
+      if (!preview) {
+        assets = [...assets, ...(await loadHairPreviews(fetch, url.href))];
+        catalog.items = applyHairPreviews(catalog.items, assets);
+      }
+      catalog.items = enableApproximateHair(catalog.items, assets);
+    } else if (hairPreview) throw new Error('Base hair manifest is unavailable');
+  }
+  let labels: ItemLabel[] = [];
+  try {
+    if (!hairPreview) {
+      // SELECT only. Missing database records and names do not remove source IDs.
+      labels = await DBClient.getInstance().prisma.items.findMany({
+        select: {
+          id: true,
+          name: true,
+          icon_path: true,
+          gender: true,
+          slot: true,
+          is_outfit: true,
+          rarity: true,
+          dyeable: true,
+          kfms: true
+        }
+      });
+    }
+  } catch {
+    console.warn('Outfit labels unavailable; using client source labels');
+  }
+  return { expires: Date.now() + 60_000, items: joinCatalog(catalog.items, labels) };
+}
 
 export const GET: RequestHandler = async ({ url, fetch }) => {
   const parsed = searchSchema.safeParse(Object.fromEntries(url.searchParams));
@@ -28,45 +86,26 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
     const cacheKey = `${base}?hairPreview=${query.hairPreview}`;
     let cached = cache.get(cacheKey);
     if (!cached || cached.expires <= Date.now()) {
-      const response = await fetch(`${base}simulator-catalog.json`);
-      if (!response.ok) throw new Error('Model catalog is unavailable');
-      const catalog = catalogSchema.parse(await response.json());
-      if (catalog.items.some(hasApproximateHair) || query.hairPreview) {
-        const manifestUrl = new URL(`${base}native-manifest.json`, url).href;
-        const manifest = await fetch(manifestUrl);
-        if (manifest.ok) {
-          let assets = parseNativeManifest(await manifest.json(), manifestUrl);
-          if (!query.preview) {
-            assets = [...assets, ...(await loadHairPreviews(fetch, url.href))];
-            catalog.items = applyHairPreviews(catalog.items, assets);
-          }
-          catalog.items = enableApproximateHair(catalog.items, assets);
-        } else if (query.hairPreview) throw new Error('Base hair manifest is unavailable');
-      }
-      let labels: ItemLabel[] = [];
-      try {
-        if (!query.hairPreview) {
-          // SELECT only. Missing database records and names do not remove source IDs.
-          labels = await DBClient.getInstance().prisma.items.findMany({
-            select: {
-              id: true,
-              name: true,
-              icon_path: true,
-              gender: true,
-              slot: true,
-              is_outfit: true,
-              rarity: true,
-              dyeable: true,
-              kfms: true
-            }
+      let refresh = inFlight.get(cacheKey);
+      if (!refresh) {
+        refresh = refreshCatalog({
+          base,
+          hairPreview: query.hairPreview,
+          preview: query.preview,
+          fetch,
+          url
+        })
+          .then((entry) => {
+            if (cache.size >= 3) cache.delete(cache.keys().next().value!);
+            cache.set(cacheKey, entry);
+            return entry;
+          })
+          .finally(() => {
+            inFlight.delete(cacheKey);
           });
-        }
-      } catch {
-        console.warn('Outfit labels unavailable; using client source labels');
+        inFlight.set(cacheKey, refresh);
       }
-      cached = { expires: Date.now() + 60_000, items: joinCatalog(catalog.items, labels) };
-      if (cache.size >= 3) cache.delete(cache.keys().next().value!);
-      cache.set(cacheKey, cached);
+      cached = await refresh;
     }
     return json(searchCatalog(cached.items, query));
   } catch (cause) {

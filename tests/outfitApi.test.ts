@@ -54,4 +54,56 @@ describe('source-owned outfit API', () => {
     expect(response.status).toBe(400);
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  describe('catalog refresh', () => {
+    const catalogBody = {
+      version: 1,
+      nativeManifestVersion: 1,
+      items: [
+        {
+          itemId: 12200002,
+          bodyVariant: 'female',
+          sourceName: '',
+          slots: ['CL'],
+          parts: [],
+          customize: {},
+          cutting: [],
+          availability: 'unavailable',
+          reason: 'Missing source'
+        }
+      ]
+    };
+    const request = (preview: string, fetch: typeof globalThis.fetch) =>
+      GET({
+        url: new URL(`http://localhost/api/outfits?preview=${preview}&availability=all`),
+        fetch
+      } as unknown as OutfitRequest);
+
+    it('shares one refresh between concurrent requests', async () => {
+      const fetch = vi.fn(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        return Response.json(catalogBody);
+      });
+      const responses = await Promise.all([
+        request('shared', fetch),
+        request('shared', fetch),
+        request('shared', fetch)
+      ]);
+      expect(responses.map((response) => response.status)).toEqual([200, 200, 200]);
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries after a failed refresh', async () => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const failing = vi.fn(async () => new Response('down', { status: 500 }));
+      const failed = await Promise.all([request('retry', failing), request('retry', failing)]);
+      expect(failed.map((response) => response.status)).toEqual([503, 503]);
+      expect(failing).toHaveBeenCalledTimes(1);
+
+      const working = vi.fn(async () => Response.json(catalogBody));
+      expect((await request('retry', working)).status).toBe(200);
+      expect(working).toHaveBeenCalledTimes(1);
+      error.mockRestore();
+    });
+  });
 });

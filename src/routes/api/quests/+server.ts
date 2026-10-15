@@ -2,6 +2,10 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import DBClient from '$lib/prismaClient';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import type { SearchQuest } from '$lib/types/Quest';
+import { Prisma } from '$lib/generated/prisma/client';
+import { inListCondition } from '$lib/server/sqlFilters';
+import { parsePagination } from '$lib/server/pagination';
+import { createVisitHandler } from '$lib/server/visitCount';
 const prisma = DBClient.getInstance().prisma;
 
 const rateLimiter = new RateLimiterMemory({
@@ -11,8 +15,7 @@ const rateLimiter = new RateLimiterMemory({
 
 export const GET = (async ({ url }) => {
   const search = url.searchParams.get('search') ?? '';
-  const limit = Number(url.searchParams.get('limit') ?? 20);
-  const offset = Number(url.searchParams.get('page') ?? 0) * limit;
+  const { limit, offset } = parsePagination(url.searchParams, 20);
   const questTypeString = url.searchParams.get('questType');
   const minQuestLevel = url.searchParams.get('minQuestLevel');
   const maxQuestLevel = url.searchParams.get('maxQuestLevel');
@@ -20,113 +23,48 @@ export const GET = (async ({ url }) => {
   const maxRequiredLevel = url.searchParams.get('maxRequiredLevel');
   const hasPrerequisites = url.searchParams.get('hasPrerequisites') === 'true';
 
-  if (search.includes('"')) {
-    return json({ quests: [], total: 0 });
+  const searchPattern = `%${search}%`;
+
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`(name LIKE ${searchPattern} OR id LIKE ${searchPattern} OR description LIKE ${searchPattern} OR manualDescription LIKE ${searchPattern} OR completeDescription LIKE ${searchPattern})`,
+    inListCondition('questType', questTypeString)
+  ];
+
+  if (minQuestLevel && Number.isFinite(Number(minQuestLevel))) {
+    conditions.push(Prisma.sql` AND questLevel >= ${Number(minQuestLevel)}`);
   }
 
-  const searchString = `"%${search}%"`;
-
-  let questsStatement = `SELECT id, name FROM maple2_codex.quests WHERE (name LIKE ${searchString} OR id LIKE ${searchString} OR description LIKE ${searchString} OR manualDescription LIKE ${searchString} OR completeDescription LIKE ${searchString})`;
-
-  if (questTypeString) {
-    questsStatement += ` AND questType IN (${questTypeString})`;
+  if (maxQuestLevel && Number.isFinite(Number(maxQuestLevel))) {
+    conditions.push(Prisma.sql` AND questLevel <= ${Number(maxQuestLevel)}`);
   }
 
-  if (minQuestLevel) {
-    questsStatement += ` AND questLevel >= ${Number(minQuestLevel)}`;
+  if (minRequiredLevel && Number.isFinite(Number(minRequiredLevel))) {
+    conditions.push(Prisma.sql` AND requiredLevel >= ${Number(minRequiredLevel)}`);
   }
 
-  if (maxQuestLevel) {
-    questsStatement += ` AND questLevel <= ${Number(maxQuestLevel)}`;
-  }
-
-  if (minRequiredLevel) {
-    questsStatement += ` AND requiredLevel >= ${Number(minRequiredLevel)}`;
-  }
-
-  if (maxRequiredLevel) {
-    questsStatement += ` AND requiredLevel <= ${Number(maxRequiredLevel)}`;
+  if (maxRequiredLevel && Number.isFinite(Number(maxRequiredLevel))) {
+    conditions.push(Prisma.sql` AND requiredLevel <= ${Number(maxRequiredLevel)}`);
   }
 
   if (hasPrerequisites) {
-    questsStatement += ` AND JSON_LENGTH(requiredQuest) > 0`;
+    conditions.push(Prisma.sql` AND JSON_LENGTH(requiredQuest) > 0`);
   }
 
-  questsStatement += ` LIMIT ${limit} OFFSET ${offset}`;
-  const quests = await prisma.$queryRawUnsafe<SearchQuest[]>(questsStatement);
+  const where = Prisma.join(conditions, '');
 
-  let totalStatement = `SELECT COUNT(*) as count FROM maple2_codex.quests WHERE (name LIKE ${searchString} OR id LIKE ${searchString})`;
+  const quests = await prisma.$queryRaw<SearchQuest[]>`
+    SELECT id, name FROM quests WHERE ${where} LIMIT ${limit} OFFSET ${offset}`;
 
-  if (questTypeString) {
-    totalStatement += ` AND questType IN (${questTypeString})`;
-  }
-
-  if (minQuestLevel) {
-    totalStatement += ` AND questLevel >= ${Number(minQuestLevel)}`;
-  }
-
-  if (maxQuestLevel) {
-    totalStatement += ` AND questLevel <= ${Number(maxQuestLevel)}`;
-  }
-
-  if (minRequiredLevel) {
-    totalStatement += ` AND requiredLevel >= ${Number(minRequiredLevel)}`;
-  }
-
-  if (maxRequiredLevel) {
-    totalStatement += ` AND requiredLevel <= ${Number(maxRequiredLevel)}`;
-  }
-
-  if (hasPrerequisites) {
-    totalStatement += ` AND JSON_LENGTH(requiredQuest) > 0`;
-  }
-
-  const questCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(totalStatement);
+  const questCount = await prisma.$queryRaw<{ count: bigint }[]>`
+    SELECT COUNT(*) as count FROM quests WHERE ${where}`;
   const total = Number(questCount[0].count); // bigint here cast as number since it'll never get that big uwu
 
   return json({ quests, total });
 }) satisfies RequestHandler;
 
-export const POST = (async (req) => {
-  const questId = req.url.searchParams.get('id');
-  if (questId == null) {
-    return new Response(JSON.stringify({ message: 'No quest id provided' }), {
-      status: 400
-    });
-  }
-  const userIp = req.getClientAddress();
-  const key = `${questId}-${userIp}`;
-
-  try {
-    await rateLimiter.consume(key);
-
-    const quest = await prisma.quests.findUnique({
-      where: {
-        id: Number(questId)
-      }
-    });
-
-    if (quest == null) {
-      return new Response(JSON.stringify({ message: 'Quest not found' }), {
-        status: 404
-      });
-    }
-
-    await prisma.quests.update({
-      where: {
-        id: Number(questId)
-      },
-      data: {
-        visit_count: {
-          increment: 1
-        }
-      }
-    });
-
-    return new Response();
-  } catch (err) {
-    return new Response(JSON.stringify({ message: 'Too many requests' }), {
-      status: 429
-    });
-  }
-}) satisfies RequestHandler;
+export const POST = createVisitHandler({
+  noun: 'quest',
+  rateLimiter,
+  increment: (id) =>
+    prisma.quests.updateMany({ where: { id }, data: { visit_count: { increment: 1 } } })
+});

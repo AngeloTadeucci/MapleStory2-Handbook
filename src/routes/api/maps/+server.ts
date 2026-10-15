@@ -2,6 +2,8 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import DBClient from '$lib/prismaClient';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import type { SearchMap } from '$lib/types/Map';
+import { parsePagination } from '$lib/server/pagination';
+import { createVisitHandler } from '$lib/server/visitCount';
 
 const prisma = DBClient.getInstance().prisma;
 
@@ -12,65 +14,23 @@ const rateLimiter = new RateLimiterMemory({
 
 export const GET = (async ({ url }) => {
   const search = url.searchParams.get('search') ?? '';
-  const limit = Number(url.searchParams.get('limit') ?? 20);
-  const offset = Number(url.searchParams.get('page') ?? 0) * limit;
+  const { limit, offset } = parsePagination(url.searchParams, 20);
 
-  if (search.includes('"')) {
-    return json({ maps: [], total: 0 });
-  }
+  const searchPattern = `%${search}%`;
 
-  const searchString = `"%${search}%"`;
+  const maps = await prisma.$queryRaw<SearchMap[]>`
+    SELECT id, name, icon FROM maps WHERE name LIKE ${searchPattern} OR id LIKE ${searchPattern} LIMIT ${limit} OFFSET ${offset}`;
 
-  const mapsStatement = `SELECT id, name, icon FROM maps WHERE name LIKE ${searchString} OR id LIKE ${searchString} LIMIT ${limit} OFFSET ${offset}`;
-  const maps = await prisma.$queryRawUnsafe<SearchMap[]>(mapsStatement);
-
-  const totalStatement = `SELECT COUNT(*) as count FROM maps WHERE name LIKE ${searchString} OR id LIKE ${searchString}`;
-  const mapsCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(totalStatement);
+  const mapsCount = await prisma.$queryRaw<{ count: bigint }[]>`
+    SELECT COUNT(*) as count FROM maps WHERE name LIKE ${searchPattern} OR id LIKE ${searchPattern}`;
   const total = Number(mapsCount[0].count); // bigint here cast as number since it'll never get that big uwu
 
   return json({ maps, total });
 }) satisfies RequestHandler;
 
-export const POST = (async (req) => {
-  const mapId = req.url.searchParams.get('id');
-  if (mapId == null) {
-    return new Response(JSON.stringify({ message: 'No map id provided' }), {
-      status: 400
-    });
-  }
-  const userIp = req.getClientAddress();
-  const key = `${mapId}-${userIp}`;
-
-  try {
-    await rateLimiter.consume(key);
-
-    const map = await prisma.maps.findUnique({
-      where: {
-        id: Number(mapId)
-      }
-    });
-
-    if (map == null) {
-      return new Response(JSON.stringify({ message: 'Map not found' }), {
-        status: 404
-      });
-    }
-
-    await prisma.maps.update({
-      where: {
-        id: Number(mapId)
-      },
-      data: {
-        visit_count: {
-          increment: 1
-        }
-      }
-    });
-
-    return new Response();
-  } catch (err) {
-    return new Response(JSON.stringify({ message: 'Too many requests' }), {
-      status: 429
-    });
-  }
-}) satisfies RequestHandler;
+export const POST = createVisitHandler({
+  noun: 'map',
+  rateLimiter,
+  increment: (id) =>
+    prisma.maps.updateMany({ where: { id }, data: { visit_count: { increment: 1 } } })
+});

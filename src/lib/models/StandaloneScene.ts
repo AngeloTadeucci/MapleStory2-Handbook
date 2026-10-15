@@ -160,12 +160,14 @@ export class StandaloneScene {
       begin: () => {
         const restore = this.playback?.beginCapture();
         return () => {
+          if (this.disposed) return;
           restore?.();
           this.face?.seek(this.currentTime);
           this.render();
         };
       },
       frame: (time) => {
+        if (this.disposed) throw new Error('The preview was closed.');
         this.currentTime = time;
         return this.toDataURL();
       }

@@ -3,6 +3,10 @@ import DBClient from '$lib/prismaClient';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import type { SearchItem } from '$lib/types/Item';
 import { ItemTypes } from '$lib/itemTypes';
+import { Prisma } from '$lib/generated/prisma/client';
+import { inListCondition, parseIntList } from '$lib/server/sqlFilters';
+import { parsePagination } from '$lib/server/pagination';
+import { createVisitHandler } from '$lib/server/visitCount';
 const prisma = DBClient.getInstance().prisma;
 
 const rateLimiter = new RateLimiterMemory({
@@ -18,8 +22,7 @@ function parseTriState(value: string | null): 'true' | 'false' | null {
 
 export const GET = (async ({ url }) => {
   const search = url.searchParams.get('search') ?? '';
-  const limit = Number(url.searchParams.get('limit') ?? 20);
-  const offset = Number(url.searchParams.get('page') ?? 0) * limit;
+  const { limit, offset } = parsePagination(url.searchParams, 20);
   const rarityString = url.searchParams.get('rarity');
   const jobString = url.searchParams.get('job');
   const itemType = url.searchParams.get('type');
@@ -27,49 +30,50 @@ export const GET = (async ({ url }) => {
   const genderString = url.searchParams.get('gender');
   const setItemsFilter = parseTriState(url.searchParams.get('setItems'));
 
-  if (search.includes('"')) {
-    return json({ items: [], total: 0 });
-  }
+  const searchPattern = `%${search}%`;
 
-  const searchString = `"%${search}%"`;
-
-  let where = `(name LIKE ${searchString} OR id LIKE ${searchString})`;
-
-  if (rarityString) {
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`(name LIKE ${searchPattern} OR id LIKE ${searchPattern})`,
     // rarity in db is one single value, but we want to allow multiple rarities to be searched
-    where += ` AND rarity IN (${rarityString})`;
-  }
+    inListCondition('rarity', rarityString)
+  ];
 
   if (jobString) {
-    where += ` AND JSON_CONTAINS(job_limit, '[${jobString}]')`;
+    const jobs = parseIntList(jobString);
+    conditions.push(
+      jobs.length > 0
+        ? Prisma.sql` AND JSON_CONTAINS(job_limit, ${JSON.stringify(jobs)})`
+        : Prisma.sql` AND 1 = 0`
+    );
   }
 
   if (itemType) {
     // Extract group and type from item IDs based on the formula:
     // Group = id / 10000000
     // Type = (id % 10000000) / 100000
-    where += buildItemTypeCondition(itemType);
+    conditions.push(Prisma.raw(buildItemTypeCondition(itemType)));
   }
 
   if (outfitFilter) {
-    where += ` AND is_outfit = ${outfitFilter === 'true' ? 1 : 0}`;
+    conditions.push(Prisma.sql` AND is_outfit = ${outfitFilter === 'true' ? 1 : 0}`);
   }
 
-  if (genderString) {
-    where += ` AND gender IN (${genderString})`;
-  }
+  conditions.push(inListCondition('gender', genderString));
 
   if (setItemsFilter) {
-    where += setItemsFilter === 'true' ? ` AND set_name != ''` : ` AND set_name = ''`;
+    conditions.push(
+      setItemsFilter === 'true' ? Prisma.sql` AND set_name != ''` : Prisma.sql` AND set_name = ''`
+    );
   }
 
-  const items = await prisma.$queryRawUnsafe<SearchItem[]>(
-    `SELECT id, name, rarity, icon_path, main_description, guide_description, tooltip_description, job_limit, item_preset, is_outfit FROM maple2_codex.items WHERE ${where} LIMIT ${limit} OFFSET ${offset}`
-  );
+  const where = Prisma.join(conditions, '');
 
-  const itemCount = await prisma.$queryRawUnsafe<{ count: bigint }[]>(
-    `SELECT COUNT(*) as count FROM maple2_codex.items WHERE ${where}`
-  );
+  const items = await prisma.$queryRaw<SearchItem[]>`
+    SELECT id, name, rarity, icon_path, main_description, guide_description, tooltip_description, job_limit, item_preset, is_outfit
+    FROM items WHERE ${where} LIMIT ${limit} OFFSET ${offset}`;
+
+  const itemCount = await prisma.$queryRaw<{ count: bigint }[]>`
+    SELECT COUNT(*) as count FROM items WHERE ${where}`;
   const total = Number(itemCount[0].count); // bigint here cast as number since it'll never get that big uwu
 
   return json({ items, total });
@@ -137,48 +141,10 @@ function buildItemTypeCondition(itemType: string): string {
   return ` AND (${conditions.join(' OR ')})`;
 }
 
-export const POST = (async (req) => {
-  const itemId = req.url.searchParams.get('id');
-  const isProduction = import.meta.env.PUBLIC_NODE_ENV === 'prod';
-
-  if (itemId == null) {
-    return new Response(isProduction ? '' : JSON.stringify({ message: 'No item id provided' }), {
-      status: 400
-    });
-  }
-  const userIp = req.getClientAddress();
-  const key = `${itemId}-${userIp}`;
-
-  try {
-    await rateLimiter.consume(key);
-
-    const npc = await prisma.items.findUnique({
-      where: {
-        id: Number(itemId)
-      }
-    });
-
-    if (npc == null) {
-      return new Response(isProduction ? '' : JSON.stringify({ message: 'Item not found' }), {
-        status: 404
-      });
-    }
-
-    await prisma.items.update({
-      where: {
-        id: Number(itemId)
-      },
-      data: {
-        visit_count: {
-          increment: 1
-        }
-      }
-    });
-
-    return new Response();
-  } catch (err) {
-    return new Response(isProduction ? '' : JSON.stringify({ message: 'Too many requests' }), {
-      status: 429
-    });
-  }
-}) satisfies RequestHandler;
+export const POST = createVisitHandler({
+  noun: 'item',
+  rateLimiter,
+  increment: (id) =>
+    prisma.items.updateMany({ where: { id }, data: { visit_count: { increment: 1 } } }),
+  quietInProduction: true
+});
