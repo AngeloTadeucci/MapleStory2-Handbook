@@ -35,9 +35,10 @@ This project is open to contributions, feel free to fork and submit pull request
 
 ## Todo
 
+- [x] Items, NPCs, maps, quests and quest chains, trophies, dyes, housing, music, storybooks and the outfit simulator
 - [ ] Finish NPC details page
-- [ ] Add maps, quests, trophies, dungeons, skills, dyes and more.
+- [ ] Add dungeons, skills and more.
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/AngeloTadeucci/Maple2Codex-FrontEnd-Svelte/blob/master/LICENSE).
+This project is licensed under the [MIT License](https://github.com/AngeloTadeucci/MapleStory2-Handbook/blob/master/LICENSE).

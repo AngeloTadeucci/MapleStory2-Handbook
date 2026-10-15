@@ -1,25 +1,29 @@
 # MapleStory 2 Handbook - Frontend
 
-**Project Path:** `d:\Projetos\Maple2_Codex\MapleStory2-Handbook`
-**Related Backend:** `d:\Projetos\Maple2_Codex\MapleStory2-Handbook-BackEnd`
+Guidance for AI coding agents and contributors working in this repository.
+
+**Project Path:** `D:\Projetos\MapleStory2\Maple2_Codex\MapleStory2-Handbook`
+**Related Backend:** `D:\Projetos\MapleStory2\Maple2_Codex\MapleStory2-Handbook-BackEnd`
 
 ## Project Overview
 
 A full-stack SvelteKit web application that provides a searchable database of MapleStory 2 game content (items, NPCs, maps, quests, achievements, etc.). The frontend displays data parsed and populated by the backend GameParser.
 
 **Framework Stack:**
-- Svelte 5.47.1 (component framework with runes)
-- SvelteKit 2.50.0 with SSR (Node.js adapter)
+
+- Svelte 5.57.2 (component framework with runes)
+- SvelteKit 2.70.3 with SSR (Node.js adapter)
 - TypeScript 5.9.3 (strict mode)
-- Tailwind CSS 4.1.18
-- Skeleton UI 4.10.0 (component library)
-- Prisma 7.2.0 (ORM - read-only access to database)
-- Vite 7.3.1 (build tool)
+- Tailwind CSS 4.3.3
+- Skeleton UI 4.15.2 (component library)
+- Prisma 7.10.1 (ORM - read-only access to database)
+- Vite 7.3.7 (build tool)
 
 **Key Libraries:**
+
 - Lucide Svelte 0.562.0 (icon library)
-- Zod 4.3.5 (schema validation)
-- Floating UI 1.7.4 (tooltips/popovers)
+- Zod 4.6.7 (schema validation)
+- Floating UI 1.8.0 (tooltips/popovers)
 - Rate Limiter Flexible 5.0.5 (API rate limiting)
 
 ## Project Structure
@@ -51,6 +55,7 @@ src/
 This project uses **Svelte 5 runes** - do NOT use Svelte 4 syntax.
 
 **Component state and props:**
+
 ```svelte
 <script lang="ts">
   // Props (replaces `export let`)
@@ -70,6 +75,7 @@ This project uses **Svelte 5 runes** - do NOT use Svelte 4 syntax.
 ```
 
 **DO NOT use Svelte 4 patterns:**
+
 - `export let prop` → use `$props()` instead
 - `$: reactive = ...` → use `$derived()` or `$effect()` instead
 - `on:click={handler}` → use `onclick={handler}` instead (Svelte 5 event syntax)
@@ -96,6 +102,7 @@ This project uses **Tailwind CSS v4** - do NOT generate v3-style config.
 **Critical:** The Prisma schema (`prisma/schema.prisma`) is pulled from the MySQL database using `pnpm db:pull`. The database structure is created and populated by the backend GameParser.
 
 **Data Flow for Schema Updates:**
+
 ```
 Backend GameParser
   ↓ (creates tables & populates)
@@ -118,7 +125,7 @@ TypeScript types in src/lib/generated/
 
 ### Database Connection
 
-- **Environment:** `DATABASE_URL` in `.env` (example: `mysql://root:gelo96@localhost:3310/maple2_codex`)
+- **Environment:** `DATABASE_URL` in `.env` (example: `mysql://root:root@localhost:3310/maple2_codex`)
 - **ORM:** Prisma with MariaDB adapter
 - **Access Pattern:** Read-only through Prisma Client in API routes and page loaders
 - **Singleton:** `src/lib/prismaClient.ts` provides single shared Prisma instance
@@ -142,6 +149,7 @@ Frontend Components & Pages
 Located in `src/routes/api/*/+server.ts`
 
 **GET Endpoints (Search):**
+
 ```
 /api/items?search=term&limit=20&page=0&rarity=X&job=X&type=X
 /api/npcs?search=term&limit=20&page=0
@@ -151,6 +159,7 @@ Located in `src/routes/api/*/+server.ts`
 ```
 
 **POST Endpoints (View Tracking):**
+
 ```
 /api/items?id=123    (increments visit_count)
 /api/npcs?id=123
@@ -162,11 +171,13 @@ Located in `src/routes/api/*/+server.ts`
 ## Development & Build
 
 **⚠️ Important Development Notes:**
+
 - **Assume the dev server is already running** - Do NOT run `pnpm dev` unless explicitly asked
 - **For type checking**, use `pnpm check` instead of building
 - **Do NOT** run `pnpm build` just to check for type errors
 
 **Installation:**
+
 ```bash
 pnpm install
 # Extract static assets (7z files to static/resource/image/)
@@ -174,39 +185,55 @@ pnpm exec prisma generate
 ```
 
 **Important Build Step:**
-- `pnpm build` runs `pnpm exec prisma generate && vite build`
+
+- `pnpm build` runs `svelte-kit sync && pnpm exec prisma generate && vite build`
 - Prisma client is regenerated from schema.prisma
 - Generated types are output to `src/lib/generated/prisma/`
 
 **Commands:**
+
 - `pnpm dev` - Development server (port 4000) - **DO NOT RUN unless explicitly requested**
 - `pnpm check` - Type check with svelte-check - **USE THIS for type validation**
 - `pnpm check:watch` - Type check in watch mode
 - `pnpm build` - Build for production - **DO NOT use for type checking**
 - `pnpm preview` - Preview production build
-- `pnpm lint` - Run ESLint and Prettier checks
-- `pnpm format` - Auto-format code with Prettier
+- `pnpm test` - Run the Vitest suite once, from `tests/`
+- `pnpm test:unit` - Run Vitest in watch mode
+- `pnpm exec eslint .` - Lint with the ESLint 9 flat config in `eslint.config.js`
+- `pnpm lint` - Run `prettier --check .` and then ESLint. The repo is not fully Prettier-formatted yet, so this fails until a repo-wide format lands
+- `pnpm format` - Auto-format code with Prettier. Run it on the files you touch, not repo-wide, unless the change is a dedicated formatting commit
 - `pnpm db:pull` - Pull database schema and regenerate Prisma client
 
 ## Development Workflow
 
 **Typical development process:**
+
 1. Make code changes in your editor
 2. Changes auto-reload in the running dev server (assume it's already running)
 3. Check types with `pnpm check` if needed
-4. Format code with `pnpm format` before committing
-5. Run `pnpm lint` to ensure code quality
+4. Run `pnpm test` and `pnpm exec eslint .`
+5. Format the files you touched with `pnpm exec prettier --write <files>`
 
 **DO NOT:**
+
 - Start the dev server (`pnpm dev`) unless explicitly asked
 - Build the project (`pnpm build`) to check for type errors
 - Modify Prisma schema expecting it to create new data
 - Commit changes unless the user explicitly asks for a commit
 
 **DO:**
+
 - Use `pnpm check` for type validation
 - Edit existing files rather than creating new ones when possible
 - Keep changes focused and minimal
+
+## Continuous Integration
+
+`.github/workflows/ci.yml` runs on pushes and pull requests to `master`: `pnpm install --frozen-lockfile`, `svelte-kit sync`, `prisma generate`, `pnpm check`, `pnpm exec eslint .` and `pnpm exec vitest run`. `prisma.config.ts` needs `DATABASE_URL` to load, so CI sets a dummy value. No test connects to a database.
+
+## Local References
+
+- **Maple2.File.Parser source:** `D:\Projetos\MapleStory2\Maple2.File`. The XML deserialization classes the backend GameParser uses, such as `MapData`, `BGM` and `MapProperty`, are under `Maple2.File.Parser/Xml/`.
 
 ## When to Contact Backend Team
 

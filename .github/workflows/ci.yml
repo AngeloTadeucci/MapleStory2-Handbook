@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts refuses to load without it. Nothing in CI connects to a database.
+      DATABASE_URL: mysql://ci:ci@localhost:3306/ci
+      PUBLIC_NODE_ENV: development
+      PUBLIC_MODELS_URL: http://localhost/glbs/
+      PUBLIC_GIFS_URL: http://localhost/gifs/
+      PUBLIC_IMAGES_URL: http://localhost/images/
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads the pnpm version from the packageManager field in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec svelte-kit sync
+      - run: pnpm exec prisma generate
+      - run: pnpm check
+      # Reports without failing the build until the existing lint errors are cleared.
+      - run: pnpm exec eslint .
+        continue-on-error: true
+      - run: pnpm exec vitest run
