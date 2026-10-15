@@ -18,7 +18,22 @@
 
   // Derive isModelPage reactively to avoid SSR store subscription issues
   let isModelPage = $derived($page.route.id?.includes('[slug]/model') ?? false);
+
+  // Discord shows every og:image as a gallery, so pages with their own must not get the default too.
+  const routesWithOwnOgImage = new Set([
+    '/items/[slug]',
+    '/npcs/[slug]',
+    '/maps/[slug]',
+    '/trophies/[slug]'
+  ]);
+  let hasOwnOgImage = $derived(routesWithOwnOgImage.has($page.route.id ?? ''));
 </script>
+
+<svelte:head>
+  {#if !hasOwnOgImage}
+    <meta property="og:image" content="https://handbook.tadeucci.dev/logo.png" />
+  {/if}
+</svelte:head>
 
 <GoogleAnalytics properties={['G-KNN265BGLK']} />
 
