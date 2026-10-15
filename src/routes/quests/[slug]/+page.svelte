@@ -1,7 +1,6 @@
 <script lang="ts">
   import CopyId from '$lib/components/CopyId.svelte';
   import type { PageData } from './$types';
-  import { onMount } from 'svelte';
   import type { Quest } from '$lib/types/Quest';
   import { getQuestTypeName } from '$lib/types/Quest';
   import ItemListContainer from '$lib/components/item/ItemListContainer.svelte';
@@ -10,6 +9,7 @@
   import Rewards from '$lib/components/quest/Rewards.svelte';
   import QuestObjectives from '$lib/components/quest/QuestObjectives.svelte';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
+  import { trackView } from '$lib/helpers/trackView';
 
   interface Props {
     data: PageData;
@@ -21,23 +21,7 @@
   const questMaps = $derived(data.props.questMaps as Array<{ id: number; name: string }>);
   const objectives = $derived(data.props.objectives);
 
-  async function incrementViewCount() {
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
-
-    try {
-      await fetch(`/api/quests?id=${quest.id}`, {
-        method: 'POST'
-      });
-    } catch {}
-  }
-
-  onMount(async () => {
-    if (!quest) {
-      return;
-    }
-
-    incrementViewCount();
-  });
+  $effect(() => trackView('/api/quests', quest.id));
 </script>
 
 <svelte:head>
@@ -64,11 +48,7 @@
   <div class="main-container grid-image mx-4 mt-3 rounded-xl bg-surface-700 p-6 pb-40">
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
       <ItemListContainer classname="relative">
-        <img
-          src="/quest/quest_epic.png"
-          class="absolute w-15.75 h-22 -top-2.5"
-          alt="Epic quest"
-        />
+        <img src="/quest/quest_epic.png" class="absolute w-15.75 h-22 -top-2.5" alt="Epic quest" />
         <h1 class="text-center z-10">{quest.name}</h1>
         <p class="text-center text-sm text-gray-400">{getQuestTypeName(quest.questType)}</p>
         <div class="relative flex items-center justify-center my-4 sm:m-0">

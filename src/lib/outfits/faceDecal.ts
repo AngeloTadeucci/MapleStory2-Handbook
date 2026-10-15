@@ -11,32 +11,9 @@ import { DataTexture, LinearFilter, RGBAFormat, UnsignedByteType } from 'three';
 import { bakeColors, type ColorControl, type Pixels, type Rgb } from './materialColors';
 import { z } from 'zod';
 import { sourceName } from './sharedSkeleton';
+import { decalSchema, type FaceDecalData } from './faceDecalSchema';
 
-export const decalSchema = z.object({
-  texture: z.string().regex(/^makeup\/item_makeup\/[a-z0-9_]+\.png$/),
-  mask: z
-    .string()
-    .regex(/^makeup\/item_makeup\/[a-z0-9_]+\.png$/)
-    .optional(),
-  transform: z.tuple([
-    z.number().finite(),
-    z.number().finite(),
-    z.number().finite(),
-    z.number().positive()
-  ]),
-  placements: z
-    .array(
-      z.tuple([
-        z.number().finite(),
-        z.number().finite(),
-        z.number().finite(),
-        z.number().positive()
-      ])
-    )
-    .optional(),
-  scaleRange: z.tuple([z.number().positive(), z.number().positive()]).optional()
-});
-export type FaceDecalData = z.infer<typeof decalSchema>;
+export { decalSchema, type FaceDecalData };
 type DecalOptions = { translation?: string; rotation?: string };
 const bindings = new WeakMap<
   MeshStandardMaterial,

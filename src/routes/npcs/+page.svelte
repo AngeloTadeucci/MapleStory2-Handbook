@@ -10,6 +10,7 @@
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import ComboboxChips from '$lib/components/ComboboxChips.svelte';
   import { NpcType, enumToWhitelist } from '$lib/Enums';
+  import { createLatestFetch } from '$lib/helpers/latestFetch';
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
@@ -17,6 +18,8 @@
 
   let data: SearchNpc[][] = $state([]);
   let loading = $state(true);
+  let loadError = $state(false);
+  const latestFetch = createLatestFetch();
 
   // Pagination state for Skeleton v4 (1-indexed)
   let currentPage = $state(1);
@@ -48,7 +51,7 @@
       },
       {
         name: 'page',
-        value: currentPage - 1  // API expects 0-indexed
+        value: currentPage - 1 // API expects 0-indexed
       },
       {
         name: 'limit',
@@ -77,11 +80,26 @@
     ]);
 
     loading = true;
-    const response = await fetch(`/api/npcs${params}`);
+    loadError = false;
+    const result = await latestFetch.fetchJson<{ npcs: SearchNpc[]; total: number }>(
+      `/api/npcs${params}`
+    );
 
-    const responseJson = await response.json();
-    const npcs = responseJson.npcs as SearchNpc[];
-    const total = responseJson.total as number;
+    // A newer request replaced this one and owns the loading state now.
+    if (result.status === 'aborted') {
+      return;
+    }
+    if (result.status === 'error') {
+      if (clearCache) {
+        data = [];
+        totalItems = 0;
+      }
+      loadError = true;
+      loading = false;
+      return;
+    }
+
+    const { npcs, total } = result.data;
 
     if (npcs.length === 0) {
       data = [];
@@ -135,16 +153,19 @@
 
     const minLevel = $page.url.searchParams.get('minLevel');
     const maxLevel = $page.url.searchParams.get('maxLevel');
-    levelRange = [
-      minLevel ? parseInt(minLevel) : 0,
-      maxLevel ? parseInt(maxLevel) : 99
-    ];
+    levelRange = [minLevel ? parseInt(minLevel) : 0, maxLevel ? parseInt(maxLevel) : 99];
 
     isBossOnly = $page.url.searchParams.get('isBoss') === 'true';
     hasShopOnly = $page.url.searchParams.get('hasShop') === 'true';
 
     // load first batch onMount
     fetchData(false);
+
+    return () => {
+      debouncedSearch.cancel();
+      debouncedLevelRangeChange.cancel();
+      latestFetch.abort();
+    };
   });
 
   let paginatedSource = $derived(data[currentPage - 1] || []);
@@ -167,7 +188,7 @@
     fetchData(true);
   }
 
-  function updateParams(key: string, list: string[], enumerator: any) {
+  function updateParams(key: string, list: string[], enumerator: Record<string, string | number>) {
     if (list.length === 0) {
       $page.url.searchParams.delete(key);
     } else {
@@ -274,7 +295,7 @@
             await fetchData(true);
           }}
         >
-          <img src={`/icons/filter_alt_off.svg`} width="24" alt="Clear filters" />
+          <img src="/icons/filter_alt_off.svg" width="24" alt="Clear filters" />
         </button>
       </label>
     </div>
@@ -352,7 +373,7 @@
       count={totalItems}
       {pageSize}
       page={currentPage}
-      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      pageSizeOptions={pageSizeOptions.filter((opt) => opt <= totalItems || totalItems === 0)}
       {onPageChange}
       {onPageSizeChange}
       class="mt-5"
@@ -369,7 +390,11 @@
       <LoadingSpinner />
     </div>
   {/if}
-  {#if paginatedSource && paginatedSource.length === 0 && !loading}
+  {#if loadError && !loading}
+    <div class="flex items-center justify-center">
+      <h2 class="my-10">Could not load NPCs. Please try again.</h2>
+    </div>
+  {:else if paginatedSource && paginatedSource.length === 0 && !loading}
     <div class="flex items-center justify-center">
       <h2 class="my-10">No items found</h2>
     </div>
@@ -394,7 +419,7 @@
       count={totalItems}
       {pageSize}
       page={currentPage}
-      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      pageSizeOptions={pageSizeOptions.filter((opt) => opt <= totalItems || totalItems === 0)}
       {onPageChange}
       {onPageSizeChange}
       class="mt-5"

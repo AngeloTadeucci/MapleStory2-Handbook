@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('$app/environment', () => ({ dev: true }));
 vi.mock('$lib/getGltfUrl', () => ({ default: () => '/gltf/' }));
 import { parseNativeManifest, selectNativeAsset } from '../src/lib/nativeAssets';
@@ -73,5 +73,58 @@ describe('native manifest contract', () => {
         'https://example.test/manifest.json'
       )
     ).toThrow();
+  });
+});
+
+describe('native manifest loading', () => {
+  async function freshModule() {
+    vi.resetModules();
+    return import('../src/lib/nativeAssets');
+  }
+  function stubFetch(...responses: (Response | Error)[]) {
+    const fetchFn = vi.fn<typeof fetch>(() => {
+      const next = responses.shift();
+      if (!next) throw new Error('Unexpected manifest request');
+      return next instanceof Error ? Promise.reject(next) : Promise.resolve(next);
+    });
+    vi.stubGlobal('window', { location: { href: 'https://example.test/outfits' } });
+    vi.stubGlobal('fetch', fetchFn);
+    return fetchFn;
+  }
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('refetches after a failed request instead of caching the failure', async () => {
+    const fetchFn = stubFetch(
+      new DOMException('The operation timed out.', 'TimeoutError'),
+      new Response(JSON.stringify(manifest()))
+    );
+    const { loadNativeAssets } = await freshModule();
+    await expect(loadNativeAssets()).resolves.toEqual([]);
+    const assets = await loadNativeAssets();
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    expect(assets.map((asset) => asset.url)).toEqual([
+      'https://example.test/gltf/female/body.gltf'
+    ]);
+  });
+  it('refetches after an unsuccessful response', async () => {
+    const fetchFn = stubFetch(
+      new Response('', { status: 503 }),
+      new Response(JSON.stringify(manifest()))
+    );
+    const { loadNativeAssets } = await freshModule();
+    await expect(loadNativeAssets()).resolves.toEqual([]);
+    await expect(loadNativeAssets()).resolves.toHaveLength(1);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+  });
+  it('shares one request between concurrent callers and caches a success', async () => {
+    const fetchFn = stubFetch(new Response(JSON.stringify(manifest())));
+    const { loadNativeAssets } = await freshModule();
+    const [first, second] = await Promise.all([loadNativeAssets(), loadNativeAssets()]);
+    expect(first).toBe(second);
+    expect(first).toHaveLength(1);
+    await expect(loadNativeAssets()).resolves.toBe(first);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
   });
 });

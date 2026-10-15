@@ -9,6 +9,7 @@
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchQuest } from '$lib/types/Quest';
   import { questTypeToWhitelist, getQuestTypeByDisplayName } from '$lib/types/Quest';
+  import { createLatestFetch } from '$lib/helpers/latestFetch';
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
@@ -16,6 +17,8 @@
 
   let data: SearchQuest[][] = $state([]);
   let loading = $state(true);
+  let loadError = $state(false);
+  const latestFetch = createLatestFetch();
 
   // Pagination state for Skeleton v4 (1-indexed)
   let currentPage = $state(1);
@@ -47,7 +50,7 @@
       },
       {
         name: 'page',
-        value: currentPage - 1  // API expects 0-indexed
+        value: currentPage - 1 // API expects 0-indexed
       },
       {
         name: 'limit',
@@ -55,7 +58,10 @@
       },
       {
         name: 'questType',
-        value: questTypeList.map((x) => getQuestTypeByDisplayName(x)).filter((x) => x !== undefined).join(',')
+        value: questTypeList
+          .map((x) => getQuestTypeByDisplayName(x))
+          .filter((x) => x !== undefined)
+          .join(',')
       },
       {
         name: 'minQuestLevel',
@@ -80,11 +86,26 @@
     ]);
 
     loading = true;
-    const response = await fetch(`/api/quests${params}`);
+    loadError = false;
+    const result = await latestFetch.fetchJson<{ quests: SearchQuest[]; total: number }>(
+      `/api/quests${params}`
+    );
 
-    const responseJson = await response.json();
-    const quests = responseJson.quests as SearchQuest[];
-    const total = responseJson.total as number;
+    // A newer request replaced this one and owns the loading state now.
+    if (result.status === 'aborted') {
+      return;
+    }
+    if (result.status === 'error') {
+      if (clearCache) {
+        data = [];
+        totalItems = 0;
+      }
+      loadError = true;
+      loading = false;
+      return;
+    }
+
+    const { quests, total } = result.data;
 
     if (quests.length === 0) {
       data = [];
@@ -133,10 +154,13 @@
 
     const questType = $page.url.searchParams.get('questType');
     if (questType) {
-      questTypeList = questType.split(',').map((x) => {
-        const num = parseInt(x);
-        return questTypeToWhitelist()[num];
-      }).filter((x) => x !== undefined);
+      questTypeList = questType
+        .split(',')
+        .map((x) => {
+          const num = parseInt(x);
+          return questTypeToWhitelist()[num];
+        })
+        .filter((x) => x !== undefined);
     }
 
     const minQuestLevel = $page.url.searchParams.get('minQuestLevel');
@@ -157,6 +181,13 @@
 
     // load first batch onMount
     fetchData(false);
+
+    return () => {
+      debouncedSearch.cancel();
+      debouncedQuestLevelChange.cancel();
+      debouncedRequiredLevelChange.cancel();
+      latestFetch.abort();
+    };
   });
 
   let paginatedSource = $derived(data[currentPage - 1] || []);
@@ -185,7 +216,10 @@
     } else {
       $page.url.searchParams.set(
         'questType',
-        questTypeList.map((x) => getQuestTypeByDisplayName(x)).filter((x) => x !== undefined).join(',')
+        questTypeList
+          .map((x) => getQuestTypeByDisplayName(x))
+          .filter((x) => x !== undefined)
+          .join(',')
       );
     }
   }
@@ -326,7 +360,7 @@
             await fetchData(true);
           }}
         >
-          <img src={`/icons/filter_alt_off.svg`} width="24" alt="Clear filters" />
+          <img src="/icons/filter_alt_off.svg" width="24" alt="Clear filters" />
         </button>
       </label>
     </div>
@@ -394,7 +428,7 @@
       count={totalItems}
       {pageSize}
       page={currentPage}
-      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      pageSizeOptions={pageSizeOptions.filter((opt) => opt <= totalItems || totalItems === 0)}
       {onPageChange}
       {onPageSizeChange}
       class="mt-5"
@@ -410,7 +444,11 @@
       <LoadingSpinner />
     </div>
   {/if}
-  {#if paginatedSource && paginatedSource.length === 0 && !loading}
+  {#if loadError && !loading}
+    <div class="flex items-center justify-center">
+      <h2 class="my-10">Could not load quests. Please try again.</h2>
+    </div>
+  {:else if paginatedSource && paginatedSource.length === 0 && !loading}
     <div class="flex items-center justify-center">
       <h2 class="my-10">No items found</h2>
     </div>
@@ -431,7 +469,7 @@
       count={totalItems}
       {pageSize}
       page={currentPage}
-      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      pageSizeOptions={pageSizeOptions.filter((opt) => opt <= totalItems || totalItems === 0)}
       {onPageChange}
       {onPageSizeChange}
       class="mt-5"

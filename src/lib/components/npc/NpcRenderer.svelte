@@ -11,9 +11,8 @@
   type RendererProps = {
     npc: Npc;
     customStyle?: string;
-    advancedControls?: boolean;
   };
-  let { npc, customStyle, advancedControls = false }: RendererProps = $props();
+  let { npc, customStyle }: RendererProps = $props();
 
   const gltfUrl = getGltfUrl();
   let nativeAsset: NativeAsset | undefined = $state();
@@ -131,12 +130,17 @@
   $effect(() => {
     if (nativeAsset && modelViewer) modelViewer.animationName = selectedAnimation;
   });
-  export const ssr = false;
 </script>
 
 <svelte:head>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
+  {#if !loadingGltf && !nativeAsset}
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer@4.4.0/dist/model-viewer.min.js"
+      integrity="sha384-wjsPzEO+lXOf7d9csIDfAQpPt2OKuUU3m0K9qsdKIuzX4N8czSF6hdh23eAbZa3p"
+      crossorigin="anonymous"
+    ></script>
+  {/if}
 </svelte:head>
 
 {#if loadingGltf}
@@ -186,7 +190,7 @@
       class="button absolute right-5 top-5 z-10"
       onclick={() => window.open(`/npcs/${npc.id}/model`)}
     >
-      <img src={'/icons/open_in_new.svg'} alt="Open in new tab" title="Open in new tab" />
+      <img src="/icons/open_in_new.svg" alt="Open in new tab" title="Open in new tab" />
     </button>
   </div>
   <div class="model-container">

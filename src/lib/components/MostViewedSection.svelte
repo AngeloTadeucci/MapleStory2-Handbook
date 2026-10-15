@@ -4,46 +4,24 @@
   import MapImage from './MapImage.svelte';
   import TrophyImage from './trophies/TrophyImage.svelte';
 
+  // Each list passes a different select, so only the fields its type renders are present.
+  interface MostViewedEntry {
+    id: number;
+    name: string;
+    icon_path?: string;
+    rarity?: number;
+    is_outfit?: number;
+    portrait?: string;
+    icon?: string;
+  }
+
   interface Props {
     title: string;
-    items: any[];
+    items: MostViewedEntry[];
     type: string;
   }
 
   let { title, items, type }: Props = $props();
-
-  // April Fools: Only active on April 1st (UTC)
-  const isAprilFools = () => {
-    const now = new Date();
-    return now.getUTCMonth() === 3 && now.getUTCDate() === 1; // Month is 0-indexed
-  };
-
-  const FROG_CHANCE = 0.15; // 15% chance per item
-
-  const youngFrog = {
-    id: 30000071,
-    name: 'Young Frog',
-    icon_path: './data/resource/image/item/icon/30000071.png',
-    rarity: 1,
-    is_outfit: 0
-  };
-
-  // Determine which items get "frog'd" (so it doesn't change on re-render)
-  const froggedIndices = $derived(isAprilFools() ? new Set(
-    items.map((_, i) => i).filter(() => Math.random() < FROG_CHANCE)
-  ) : new Set<number>());
-
-  const shouldShowFrog = (index: number) => froggedIndices.has(index);
-
-  // Random chance to swap name vs image (50/50) - NOT BOTH
-  const frogModes = $derived.by(() => {
-    const modes = new Map<number, 'image' | 'name'>();
-    froggedIndices.forEach(i => {
-      modes.set(i, Math.random() < 0.5 ? 'image' : 'name');
-    });
-    return modes;
-  });
-  const frogMode = (index: number) => frogModes.get(index) ?? 'image';
 </script>
 
 <div
@@ -51,36 +29,26 @@
 >
   <h1 class="mb-5 mt-3">{title}</h1>
   <div class="flex w-full flex-col">
-    {#each items as item, index}
-      {@const isFrogged = shouldShowFrog(index)}
-      {@const mode = frogMode(index)}
-      {@const displayName = isFrogged && mode === 'name' ? 'Young Frog' : item.name}
+    {#each items as item (item.id)}
       <div
         class="w-full border-b border-gray2 py-3 last:border-none hover:preset-tonal transition-colors"
       >
         <a class="unstyled flex flex-row items-center" href={`/${type}/${item.id}`}>
-          {#if isFrogged && mode === 'image'}
+          {#if type === 'items'}
             <ItemImage
-              iconPath={youngFrog.icon_path}
-              name={youngFrog.name}
-              rarity={youngFrog.rarity}
-              isOutfit={false}
-            />
-          {:else if type === 'items'}
-            <ItemImage
-              iconPath={item.icon_path}
+              iconPath={item.icon_path ?? ''}
               name={item.name}
-              rarity={item.rarity}
+              rarity={item.rarity ?? 1}
               isOutfit={item.is_outfit === 1}
             />
           {:else if type === 'npcs'}
-            <NpcImage portrait={item.portrait} name={item.name} />
+            <NpcImage portrait={item.portrait ?? ''} name={item.name} />
           {:else if type === 'maps'}
-            <MapImage icon={item.icon} name={item.name} />
+            <MapImage icon={item.icon ?? ''} name={item.name} />
           {:else if type === 'trophies'}
-            <TrophyImage icon={item.icon} name={item.name} />
+            <TrophyImage icon={item.icon ?? ''} name={item.name} />
           {/if}
-          <p class="ml-8 line-clamp-1 w-3/4">{displayName}</p>
+          <p class="ml-8 line-clamp-1 w-3/4">{item.name}</p>
         </a>
       </div>
     {/each}

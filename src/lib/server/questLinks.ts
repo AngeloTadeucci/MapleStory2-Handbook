@@ -14,9 +14,46 @@ type RawQuestObjective = Omit<QuestObjective, 'codes' | 'targets' | 'items' | 'n
   targets: unknown;
 };
 
-function isMissingQuestIndexTableError(error: unknown): boolean {
+const QUEST_INDEX_TABLES = ['quest_objectives', 'quest_rewards'];
+const QUEST_INDEX_TABLE_PATTERN = /\bquest_(?:objectives|rewards)\b/;
+const MYSQL_NO_SUCH_TABLE = 1146;
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === 'object' && value !== null
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function isQuestIndexTableName(table: string): boolean {
+  // The adapter reports a bare name, but accept a schema prefix and backticks too.
+  const bare = table.split('.').pop()?.replaceAll('`', '') ?? '';
+  return QUEST_INDEX_TABLES.includes(bare);
+}
+
+// Prisma 7 with the MariaDB driver adapter reports a missing table as a
+// PrismaClientKnownRequestError with code P2010. The MySQL detail sits in
+// meta.driverAdapterError.cause as { kind: 'TableDoesNotExist', originalCode: '1146', table }.
+export function isMissingQuestIndexTableError(error: unknown): boolean {
+  const cause = asRecord(asRecord(asRecord(asRecord(error)?.meta)?.driverAdapterError)?.cause);
+  if (cause && (cause.kind !== undefined || cause.originalCode !== undefined)) {
+    const isNoSuchTable =
+      cause.kind === 'TableDoesNotExist' || Number(cause.originalCode) === MYSQL_NO_SUCH_TABLE;
+    if (!isNoSuchTable) return false;
+    if (typeof cause.table === 'string') return isQuestIndexTableName(cause.table);
+    return (
+      typeof cause.originalMessage === 'string' &&
+      QUEST_INDEX_TABLE_PATTERN.test(cause.originalMessage)
+    );
+  }
+
+  // Nothing structured from Prisma, so this may be a raw driver error or an older adapter.
+  const record = asRecord(error);
   const message = error instanceof Error ? error.message : String(error);
-  return message.includes('quest_objectives') || message.includes('quest_rewards');
+  const isNoSuchTable =
+    record?.code === 'ER_NO_SUCH_TABLE' ||
+    Number(record?.errno) === MYSQL_NO_SUCH_TABLE ||
+    /\b1146\b|doesn't exist/.test(message);
+  return isNoSuchTable && QUEST_INDEX_TABLE_PATTERN.test(message);
 }
 
 function normalizeJsonArray(value: unknown): Array<string | number> {
@@ -155,7 +192,11 @@ export async function getQuestObjectives(
 
   return normalized.map((objective) => ({
     ...objective,
-    items: objective.codes.map((code) => itemById.get(Number(code))).filter((item) => item !== undefined),
-    npcs: objective.codes.map((code) => npcById.get(Number(code))).filter((npc) => npc !== undefined)
+    items: objective.codes
+      .map((code) => itemById.get(Number(code)))
+      .filter((item) => item !== undefined),
+    npcs: objective.codes
+      .map((code) => npcById.get(Number(code)))
+      .filter((npc) => npc !== undefined)
   }));
 }

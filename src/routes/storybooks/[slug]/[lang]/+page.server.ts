@@ -1,32 +1,22 @@
 import { storyBooks } from '$lib/storyBooks';
 import type { PageServerLoad } from './$types';
-import { redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
+import { parseIdSlug } from '$lib/server/slug';
 
 export const load = (async ({ params }) => {
-  const { slug, lang } = params;
-  if (slug === undefined || Number.isNaN(Number(slug))) {
-    throw redirect(303, '/storybooks');
-  }
+  const { lang } = params;
+  const bookId = parseIdSlug(params.slug);
 
-  const bookId = Number(slug);
-
-  if (storyBooks[bookId] === undefined) {
-    throw redirect(303, '/storybooks');
-  }
-
-  const languages = Object.keys(storyBooks[bookId]);
-  if (languages.length === 0) {
-    throw redirect(303, '/storybooks');
-  }
-
-  if (storyBooks[bookId][lang] === undefined) {
-    throw redirect(303, '/storybooks');
+  // The lang segment is user input, so a plain index would also match
+  // inherited keys such as "constructor".
+  if (!Object.hasOwn(storyBooks, bookId) || !Object.hasOwn(storyBooks[bookId], lang)) {
+    error(404, 'Not found');
   }
 
   const images = storyBooks[bookId][lang];
 
   if (!images || images.length === 0) {
-    throw redirect(303, '/storybooks');
+    error(404, 'Not found');
   }
 
   return {

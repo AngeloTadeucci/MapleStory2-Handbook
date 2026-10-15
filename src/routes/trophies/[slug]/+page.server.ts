@@ -1,29 +1,26 @@
 import type { PageServerLoad } from './$types';
 import DBClient from '$lib/prismaClient';
-import { redirect } from '@sveltejs/kit';
+import { assertFound, parseIdSlug } from '$lib/server/slug';
+import { parseJsonColumn } from '$lib/server/jsonColumn';
 import type { Trophy, TrophyGrade } from '$lib/types/Trophy';
 const prisma = DBClient.getInstance().prisma;
 
 export const load = (async ({ params }) => {
-  const { slug } = params;
-  if (slug === undefined || Number.isNaN(Number(slug))) {
-    throw redirect(303, '/trophies');
-  }
+  const id = parseIdSlug(params.slug);
 
-  const trophy = await prisma.achieves.findFirst({
-    where: {
-      id: Number(slug)
-    }
-  });
+  const trophy = assertFound(
+    await prisma.achieves.findFirst({
+      where: {
+        id
+      }
+    })
+  );
 
-  if (trophy === null || trophy === undefined) {
-    throw redirect(303, '/trophies');
-  }
-
-  let grades: TrophyGrade[] = [];
-  if (trophy.grades) {
-    grades = JSON.parse(trophy.grades) as TrophyGrade[];
-  }
+  const grades = parseJsonColumn(
+    trophy.grades,
+    (value): value is TrophyGrade[] => Array.isArray(value),
+    []
+  );
 
   const result: Trophy = {
     ...trophy,

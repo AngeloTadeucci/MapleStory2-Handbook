@@ -18,9 +18,8 @@
 
   type RendererProps = {
     npc: Npc;
-    customStyle?: string;
   };
-  let { npc, customStyle }: RendererProps = $props();
+  let { npc }: RendererProps = $props();
 
   let confirmDialogOpen = $state(false);
   let gifModalOpen = $state(false);
@@ -278,20 +277,24 @@
   let width: number = $state(300);
   let height: number = $state(300);
 
-  $effect(() => {
-    customStyle = `${
+  const customStyle = $derived(
+    `${
       customSize
         ? `resize: both; overflow: auto; width: ${width}px; height: ${height}px;`
         : 'width: 100%; height: 100%;'
-    } background-color: ${rgb}`;
-  });
-
-  export const ssr = false;
+    } background-color: ${rgb}`
+  );
 </script>
 
 <svelte:head>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
+  {#if !loadingGltf && !nativeAsset}
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer@4.4.0/dist/model-viewer.min.js"
+      integrity="sha384-wjsPzEO+lXOf7d9csIDfAQpPt2OKuUU3m0K9qsdKIuzX4N8czSF6hdh23eAbZa3p"
+      crossorigin="anonymous"
+    ></script>
+  {/if}
 </svelte:head>
 
 {#if loadingGltf}
@@ -466,11 +469,11 @@
         <div class="flex gap-4">
           <label class="label">
             <span>Height</span>
-            <input class={`input`} type="number" placeholder="Height" bind:value={height} />
+            <input class="input" type="number" placeholder="Height" bind:value={height} />
           </label>
           <label class="label">
             <span>Width</span>
-            <input class={`input`} type="number" placeholder="Width" bind:value={width} />
+            <input class="input" type="number" placeholder="Width" bind:value={width} />
           </label>
         </div>
       {/if}

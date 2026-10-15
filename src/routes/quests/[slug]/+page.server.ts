@@ -1,25 +1,20 @@
 import type { PageServerLoad } from './$types';
 import DBClient from '$lib/prismaClient';
-import { redirect } from '@sveltejs/kit';
 import type { QuestItem, Quest } from '$lib/types/Quest';
 import { getQuestObjectives } from '$lib/server/questLinks';
+import { assertFound, parseIdSlug, toDbIds } from '$lib/server/slug';
 const prisma = DBClient.getInstance().prisma;
 
 export const load = (async ({ params }) => {
-  const { slug } = params;
-  if (slug === undefined || Number.isNaN(Number(slug))) {
-    throw redirect(303, '/trophies');
-  }
+  const id = parseIdSlug(params.slug);
 
-  const quest = await prisma.quests.findFirst({
-    where: {
-      id: Number(slug)
-    }
-  });
-
-  if (quest === null || quest === undefined) {
-    throw redirect(303, '/quests');
-  }
+  const quest = assertFound(
+    await prisma.quests.findFirst({
+      where: {
+        id
+      }
+    })
+  );
 
   // Fetch maps where this quest progresses
   const questMaps = await prisma.$queryRaw<Array<{ id: number; name: string }>>`
@@ -54,77 +49,38 @@ export const load = (async ({ params }) => {
     }
   }
 
-  if (result.startRewards) {
-    if (result.startRewards.EssentialItem.length > 0) {
-      for (const item of result.startRewards.EssentialItem) {
-        await updateItem(item);
-      }
+  const rewardItems: QuestItem[] = [];
+  for (const rewards of [result.startRewards, result.completeRewards]) {
+    if (!rewards) continue;
+    for (const list of [rewards.EssentialItem, rewards.EssentialJobItem]) {
+      if (Array.isArray(list)) rewardItems.push(...list);
     }
-
-    if (result.startRewards.EssentialJobItem.length > 0) {
-      for (const item of result.startRewards.EssentialJobItem) {
-        await updateItem(item);
-      }
+  }
+  const rewardItemIds = toDbIds(rewardItems.map((item) => item.Id));
+  const essentialItems = new Map(
+    (rewardItemIds.length
+      ? await prisma.items.findMany({
+          where: { id: { in: rewardItemIds } },
+          select: { id: true, name: true, icon_path: true, is_outfit: true }
+        })
+      : []
+    ).map((row) => [row.id, row])
+  );
+  for (const item of rewardItems) {
+    const essentialItem = essentialItems.get(item.Id);
+    if (essentialItem) {
+      item.Name = essentialItem.name;
+      item.IconPath = essentialItem.icon_path;
+      item.IsOutfit = essentialItem.is_outfit === 1;
     }
   }
 
-  if (result.completeRewards) {
-    if (result.completeRewards.EssentialItem.length > 0) {
-      for (const item of result.completeRewards.EssentialItem) {
-        await updateItem(item);
-      }
-    }
-
-    if (result.completeRewards.EssentialJobItem.length > 0) {
-      for (const item of result.completeRewards.EssentialJobItem) {
-        await updateItem(item);
-      }
-    }
-  }
-
-  if (Array.isArray(quest.requiredQuest)) {
-    const requiredQuests: {
-      Id: number;
-      Name: string;
-    }[] = [];
-
-    for (const requiredQuest of quest.requiredQuest) {
-      const quest = await prisma.quests.findFirst({
-        where: {
-          id: requiredQuest as number
-        }
-      });
-      if (quest) {
-        requiredQuests.push({
-          Id: quest.id,
-          Name: quest.name
-        });
-      }
-    }
-    if (requiredQuests.length > 0) result.requiredQuest = requiredQuests;
-  }
-
-  if (Array.isArray(quest.selectableQuest)) {
-    const selectableQuests: {
-      Id: number;
-      Name: string;
-    }[] = [];
-
-    for (const selectableQuest of quest.selectableQuest) {
-      const quest = await prisma.quests.findFirst({
-        where: {
-          id: selectableQuest as number
-        }
-      });
-      if (quest) {
-        selectableQuests.push({
-          Id: quest.id,
-          Name: quest.name
-        });
-      }
-    }
-    if (selectableQuests.length > 0) result.selectableQuest = selectableQuests;
-  }
+  const [requiredQuests, selectableQuests] = await Promise.all([
+    findQuestLinks(quest.requiredQuest),
+    findQuestLinks(quest.selectableQuest)
+  ]);
+  if (requiredQuests.length > 0) result.requiredQuest = requiredQuests;
+  if (selectableQuests.length > 0) result.selectableQuest = selectableQuests;
 
   const objectives = await getQuestObjectives(prisma, quest.id);
 
@@ -137,15 +93,20 @@ export const load = (async ({ params }) => {
   };
 }) satisfies PageServerLoad;
 
-async function updateItem(item: QuestItem) {
-  const essentialItem = await prisma.items.findFirst({
-    where: {
-      id: item.Id
-    }
+/** Id and name of each listed quest, in list order, skipping quests that do not exist. */
+async function findQuestLinks(ids: unknown): Promise<{ Id: number; Name: string }[]> {
+  if (!Array.isArray(ids)) return [];
+  const uniqueIds = toDbIds(ids);
+  if (uniqueIds.length === 0) return [];
+  const rows = await prisma.quests.findMany({
+    where: { id: { in: uniqueIds } },
+    select: { id: true, name: true }
   });
-  if (essentialItem) {
-    item.Name = essentialItem.name;
-    item.IconPath = essentialItem.icon_path;
-    item.IsOutfit = essentialItem.is_outfit === 1;
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const links: { Id: number; Name: string }[] = [];
+  for (const id of ids) {
+    const row = byId.get(id as number);
+    if (row) links.push({ Id: row.id, Name: row.name });
   }
+  return links;
 }

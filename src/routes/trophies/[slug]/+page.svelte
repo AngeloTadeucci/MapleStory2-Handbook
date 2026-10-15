@@ -2,9 +2,9 @@
   import CopyId from '$lib/components/CopyId.svelte';
   import { PUBLIC_MODELS_URL } from '$env/static/public';
   import TrophyGrade from '$lib/components/trophies/TrophyGrade.svelte';
-  import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
+  import { trackView } from '$lib/helpers/trackView';
 
   interface Props {
     data: PageData;
@@ -14,30 +14,20 @@
 
   const trophy = $derived(data.props.trophy);
 
-  async function incrementViewCount() {
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
-
-    try {
-      await fetch(`/api/trophies?id=${trophy.id}`, {
-        method: 'POST'
-      });
-    } catch {}
-  }
-
-  onMount(async () => {
-    if (!trophy) {
-      return;
-    }
-
-    incrementViewCount();
-  });
+  $effect(() => trackView('/api/trophies', trophy.id));
 </script>
 
 <svelte:head>
   <title>MS2 Handbook - {trophy.name}</title>
   <!-- Open graph -->
   <meta property="og:title" content={trophy.name} />
-  <meta property="og:description" content={trophy.description.replace('{0}', Intl.NumberFormat().format(trophy.grades[0]?.conditionValue ?? 0)) || 'Trophy in MapleStory 2'} />
+  <meta
+    property="og:description"
+    content={trophy.description.replace(
+      '{0}',
+      Intl.NumberFormat().format(trophy.grades[0]?.conditionValue ?? 0)
+    ) || 'Trophy in MapleStory 2'}
+  />
   <meta property="og:image" content={`${PUBLIC_MODELS_URL}resource/image/trophy/${trophy.icon}`} />
   <meta property="og:url" content={`https://handbook.tadeucci.dev/trophies/${trophy.id}`} />
   <meta name="twitter:card" content="summary" />

@@ -1,62 +1,71 @@
 import type { PageServerLoad } from './$types';
 import DBClient from '$lib/prismaClient';
-import { redirect } from '@sveltejs/kit';
 import type Item from '$lib/types/Item';
 import type { DroppedByEntry } from '$lib/types/Item';
 import { getRequiredByQuests, getRewardedByQuests } from '$lib/server/questLinks';
+import { assertFound, parseIdSlug, toDbIds } from '$lib/server/slug';
+import { parseJsonColumn } from '$lib/server/jsonColumn';
 const prisma = DBClient.getInstance().prisma;
 
+interface BoxRow {
+  uid: number;
+  box_id: number;
+  item_id: number;
+  item_id2: number;
+  min_count: number;
+  max_count: number;
+  rarity: number;
+  smart_drop_rate: number;
+  group_drop_id: number;
+  name: string;
+  icon_path: string;
+  job_limit: string;
+  job_recommend: string;
+}
+
 export const load = (async ({ params }) => {
-  const { slug } = params;
-  if (slug === undefined || Number.isNaN(Number(slug))) {
-    throw redirect(303, '/items');
-  }
+  const id = parseIdSlug(params.slug);
 
-  const item = await prisma.items.findFirst({
-    where: {
-      id: Number(slug)
-    }
-  });
+  const item = assertFound(
+    await prisma.items.findFirst({
+      where: {
+        id
+      }
+    })
+  );
 
-  if (item === null || item === undefined) {
-    throw redirect(303, '/items');
-  }
-
-  const boxContent = await prisma.$queryRaw<Array<{
-    uid: number;
-    box_id: number;
-    item_id: number;
-    item_id2: number;
-    min_count: number;
-    max_count: number;
-    rarity: number;
-    smart_drop_rate: number;
-    group_drop_id: number;
-    name: string;
-    icon_path: string;
-    job_limit: string;
-    job_recommend: string;
-  }>>`
+  // box_id 0 means the item is not a box, and item_boxes has no rows for it.
+  const boxContent: BoxRow[] =
+    item.box_id === 0
+      ? []
+      : await prisma.$queryRaw<BoxRow[]>`
     SELECT ib.*, i.name, i.icon_path, i.job_limit, i.job_recommend
     FROM item_boxes ib
     JOIN items i ON ib.item_id = i.id
     WHERE ib.box_id = ${item.box_id}
   `;
 
+  // Each entry is { Item1: effect id, Item2: level }.
+  const additionalEffects = parseJsonColumn(
+    item.additional_effects,
+    (value): value is Array<{ Item1?: unknown } | null> => Array.isArray(value),
+    []
+  );
+  const effectIds = additionalEffects.map((effect) => effect?.Item1);
+  const uniqueEffectIds = toDbIds(effectIds);
+  const effectRows = new Map(
+    (uniqueEffectIds.length
+      ? await prisma.additional_effects.findMany({ where: { id: { in: uniqueEffectIds } } })
+      : []
+    ).map((row) => [row.id, row])
+  );
   const additionalEffectDescriptions = [];
-  if (item.additional_effects) {
-    const additionalEffects = JSON.parse(item.additional_effects);
-    for (const effect of additionalEffects) {
-      const description = await prisma.additional_effects.findFirst({
-        where: {
-          id: effect.Item1
-        }
-      });
-      if (description === null || description === undefined) {
-        continue;
-      }
-      additionalEffectDescriptions.push(description);
+  for (const effectId of effectIds) {
+    const description = typeof effectId === 'number' ? effectRows.get(effectId) : undefined;
+    if (description === undefined) {
+      continue;
     }
+    additionalEffectDescriptions.push(description);
   }
 
   const furnishingShop =

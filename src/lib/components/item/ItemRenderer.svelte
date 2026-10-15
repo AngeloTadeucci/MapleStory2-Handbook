@@ -39,13 +39,17 @@
     } catch {}
     loadingGltf = false;
   });
-
-  export const ssr = false;
 </script>
 
 <svelte:head>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
+  {#if !loadingGltf && !nativeAsset}
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer@4.4.0/dist/model-viewer.min.js"
+      integrity="sha384-wjsPzEO+lXOf7d9csIDfAQpPt2OKuUU3m0K9qsdKIuzX4N8czSF6hdh23eAbZa3p"
+      crossorigin="anonymous"
+    ></script>
+  {/if}
 </svelte:head>
 
 {#if loadingGltf}

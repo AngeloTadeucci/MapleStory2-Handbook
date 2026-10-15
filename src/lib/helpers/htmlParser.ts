@@ -17,22 +17,27 @@ export function closeMissingTags(html: string, transformColorToWhite?: boolean):
   let output = '';
   const stack: string[] = [];
   const selfClosingTags = ['br'];
+  let tagEnd = 0;
   for (let i = 0; i < html.length; i++) {
     if (html[i] === '<') {
       let tagName = '';
       let j = i + 1;
-      while (html[j] !== '>' && html[j] !== ' ') {
+      while (j < html.length && html[j] !== '>' && html[j] !== ' ') {
         tagName += html[j];
         j++;
+      }
+
+      // An unterminated tag has no closing '>', so the tail is kept as plain text
+      if (tagEnd < j) tagEnd = html.indexOf('>', j);
+      if (tagEnd === -1) {
+        output += html.slice(i);
+        break;
       }
 
       // check if font color, change to white, skip to end of tag
       if (tagName === 'font' && transformColorToWhite) {
         output += '<font color="white">';
-        while (html[j] !== '>') {
-          j++;
-        }
-        i = j;
+        i = tagEnd;
         continue;
       }
 

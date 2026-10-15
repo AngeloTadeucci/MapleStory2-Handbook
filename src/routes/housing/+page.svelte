@@ -8,6 +8,7 @@
   import PaginationWrapper from '$lib/components/PaginationWrapper.svelte';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
+  import { createLatestFetch } from '$lib/helpers/latestFetch';
   import { HOUSING_CATEGORIES, HOUSING_TOKENS } from '$lib/helpers/housing';
   import type { HousingSearchItem } from '$lib/types/Item';
 
@@ -17,6 +18,8 @@
   let buyableOnly = $state(false);
   let data: HousingSearchItem[][] = $state([]);
   let loading = $state(true);
+  let loadError = $state(false);
+  const latestFetch = createLatestFetch();
   let currentPage = $state(1);
   let pageSize = $state(25);
   let totalItems = $state(0);
@@ -40,10 +43,26 @@
     }
 
     loading = true;
-    const response = await fetch(`/api/housing${buildParams()}`);
-    const responseJson = await response.json();
-    const items = responseJson.items as HousingSearchItem[];
-    const total = responseJson.total as number;
+    loadError = false;
+    const result = await latestFetch.fetchJson<{ items: HousingSearchItem[]; total: number }>(
+      `/api/housing${buildParams()}`
+    );
+
+    // A newer request replaced this one and owns the loading state now.
+    if (result.status === 'aborted') {
+      return;
+    }
+    if (result.status === 'error') {
+      if (clearCache) {
+        data = [];
+        totalItems = 0;
+      }
+      loadError = true;
+      loading = false;
+      return;
+    }
+
+    const { items, total } = result.data;
 
     if (clearCache) {
       data = [];
@@ -87,9 +106,18 @@
     selectedCategory = $page.url.searchParams.get('category') || '';
     selectedCurrency = $page.url.searchParams.get('currency') || '';
     buyableOnly = $page.url.searchParams.get('buyable') === 'true';
-    currentPage = $page.url.searchParams.get('page') ? Number($page.url.searchParams.get('page')) + 1 : 1;
-    pageSize = $page.url.searchParams.get('limit') ? Number($page.url.searchParams.get('limit')) : 25;
+    currentPage = $page.url.searchParams.get('page')
+      ? Number($page.url.searchParams.get('page')) + 1
+      : 1;
+    pageSize = $page.url.searchParams.get('limit')
+      ? Number($page.url.searchParams.get('limit'))
+      : 25;
     fetchData(false);
+
+    return () => {
+      debouncedSearch.cancel();
+      latestFetch.abort();
+    };
   });
 </script>
 
@@ -160,14 +188,18 @@
       {pageSize}
       page={currentPage}
       {pageSizeOptions}
-      onPageChange={onPageChange}
-      onPageSizeChange={onPageSizeChange}
+      {onPageChange}
+      {onPageSizeChange}
     />
   </div>
 
   {#if loading}
     <div class="flex justify-center py-12">
       <LoadingSpinner />
+    </div>
+  {:else if loadError}
+    <div class="flex items-center justify-center py-12">
+      <h2>Could not load housing items. Please try again.</h2>
     </div>
   {:else if paginatedSource.length === 0}
     <div class="flex items-center justify-center py-12">
@@ -176,7 +208,10 @@
   {:else}
     <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
       {#each paginatedSource as item (item.id)}
-        <a href={`/items/${item.id}`} class="unstyled rounded bg-surface-700 p-3 transition-colors hover:bg-surface-600">
+        <a
+          href={`/items/${item.id}`}
+          class="unstyled rounded bg-surface-700 p-3 transition-colors hover:bg-surface-600"
+        >
           <div class="flex gap-3">
             <ItemImage
               iconPath={item.icon_path}

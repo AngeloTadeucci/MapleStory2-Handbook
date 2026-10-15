@@ -60,21 +60,20 @@ export function parseNativeManifest(data: unknown, manifestUrl: string): NativeA
   }));
 }
 
+async function fetchNativeManifest(): Promise<NativeAsset[]> {
+  const url = new URL(`${dev ? '/gltf/' : getGltfUrl()}native-manifest.json`, window.location.href)
+    .href;
+  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!response.ok) throw new Error('The native manifest is unavailable.');
+  return parseNativeManifest(await response.json(), url);
+}
+
 let manifestRequest: Promise<NativeAsset[]> | undefined;
 export function loadNativeAssets(): Promise<NativeAsset[]> {
-  manifestRequest ??= (async () => {
-    const url = new URL(
-      `${dev ? '/gltf/' : getGltfUrl()}native-manifest.json`,
-      window.location.href
-    ).href;
-    try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
-      if (!response.ok) return [];
-      return parseNativeManifest(await response.json(), url);
-    } catch {
-      return [];
-    }
-  })();
+  manifestRequest ??= fetchNativeManifest().catch(() => {
+    manifestRequest = undefined;
+    return [];
+  });
   return manifestRequest;
 }
 

@@ -4,7 +4,6 @@
   import Navigation from '../lib/components/Navigation.svelte';
   import PageFooter from '../lib/components/PageFooter.svelte';
   import MusicPlayer from '../lib/components/MusicPlayer.svelte';
-  // @ts-ignore
   import { GoogleAnalytics } from '@beyonk/svelte-google-analytics';
 
   import { page } from '$app/stores';

@@ -7,6 +7,7 @@
   import TrophyImage from '$lib/components/trophies/TrophyImage.svelte';
   import paramsBuilder from '$lib/helpers/paramsBuilder';
   import type { SearchTrophy } from '$lib/types/Trophy';
+  import { createLatestFetch } from '$lib/helpers/latestFetch';
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
@@ -14,6 +15,8 @@
 
   let data: SearchTrophy[][] = $state([]);
   let loading = $state(true);
+  let loadError = $state(false);
+  const latestFetch = createLatestFetch();
 
   // Pagination state for Skeleton v4 (1-indexed)
   let currentPage = $state(1);
@@ -39,7 +42,7 @@
       },
       {
         name: 'page',
-        value: currentPage - 1  // API expects 0-indexed
+        value: currentPage - 1 // API expects 0-indexed
       },
       {
         name: 'limit',
@@ -48,11 +51,26 @@
     ]);
 
     loading = true;
-    const response = await fetch(`/api/trophies${params}`);
+    loadError = false;
+    const result = await latestFetch.fetchJson<{ trophies: SearchTrophy[]; total: number }>(
+      `/api/trophies${params}`
+    );
 
-    const responseJson = await response.json();
-    const trophies = responseJson.trophies as SearchTrophy[];
-    const total = responseJson.total as number;
+    // A newer request replaced this one and owns the loading state now.
+    if (result.status === 'aborted') {
+      return;
+    }
+    if (result.status === 'error') {
+      if (clearCache) {
+        data = [];
+        totalItems = 0;
+      }
+      loadError = true;
+      loading = false;
+      return;
+    }
+
+    const { trophies, total } = result.data;
 
     if (trophies.length === 0) {
       data = [];
@@ -101,6 +119,11 @@
 
     // load first batch onMount
     fetchData(false);
+
+    return () => {
+      debouncedSearch.cancel();
+      latestFetch.abort();
+    };
   });
 
   let paginatedSource = $derived(data[currentPage - 1] || []);
@@ -163,7 +186,7 @@
       count={totalItems}
       {pageSize}
       page={currentPage}
-      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      pageSizeOptions={pageSizeOptions.filter((opt) => opt <= totalItems || totalItems === 0)}
       {onPageChange}
       {onPageSizeChange}
       class="mt-5"
@@ -180,7 +203,11 @@
       <LoadingSpinner />
     </div>
   {/if}
-  {#if paginatedSource && paginatedSource.length === 0 && !loading}
+  {#if loadError && !loading}
+    <div class="flex items-center justify-center">
+      <h2 class="my-10">Could not load trophies. Please try again.</h2>
+    </div>
+  {:else if paginatedSource && paginatedSource.length === 0 && !loading}
     <div class="flex items-center justify-center">
       <h2 class="my-10">No trophies found</h2>
     </div>
@@ -207,7 +234,7 @@
       count={totalItems}
       {pageSize}
       page={currentPage}
-      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      pageSizeOptions={pageSizeOptions.filter((opt) => opt <= totalItems || totalItems === 0)}
       {onPageChange}
       {onPageSizeChange}
       class="mt-5"

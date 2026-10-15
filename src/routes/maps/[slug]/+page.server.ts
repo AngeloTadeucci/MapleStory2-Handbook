@@ -1,27 +1,20 @@
 import type { PageServerLoad } from './$types';
 import DBClient from '$lib/prismaClient';
-import { redirect } from '@sveltejs/kit';
+import { assertFound, parseIdSlug } from '$lib/server/slug';
 import type { MapNpc, MapMob, MapPortal, QuestMap } from '$lib/types/Map';
 
 const prisma = DBClient.getInstance().prisma;
 
 export const load = (async ({ params }) => {
-  const { slug } = params;
-  if (slug === undefined || Number.isNaN(Number(slug))) {
-    throw redirect(303, '/maps');
-  }
+  const mapId = parseIdSlug(params.slug);
 
-  const mapId = Number(slug);
-
-  const map = await prisma.maps.findFirst({
-    where: {
-      id: mapId
-    }
-  });
-
-  if (map === null || map === undefined) {
-    throw redirect(303, '/maps');
-  }
+  const map = assertFound(
+    await prisma.maps.findFirst({
+      where: {
+        id: mapId
+      }
+    })
+  );
 
   // Fetch NPCs on this map with NPC details
   const mapNpcs = await prisma.$queryRaw<MapNpc[]>`

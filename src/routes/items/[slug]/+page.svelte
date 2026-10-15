@@ -14,8 +14,8 @@
   import getGltfUrl from '$lib/getGltfUrl';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
   import { getImageUrl } from '$lib/getImageUrl';
+  import { trackView } from '$lib/helpers/trackView';
   import { IconCode, Rarity, SlotName } from '$lib/Enums';
-  import FrogAppreciationMeter from '$lib/components/item/FrogAppreciationMeter.svelte';
   import { findOutfitItem } from '$lib/outfits/itemLink';
   import { Shirt } from 'lucide-svelte';
 
@@ -59,22 +59,13 @@
 
   const gltfUrl = getGltfUrl();
 
-  async function incrementViewCount() {
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
-
-    try {
-      await fetch(`/api/items?id=${item.id}`, {
-        method: 'POST'
-      });
-    } catch {}
-  }
+  $effect(() => trackView('/api/items', item.id));
 
   onMount(async () => {
     if (!item) {
       return;
     }
 
-    incrementViewCount();
     if (item.kfms.length <= 0) {
       return;
     }
@@ -133,11 +124,6 @@
     &gt;
     <CopyId id={item.id} />
   </div>
-  {#if item.id === 30000071}
-    <div class="mx-4 mt-3">
-      <FrogAppreciationMeter />
-    </div>
-  {/if}
   <div class="main-container grid-image mx-4 mt-3 rounded-xl p-6 pb-40">
     <h1>{item.name}</h1>
     <div class="flex flex-col flex-wrap justify-start gap-16 gap-y-2 xl:flex-row">
@@ -162,7 +148,7 @@
         <div class="model mt-7 flex items-center justify-center px-3 pt-2 lg:h-199.75 lg:w-143.75">
           <ItemRenderer {item} />
           <img
-            src={`/item/mouse_controls.png`}
+            src="/item/mouse_controls.png"
             class="absolute bottom-5 left-5 hidden md:block"
             alt="Mouse Controls"
           />

@@ -1,5 +1,5 @@
 export interface Trophy {
-  portrait: any;
+  portrait: string;
   id: number;
   name: string;
   visit_count: number;

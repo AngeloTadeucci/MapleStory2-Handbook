@@ -1,26 +1,22 @@
 import { storyBooks } from '$lib/storyBooks';
 import type { PageServerLoad } from './$types';
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { parseIdSlug } from '$lib/server/slug';
 
 export const load = (async ({ params }) => {
-  const { slug } = params;
-  if (slug === undefined || Number.isNaN(Number(slug))) {
-    throw redirect(303, '/storybooks');
-  }
+  const bookId = parseIdSlug(params.slug);
 
-  const bookId = Number(slug);
-
-  if (storyBooks[bookId] === undefined) {
-    throw redirect(303, '/storybooks');
+  if (!Object.hasOwn(storyBooks, bookId)) {
+    error(404, 'Not found');
   }
 
   const languages = Object.keys(storyBooks[bookId]);
   if (languages.length === 0) {
-    throw redirect(303, '/storybooks');
+    error(404, 'Not found');
   }
 
   if (languages.length === 1) {
-    throw redirect(303, `/storybooks/${bookId}/${languages[0]}`);
+    redirect(303, `/storybooks/${bookId}/${languages[0]}`);
   }
 
   return {

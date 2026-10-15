@@ -1,3 +1,5 @@
+import type { Prisma } from '$lib/generated/prisma/client';
+
 export interface Map {
   id: number;
   name: string;
@@ -27,7 +29,7 @@ export interface Map {
   bounding_box_max_x?: number | null;
   bounding_box_max_y?: number | null;
   bounding_box_max_z?: number | null;
-  block_metadata?: any | null; // JSON field
+  block_metadata?: Prisma.JsonValue | null; // JSON field
 }
 
 export type SearchMap = Pick<Map, 'id' | 'name' | 'icon'>;

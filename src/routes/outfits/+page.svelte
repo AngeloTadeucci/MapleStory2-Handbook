@@ -14,7 +14,7 @@
   import { getImageUrl } from '$lib/getImageUrl';
   import type { OutfitScene } from '$lib/outfits/OutfitScene';
   import type { ColorControl, Rgb } from '$lib/outfits/materialColors';
-  import { customizationSchema, type Customization } from '$lib/outfits/faceAnimation';
+  import { customizationSchema, type Customization } from '$lib/outfits/customizationSchema';
   import { characterPreviewSchema } from '$lib/outfits/characterPreview';
   import { loadHairPreviews } from '$lib/outfits/hairPreviews';
   import { findOutfitItem, parseOutfitItemId } from '$lib/outfits/itemLink';
@@ -58,12 +58,27 @@
   let customization = $state<Customization>();
   let expression = $state('auto');
   let background = $state('');
-  async function chooseBackground(value: string) {
+  async function chooseBackground(select: HTMLSelectElement) {
+    const value = select.value;
+    // The select is not bound to state, so a rejected choice must be reverted on the element.
+    if (!viewer || busy) {
+      select.value = background;
+      return;
+    }
+    busy = true;
+    error = '';
     try {
-      await viewer?.setBackground(value ? `${assetBase}backgrounds/bg/bg_${value}.png` : null);
-      background = value;
-    } catch {
-      error = 'Unable to load this background. Your previous background is still selected.';
+      const applied = await viewer.setBackground(
+        value ? `${assetBase}backgrounds/bg/bg_${value}.png` : null
+      );
+      if (applied) background = value;
+      else {
+        select.value = background;
+        if (mounted)
+          error = 'Unable to load this background. Your previous background is still selected.';
+      }
+    } finally {
+      busy = false;
     }
   }
   let container: HTMLDivElement;
@@ -318,9 +333,13 @@
         assets = preview
           ? manifest
           : [...manifest, ...(await loadHairPreviews(fetch, location.href))];
+        if (!active) return;
         viewer = new OutfitScene(container);
         viewer.setCustomization(customization, assetBase);
-        await viewer.setBackground(null);
+        if (!(await viewer.setBackground(null))) {
+          if (!active) return;
+          throw new Error('Unable to load the studio background.');
+        }
         if (dev) Object.assign(container, { outfitViewer: viewer });
         let linkedItem: CatalogItem | undefined;
         let linkedItemError = '';
@@ -627,9 +646,12 @@
           animations[n].set(name);
         });
       }
-      await staged.setBackground(
-        code.background ? `${assetBase}backgrounds/bg/bg_${code.background}.png` : null
-      );
+      if (
+        !(await staged.setBackground(
+          code.background ? `${assetBase}backgrounds/bg/bg_${code.background}.png` : null
+        ))
+      )
+        throw new Error('Unable to load the saved background.');
       staged.selectClip(code.pose);
       staged.selectExpression(code.expression);
       staged.setEffectsEnabled(code.effects);
@@ -924,7 +946,7 @@
               aria-label="Background"
               disabled={busy}
               value={background}
-              onchange={(e) => chooseBackground(e.currentTarget.value)}
+              onchange={(e) => chooseBackground(e.currentTarget)}
               ><option value="">Studio</option><option value="blue">Blue sky</option><option
                 value="henesys_a">Henesys</option
               ><option value="ellinia_a">Ellinia</option></select

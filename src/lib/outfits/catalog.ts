@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { dev } from '$app/environment';
 import getGltfUrl from '$lib/getGltfUrl';
 import type { NativeAsset } from '$lib/nativeAssets';
-import { decalSchema } from './faceDecal';
+import { decalSchema } from './faceDecalSchema';
 import catalogAliases from './catalog-aliases.json';
 
 export const slotNames: Record<string, string> = {

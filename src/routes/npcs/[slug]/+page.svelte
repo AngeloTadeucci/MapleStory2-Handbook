@@ -10,6 +10,7 @@
   import getGltfUrl from '$lib/getGltfUrl';
   import SupportNotice from '$lib/components/SupportNotice.svelte';
   import { getImageUrl } from '$lib/getImageUrl';
+  import { trackView } from '$lib/helpers/trackView';
 
   interface Props {
     data: PageData;
@@ -26,22 +27,13 @@
 
   const gltfUrl = getGltfUrl();
 
-  async function incrementViewCount() {
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
-
-    try {
-      await fetch(`/api/npcs?id=${npc.id}`, {
-        method: 'POST'
-      });
-    } catch {}
-  }
+  $effect(() => trackView('/api/npcs', npc.id));
 
   onMount(async () => {
     if (!npc) {
       return;
     }
 
-    incrementViewCount();
     if (npc.kfm.length <= 0) {
       return;
     }
@@ -93,18 +85,16 @@
       </div>
       {#if npc.kfm.length > 0 && gltfExists}
         <div>
-          <!-- Desktop: with background image -->
-          <div class="model hidden sm:block px-3 pt-2">
+          <!-- One renderer for both layouts. Below sm it is a bordered box, from sm up it is the render_box.png frame. -->
+          <div
+            class="model rounded border border-[rgb(116,117,118)] bg-[rgb(32,33,34)] p-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-3 sm:pb-0 sm:pt-2"
+          >
             <NpcRenderer {npc} />
             <img
               src="/item/mouse_controls.png"
               class="absolute bottom-5 left-5 hidden md:block"
               alt="Mouse Controls"
             />
-          </div>
-          <!-- Mobile: simple styling -->
-          <div class="sm:hidden p-4 bg-[rgb(32,33,34)] border border-[rgb(116,117,118)] rounded">
-            <NpcRenderer {npc} />
           </div>
         </div>
       {/if}
@@ -114,10 +104,12 @@
 </div>
 
 <style>
-  .model {
-    position: relative;
-    background-image: url('/item/render_box.png');
-    width: 575px;
-    height: 799px;
+  @media (min-width: 640px) {
+    .model {
+      position: relative;
+      background-image: url('/item/render_box.png');
+      width: 575px;
+      height: 799px;
+    }
   }
 </style>

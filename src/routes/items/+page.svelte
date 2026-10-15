@@ -11,6 +11,7 @@
   import type { SearchItem } from '$lib/types/Item';
   import PaginationWrapper from '$lib/components/PaginationWrapper.svelte';
   import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+  import { createLatestFetch } from '$lib/helpers/latestFetch';
   import debounce from 'lodash.debounce';
   import { onMount } from 'svelte';
 
@@ -18,6 +19,8 @@
 
   let data: SearchItem[][] = $state([]);
   let loading = $state(true);
+  let loadError = $state(false);
+  const latestFetch = createLatestFetch();
 
   // Pagination state for Skeleton v4
   let currentPage = $state(1);
@@ -119,11 +122,26 @@
     );
 
     loading = true;
-    const response = await fetch(`/api/items${params}`);
+    loadError = false;
+    const result = await latestFetch.fetchJson<{ items: SearchItem[]; total: number }>(
+      `/api/items${params}`
+    );
 
-    const responseJson = await response.json();
-    const items = responseJson.items as SearchItem[];
-    const total = responseJson.total as number;
+    // A newer request replaced this one and owns the loading state now.
+    if (result.status === 'aborted') {
+      return;
+    }
+    if (result.status === 'error') {
+      if (clearCache) {
+        data = [];
+        totalItems = 0;
+      }
+      loadError = true;
+      loading = false;
+      return;
+    }
+
+    const { items, total } = result.data;
 
     if (items.length === 0) {
       data = [];
@@ -184,7 +202,10 @@
 
     const type = $page.url.searchParams.get('type');
     if (type) {
-      itemTypeList = type.split(',').map((x) => getItemTypeKeyByDisplayName(x)).filter((x): x is string => x !== undefined);
+      itemTypeList = type
+        .split(',')
+        .map((x) => getItemTypeKeyByDisplayName(x))
+        .filter((x): x is string => x !== undefined);
     }
 
     outfitFilter = readTriState('outfit');
@@ -198,6 +219,11 @@
 
     // load first batch onMount
     fetchData(false);
+
+    return () => {
+      debouncedSearch.cancel();
+      latestFetch.abort();
+    };
   });
 
   function onPageChange(newPage: number): void {
@@ -218,7 +244,7 @@
     fetchData(true);
   }
 
-  function updateParams(key: string, list: string[], enumerator: any) {
+  function updateParams(key: string, list: string[], enumerator: Record<string, string | number>) {
     if (list.length === 0) {
       $page.url.searchParams.delete(key);
     } else {
@@ -353,7 +379,6 @@
         }}
       />
     </label>
-    <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="label w-full">
       <span>Filter by class</span>
       <ComboboxChips
@@ -418,7 +443,7 @@
       count={totalItems}
       {pageSize}
       page={currentPage}
-      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      pageSizeOptions={pageSizeOptions.filter((opt) => opt <= totalItems || totalItems === 0)}
       {onPageChange}
       {onPageSizeChange}
       class="mt-5"
@@ -435,7 +460,11 @@
       <LoadingSpinner />
     </div>
   {/if}
-  {#if paginatedSource && paginatedSource.length === 0 && !loading}
+  {#if loadError && !loading}
+    <div class="flex items-center justify-center">
+      <h2 class="my-10">Could not load items. Please try again.</h2>
+    </div>
+  {:else if paginatedSource && paginatedSource.length === 0 && !loading}
     <div class="flex items-center justify-center">
       <h2 class="my-10">No items found</h2>
     </div>
@@ -468,7 +497,7 @@
       count={totalItems}
       {pageSize}
       page={currentPage}
-      pageSizeOptions={pageSizeOptions.filter(opt => opt <= totalItems || totalItems === 0)}
+      pageSizeOptions={pageSizeOptions.filter((opt) => opt <= totalItems || totalItems === 0)}
       {onPageChange}
       {onPageSizeChange}
       class="mt-5"

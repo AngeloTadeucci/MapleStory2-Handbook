@@ -444,18 +444,25 @@ export class OutfitScene {
     }
     return applied;
   }
-  async setBackground(url: string | null) {
+  /** Resolves false when the image fails to load or a newer call or destroy supersedes it. */
+  async setBackground(url: string | null): Promise<boolean> {
     const request = ++this.backgroundRequest;
-    const texture = await new TextureLoader().loadAsync(url ?? '/outfits/character-background.png');
+    let texture: Texture;
+    try {
+      texture = await new TextureLoader().loadAsync(url ?? '/outfits/character-background.png');
+    } catch {
+      return false;
+    }
     if (request !== this.backgroundRequest || !this.alive) {
-      texture?.dispose();
-      return;
+      texture.dispose();
+      return false;
     }
     this.background?.dispose();
     this.background = texture;
-    if (texture) texture.colorSpace = SRGBColorSpace;
+    texture.colorSpace = SRGBColorSpace;
     this.scene.background = texture;
     this.fitBackground();
+    return true;
   }
   private fitBackground() {
     const texture = this.background;
