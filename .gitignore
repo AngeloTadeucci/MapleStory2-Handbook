@@ -21,3 +21,6 @@ static/gifs/
 /.worktrees
 CLAUDE.local.md
 /plans
+
+# Machine-local MCP servers
+.mcp.json

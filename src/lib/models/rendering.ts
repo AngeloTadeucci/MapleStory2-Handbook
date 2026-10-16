@@ -23,7 +23,12 @@ export function visibleModelBounds(root: Object3D): Box3 {
   root.traverseVisible((node) => {
     if (!(node instanceof Mesh)) return;
     const materials = Array.isArray(node.material) ? node.material : [node.material];
-    if (materials.every((material) => !material.visible)) return;
+    if (
+      materials.every(
+        (material) => !material.visible || (material.transparent && material.opacity === 0)
+      )
+    )
+      return;
     const position = node.geometry.getAttribute('position');
     if (!position) return;
     for (let index = 0; index < position.count; index++) {

@@ -5,6 +5,7 @@ import type { ColorControl } from '$lib/outfits/materialColors';
 import type { GifCaptureSource } from '$lib/gifCapture';
 import { addModelLighting, prepareModelMaterials, visibleModelBounds } from './rendering';
 import { ModelPlayback } from './ModelPlayback';
+import { addMaterialAnimationTracks } from './materialTracks';
 import { FaceAnimation, customizationSchema } from '$lib/outfits/faceAnimation';
 
 export class StandaloneScene {
@@ -58,6 +59,7 @@ export class StandaloneScene {
     }
     try {
       this.colors = await prepareModelMaterials(gltf);
+      addMaterialAnimationTracks(gltf);
       if (face) {
         const response = await fetch(face.customizationUrl);
         if (!response.ok) throw new Error('Model customization is unavailable');
