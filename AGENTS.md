@@ -158,6 +158,17 @@ Located in `src/routes/api/*/+server.ts`
 /api/trophies?search=term&limit=20&page=0
 ```
 
+**GET Endpoint (Item Details):**
+
+```
+/api/items/123
+```
+
+Returns the item's id, name and rarity with `droppedBy`, `requiredByQuests`, `rewardedByQuests` and
+`boxContent`, from the same `$lib/server/itemDrops` and `questLinks` queries as the item page. Lith's
+Discord bot reads it, so keep its JSON shape stable. A missing or malformed id answers 404, as JSON
+when the request accepts JSON; the bot treats only that JSON 404 as a missing item.
+
 **POST Endpoints (View Tracking):**
 
 ```
