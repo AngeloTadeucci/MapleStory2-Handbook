@@ -198,6 +198,8 @@ export class OutfitScene {
   private previous = 0;
   private resize: ResizeObserver;
   playing = false;
+  /** Runs after every rendered frame, except while a GIF capture owns the timeline. */
+  onFrame?: (poseTime: number, poseDuration: number) => void;
 
   get equippedItems(): OutfitBundle[] {
     return [...this.bundles.values()];
@@ -342,6 +344,11 @@ export class OutfitScene {
     for (const effect of this.cosmeticEffects.values()) effect.seek(time, this.camera);
     this.renderer.render(this.scene, this.camera);
   }
+  seekPose(time: number) {
+    if (!Number.isFinite(time)) throw new Error('Pose time must be finite');
+    // The pose loops, so seeking to its exact length would wrap to the first frame.
+    this.seek(Math.max(0, Math.min(time, this.poseDuration - 0.0001)));
+  }
   setEffectsEnabled(enabled: boolean) {
     this.effectsEnabled = enabled;
     for (const effect of this.cosmeticEffects.values()) {
@@ -355,9 +362,15 @@ export class OutfitScene {
     face?.select(name);
     face?.selectClip(this.activeClip, this.poseTime);
   }
-  private get poseTime(): number {
-    const clip = this.body?.animations.find((clip) => clip.name === this.activeClip);
+  private get poseClip() {
+    return this.body?.animations.find((clip) => clip.name === this.activeClip);
+  }
+  get poseTime(): number {
+    const clip = this.poseClip;
     return clip && this.mixer ? this.mixer.clipAction(clip).time : 0;
+  }
+  get poseDuration(): number {
+    return this.poseClip?.duration ?? 0;
   }
   get hairControls(): {
     label: string;
@@ -568,6 +581,7 @@ export class OutfitScene {
         effect.update(this.playing ? delta : 0, this.camera);
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
+      this.onFrame?.(this.poseTime, this.poseDuration);
       this.frame = requestAnimationFrame(draw);
     };
     this.frame = requestAnimationFrame(draw);
@@ -949,7 +963,7 @@ export class OutfitScene {
     return {
       width: this.renderer.domElement.clientWidth,
       height: this.renderer.domElement.clientHeight,
-      duration: this.body?.animations.find((clip) => clip.name === this.activeClip)?.duration ?? 0,
+      duration: this.poseDuration,
       begin: () => {
         const time = this.poseTime;
         const playing = this.playing;

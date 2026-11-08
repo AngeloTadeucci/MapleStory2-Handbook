@@ -20,7 +20,11 @@
   import { findOutfitItem, parseOutfitItemId } from '$lib/outfits/itemLink';
   import { starterOutfit } from '$lib/outfits/starterOutfit';
   import { applyDye, dyeChoices } from '$lib/outfits/dyePicker';
-  import { animationGroups, animationLabel } from '$lib/outfits/characterAnimations';
+  import {
+    animationGroups,
+    animationLabel,
+    filterAnimations
+  } from '$lib/outfits/characterAnimations';
   import CreateGifModal from '$lib/components/CreateGifModal.svelte';
   import type { GifCaptureSource } from '$lib/gifCapture';
   import ColorPanel from '$lib/outfits/ColorPanel.svelte';
@@ -87,7 +91,17 @@
   let body = $state('female');
   let clips = $state<string[]>([]);
   let clip = $state('');
+  let poseFilter = $state('');
+  const poseChoices = $derived(filterAnimations(clips, poseFilter, clip));
   let playing = $state(false);
+  let poseTime = $state(0);
+  let poseDuration = $state(0);
+  function followTimeline(scene: OutfitScene) {
+    scene.onFrame = (time, duration) => {
+      poseTime = time;
+      poseDuration = duration;
+    };
+  }
   let busy = $state(true);
   let gifOpen = $state(false);
   let gifSource = $state<GifCaptureSource>();
@@ -335,6 +349,7 @@
           : [...manifest, ...(await loadHairPreviews(fetch, location.href))];
         if (!active) return;
         viewer = new OutfitScene(container);
+        followTimeline(viewer);
         viewer.setCustomization(customization, assetBase);
         if (!(await viewer.setBackground(null))) {
           if (!active) return;
@@ -663,6 +678,7 @@
       viewer.destroy();
       staged.mount(container);
       viewer = staged;
+      followTimeline(viewer);
       staged = undefined;
       if (dev) Object.assign(container, { outfitViewer: viewer });
       body = code.body;
@@ -842,6 +858,15 @@
             ><option value="female">Female</option><option value="male">Male</option></select
           ></label
         >
+        <label class="pose-filter"
+          >Find pose<input
+            type="search"
+            aria-label="Find pose"
+            placeholder="Filter poses…"
+            disabled={busy}
+            bind:value={poseFilter}
+          /></label
+        >
         <label class="pose-control"
           >Pose<select
             aria-label="Pose"
@@ -853,14 +878,19 @@
               playing = true;
             }}
           >
-            {#each animationGroups(clips) as group}
+            {#each animationGroups(poseChoices) as group}
               <optgroup label={group.label}>
                 {#each group.clips as name}<option value={name}>{animationLabel(name)}</option
                   >{/each}
               </optgroup>
-            {/each}</select
+            {/each}
+            {#if poseFilter.trim() && poseChoices.every((name) => name === clip)}
+              <option disabled>No other poses match</option>
+            {/if}</select
           ></label
         >
+      </div>
+      <div class="pose-timeline">
         <button
           disabled={busy || !clip}
           onclick={() => {
@@ -868,6 +898,20 @@
             if (viewer) viewer.playing = playing;
           }}>{playing ? 'Pause' : 'Play'}</button
         >
+        <input
+          type="range"
+          aria-label="Pose frame"
+          min="0"
+          max={poseDuration || 1}
+          step="any"
+          value={poseTime}
+          disabled={busy || !poseDuration}
+          oninput={(event) => {
+            playing = false;
+            viewer?.seekPose(event.currentTarget.valueAsNumber);
+          }}
+        />
+        <span class="pose-clock">{poseTime.toFixed(2)} / {poseDuration.toFixed(2)}s</span>
       </div>
       <div class="fitting-room">
         <div class="slot-rail left-rail">
@@ -1431,7 +1475,7 @@
     justify-content: center;
     align-items: end;
     gap: 0.65rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.65rem;
   }
   label {
     display: flex;
@@ -1452,6 +1496,27 @@
   }
   .pose-control select {
     width: 100%;
+  }
+  .pose-filter {
+    flex: 1;
+    max-width: 10rem;
+  }
+  .pose-timeline {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    max-width: 640px;
+    margin: 0 auto 1rem;
+  }
+  .pose-timeline input {
+    flex: 1;
+    min-width: 0;
+  }
+  .pose-clock {
+    color: var(--color-surface-300);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   .appearance-controls {
     position: absolute;

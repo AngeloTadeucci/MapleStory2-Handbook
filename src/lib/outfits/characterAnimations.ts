@@ -72,3 +72,15 @@ export function animationGroups(clips: string[]) {
     }))
     .filter((group) => group.clips.length);
 }
+
+/** Matches the query against the display label and the raw clip name. `keep` always stays listed. */
+export function filterAnimations(clips: string[], query: string, keep = ''): string[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return clips;
+  return clips.filter(
+    (name) =>
+      name === keep ||
+      name.toLowerCase().includes(needle) ||
+      animationLabel(name).toLowerCase().includes(needle)
+  );
+}
