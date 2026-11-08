@@ -29,6 +29,8 @@
   import type { GifCaptureSource } from '$lib/gifCapture';
   import ColorPanel from '$lib/outfits/ColorPanel.svelte';
   import SlotIcon from '$lib/outfits/SlotIcon.svelte';
+  import BackgroundPicker from '$lib/outfits/BackgroundPicker.svelte';
+  import { backgroundUrl } from '$lib/outfits/backgrounds';
   import {
     decodeOutfit,
     encodeOutfit,
@@ -62,25 +64,15 @@
   let customization = $state<Customization>();
   let expression = $state('auto');
   let background = $state('');
-  async function chooseBackground(select: HTMLSelectElement) {
-    const value = select.value;
-    // The select is not bound to state, so a rejected choice must be reverted on the element.
-    if (!viewer || busy) {
-      select.value = background;
-      return;
-    }
+  async function chooseBackground(value: string) {
+    if (!viewer || busy) return;
     busy = true;
     error = '';
     try {
-      const applied = await viewer.setBackground(
-        value ? `${assetBase}backgrounds/bg/bg_${value}.png` : null
-      );
+      const applied = await viewer.setBackground(backgroundUrl(libraryBase, value));
       if (applied) background = value;
-      else {
-        select.value = background;
-        if (mounted)
-          error = 'Unable to load this background. Your previous background is still selected.';
-      }
+      else if (mounted)
+        error = 'Unable to load this background. Your previous background is still selected.';
     } finally {
       busy = false;
     }
@@ -554,7 +546,7 @@
         };
       }),
       expression,
-      background: background as OutfitCode['background'],
+      background,
       pose: clip,
       playing,
       effects: effectsEnabled,
@@ -661,11 +653,7 @@
           animations[n].set(name);
         });
       }
-      if (
-        !(await staged.setBackground(
-          code.background ? `${assetBase}backgrounds/bg/bg_${code.background}.png` : null
-        ))
-      )
+      if (!(await staged.setBackground(backgroundUrl(libraryBase, code.background))))
         throw new Error('Unable to load the saved background.');
       staged.selectClip(code.pose);
       staged.selectExpression(code.expression);
@@ -985,17 +973,12 @@
                 >{/each}</select
             ></label
           >
-          <label
-            >Background<select
-              aria-label="Background"
-              disabled={busy}
-              value={background}
-              onchange={(e) => chooseBackground(e.currentTarget)}
-              ><option value="">Studio</option><option value="blue">Blue sky</option><option
-                value="henesys_a">Henesys</option
-              ><option value="ellinia_a">Ellinia</option></select
-            ></label
-          >
+          <BackgroundPicker
+            value={background}
+            base={libraryBase}
+            disabled={busy}
+            onselect={chooseBackground}
+          />
         </div>
         <div class="body-colors">
           <ColorPanel

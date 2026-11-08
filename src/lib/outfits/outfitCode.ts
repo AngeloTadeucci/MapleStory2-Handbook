@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { bundleKey, fitHair, placeWeapon, resolveBundle, type CatalogItem } from './catalog';
 import type { NativeAsset } from '$lib/nativeAssets';
+import { backgroundIdSchema } from './backgrounds';
 
 export const MAX_CODE_LENGTH = 48_000;
 const MAX_JSON_BYTES = 32_000;
@@ -47,7 +48,7 @@ export const outfitCodeSchema = z
       )
       .max(20),
     expression: z.string().min(1).max(60),
-    background: z.enum(['', 'blue', 'henesys_a', 'ellinia_a']),
+    background: backgroundIdSchema,
     pose: z.string().min(1).max(100),
     playing: z.boolean(),
     effects: z.boolean(),
